@@ -111,22 +111,19 @@
                     const result = await Auth.login(password);
                     
                     if (result.success) {
-                        showSuccess('登录成功，正在跳转...');
+                        // 检查是否使用默认密码
+                        if (result.isDefaultPassword) {
+                            showSuccess('⚠️ ' + result.message + ' - 为了安全，建议尽快修改密码');
+                        } else {
+                            showSuccess('登录成功，正在跳转...');
+                        }
                         setTimeout(() => {
                             Auth.redirectAfterLogin();
                         }, 1000);
                     } else {
                         // 处理特殊错误状态
-                        if (result.isDefaultPassword || result.requirePasswordChange) {
-                            showError('🔒 安全提示：检测到默认密码，正在跳转到密码设置页面...');
-                            setTimeout(() => {
-                                window.location.href = '/setup-password.html';
-                            }, 1500);
-                        } else if (result.requireInitialSetup) {
-                            showError('🚀 首次使用：系统需要初始化，正在跳转到密码设置页面...');
-                            setTimeout(() => {
-                                window.location.href = '/setup-password.html';
-                            }, 1500);
+                        if (result.requireInitialSetup) {
+                            showError('🚀 系统需要初始化，请联系管理员或检查数据库配置');
                         } else if (result.configRequired) {
                             showError('⚙️ 配置错误：' + (result.details || result.error));
                         } else {

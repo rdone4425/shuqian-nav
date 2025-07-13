@@ -20,6 +20,7 @@ export async function onRequestPost(context) {
 
     let correctPassword = null;
     let passwordSource = '';
+    let isUsingDefaultPassword = false; // 添加到这里
 
     // 认证优先级：
     // 1. 环境变量（管理员密码，最高优先级）
@@ -39,18 +40,9 @@ export async function onRequestPost(context) {
         correctPassword = configResult?.config_value;
         passwordSource = 'database';
         
-        // 检查是否是默认密码
+        // 检查是否是默认密码，允许登录但标记状态
         if (correctPassword === 'admin123') {
-          return new Response(JSON.stringify({
-            success: false,
-            error: '安全警告：检测到默认密码',
-            details: '首次使用请设置安全密码。默认密码不能用于生产环境。',
-            isDefaultPassword: true,
-            requirePasswordChange: true
-          }), {
-            status: 403,
-            headers: { 'Content-Type': 'application/json' }
-          });
+          isUsingDefaultPassword = true;
         }
       } catch (dbError) {
         console.error('从数据库读取密码失败:', dbError);
@@ -94,7 +86,8 @@ export async function onRequestPost(context) {
       sub: 'admin',
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // 24小时过期
-      passwordSource: passwordSource // 记录密码来源
+      passwordSource: passwordSource, // 记录密码来源
+      isDefaultPassword: isUsingDefaultPassword || false // 标记是否使用默认密码
     })
       .setProtectedHeader({ alg: 'HS256' })
       .sign(secret);
@@ -102,8 +95,9 @@ export async function onRequestPost(context) {
     return new Response(JSON.stringify({
       success: true,
       token: token,
-      message: '登录成功',
+      message: isUsingDefaultPassword ? '登录成功，建议尽快修改默认密码' : '登录成功',
       passwordSource: passwordSource,
+      isDefaultPassword: isUsingDefaultPassword || false, // 前端需要知道这个状态
       canChangePassword: passwordSource === 'database', // 只有数据库密码可以通过界面修改
       jwtSource: env.JWT_SECRET ? 'environment' : 'database' // 显示JWT密钥来源
     }), {
