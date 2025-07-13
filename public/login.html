@@ -18,6 +18,7 @@
                     <h1 class="logo-text">书签导航</h1>
                 </div>
                 <p class="login-subtitle">请输入密码以访问您的书签</p>
+                <p class="login-hint">💡 首次使用？系统会自动引导您设置密码</p>
             </div>
 
             <form id="loginForm" class="login-form">
@@ -117,17 +118,17 @@
                     } else {
                         // 处理特殊错误状态
                         if (result.isDefaultPassword || result.requirePasswordChange) {
-                            showError('检测到默认密码，请先设置安全密码');
+                            showError('🔒 安全提示：检测到默认密码，需要设置新密码才能继续使用');
                             setTimeout(() => {
                                 window.location.href = '/setup-password.html';
-                            }, 2000);
+                            }, 3000);
                         } else if (result.requireInitialSetup) {
-                            showError('系统未初始化，正在跳转到密码设置页面...');
+                            showError('🚀 首次使用：系统需要初始化，请设置登录密码');
                             setTimeout(() => {
                                 window.location.href = '/setup-password.html';
-                            }, 2000);
+                            }, 3000);
                         } else if (result.configRequired) {
-                            showError('系统配置不完整：' + (result.details || result.error));
+                            showError('⚙️ 配置错误：' + (result.details || result.error));
                         } else {
                             showError(result.error || '登录失败');
                         }

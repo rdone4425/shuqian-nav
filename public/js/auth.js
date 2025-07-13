@@ -76,10 +76,24 @@ const Auth = {
           throw new Error('登录响应中缺少令牌');
         }
       } else {
-        return {
+        // 处理特殊错误状态
+        const result = {
           success: false,
           error: response.error || '登录失败'
         };
+        
+        // 传递特殊状态标识
+        if (response.requireInitialSetup) {
+          result.requireInitialSetup = true;
+        }
+        if (response.isDefaultPassword) {
+          result.isDefaultPassword = true;
+        }
+        if (response.requirePasswordChange) {
+          result.requirePasswordChange = true;
+        }
+        
+        return result;
       }
     } catch (error) {
       console.error('登录错误:', error);

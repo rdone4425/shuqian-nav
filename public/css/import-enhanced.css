@@ -1,72 +1,5 @@
 /* 导入页面 - 现代化设计 */
-
-/* 基础变量 */
-:root {
-    /* 颜色系统 */
-    --primary-color: #667eea;
-    --primary-dark: #5a67d8;
-    --secondary-color: #f7fafc;
-    
-    /* 文本颜色 */
-    --text-primary: #1a202c;
-    --text-secondary: #4a5568;
-    --text-muted: #718096;
-    --text-light: #a0aec0;
-    
-    /* 背景颜色 */
-    --bg-primary: #ffffff;
-    --bg-secondary: #f7fafc;
-    --bg-soft: #edf2f7;
-    --bg-glass: rgba(255, 255, 255, 0.85);
-    
-    /* 边框颜色 */
-    --border-light: #e2e8f0;
-    --border-medium: #cbd5e0;
-    --border-focus: #667eea;
-    
-    /* 状态颜色 */
-    --success-color: #48bb78;
-    --success-light: #c6f6d5;
-    --warning-color: #ed8936;
-    --warning-light: #fef2e8;
-    --error-color: #f56565;
-    --error-light: #fed7d7;
-    --info-color: #4299e1;
-    --info-light: #bee3f8;
-    
-    /* 间距系统 */
-    --spacing-xs: 4px;
-    --spacing-sm: 8px;
-    --spacing-md: 16px;
-    --spacing-lg: 24px;
-    --spacing-xl: 32px;
-    --spacing-2xl: 48px;
-    
-    /* 圆角 */
-    --radius-sm: 6px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    
-    /* 阴影 */
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-    --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
-    
-    /* 字体大小 */
-    --font-xs: 0.75rem;
-    --font-sm: 0.875rem;
-    --font-base: 1rem;
-    --font-lg: 1.125rem;
-    --font-xl: 1.25rem;
-    --font-2xl: 1.5rem;
-    --font-3xl: 1.875rem;
-    
-    /* 动画 */
-    --transition-fast: 0.15s ease;
-    --transition-normal: 0.2s ease;
-    --transition-slow: 0.3s ease;
-}
+/* 继承主样式文件的变量定义，只定义特殊需要的变量 */
 
 /* 全局样式 */
 * {
@@ -264,12 +197,19 @@ body {
     color: var(--success-color);
 }
 
-/* 主要内容区域 */
-.main-content {
+/* 导入页面特定的主内容区域 */
+.import-page .main-content {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-xl);
+    gap: var(--spacing-sm);
+    /* 覆盖主样式的所有可能导致空白的属性 */
+    min-height: auto !important;
+    background: transparent !important;
+    margin-bottom: 0 !important;
+    padding: 0 !important;
+    backdrop-filter: none !important;
+    border-radius: 0 !important;
 }
 
 .content-section {
@@ -306,21 +246,21 @@ body {
 .file-upload-area {
     display: grid;
     grid-template-columns: 2fr 1fr;
-    gap: var(--spacing-xl);
-    margin: var(--spacing-xl) 0;
+    gap: var(--spacing-lg);
+    margin: var(--spacing-md) 0;
 }
 
 .upload-area {
     border: 3px dashed var(--border-medium);
     border-radius: var(--radius-lg);
-    padding: var(--spacing-2xl);
+    padding: var(--spacing-xl);
     text-align: center;
     background: var(--bg-secondary);
     transition: all var(--transition-normal);
     cursor: pointer;
     position: relative;
     overflow: hidden;
-    min-height: 280px;
+    min-height: 220px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -681,6 +621,10 @@ body {
     color: var(--primary-color);
 }
 
+.progress-container {
+    margin-bottom: var(--spacing-lg);
+}
+
 .progress-bar {
     width: 100%;
     height: 8px;
@@ -688,6 +632,13 @@ body {
     border-radius: 4px;
     overflow: hidden;
     margin-bottom: var(--spacing-lg);
+}
+
+.progress-text {
+    text-align: center;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-top: var(--spacing-sm);
 }
 
 .progress-fill {
@@ -935,11 +886,11 @@ body {
 }
 
 /* 导入步骤控制 - 高优先级 */
-.main-content .import-step {
+.import-page .main-content .import-step {
     display: none !important;
 }
 
-.main-content .import-step.active {
+.import-page .main-content .import-step.active {
     display: block !important;
     animation: fadeIn 0.3s ease-in-out;
 }
@@ -959,7 +910,7 @@ body {
     background: var(--bg-glass);
     backdrop-filter: blur(10px);
     border-radius: var(--radius-lg);
-    padding: var(--spacing-xl);
+    padding: var(--spacing-lg);
     box-shadow: var(--shadow-md);
     border: 1px solid var(--border-light);
 }
@@ -1102,6 +1053,167 @@ body {
     text-overflow: ellipsis;
 }
 
+/* 导入设置选项样式 */
+.import-options {
+    display: grid;
+    gap: var(--spacing-xl);
+}
+
+.option-group {
+    background: var(--bg-primary);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    border: 1px solid var(--border-light);
+}
+
+.option-group h3 {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-md) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+/* 单选按钮组 */
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.radio-option {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+    border: 1px solid transparent;
+}
+
+.radio-option:hover {
+    background: var(--bg-secondary);
+    border-color: var(--border-light);
+}
+
+.radio-option input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--primary-color);
+    margin: 0;
+}
+
+.radio-mark {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-medium);
+    border-radius: 50%;
+    position: relative;
+    flex-shrink: 0;
+    transition: all var(--transition-fast);
+}
+
+.radio-option input[type="radio"]:checked + .radio-mark {
+    border-color: var(--primary-color);
+    background: var(--primary-color);
+}
+
+.radio-option input[type="radio"]:checked + .radio-mark::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* 复选框组 */
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.checkbox-option {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+    border: 1px solid transparent;
+}
+
+.checkbox-option:hover {
+    background: var(--bg-secondary);
+    border-color: var(--border-light);
+}
+
+.checkbox-option input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--primary-color);
+    margin: 0;
+}
+
+.checkbox-mark {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-medium);
+    border-radius: var(--radius-xs);
+    position: relative;
+    flex-shrink: 0;
+    transition: all var(--transition-fast);
+}
+
+.checkbox-option input[type="checkbox"]:checked + .checkbox-mark {
+    border-color: var(--primary-color);
+    background: var(--primary-color);
+}
+
+.checkbox-option input[type="checkbox"]:checked + .checkbox-mark::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    color: white;
+    font-size: var(--font-size-sm);
+    font-weight: bold;
+    transform: translate(-50%, -50%);
+}
+
+.option-content {
+    flex: 1;
+}
+
+.option-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-size-base);
+}
+
+.option-desc {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* 隐藏原生输入控件 */
+.radio-option input[type="radio"],
+.checkbox-option input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
 /* 导入设置 */
 .import-settings {
     display: grid;
@@ -1186,8 +1298,8 @@ body {
     background: var(--bg-glass);
     backdrop-filter: blur(10px);
     border-radius: var(--radius-lg);
-    padding: var(--spacing-xl);
-    margin-top: var(--spacing-xl);
+    padding: var(--spacing-lg);
+    margin-top: 0;
     border: 1px solid var(--border-light);
     box-shadow: var(--shadow-md);
 }

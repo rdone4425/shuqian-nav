@@ -86,7 +86,10 @@ const App = {
 
       // 修改密码相关
       changePasswordBtn: 'changePasswordBtn',
-      changePasswordModal: 'changePasswordModal'
+      changePasswordModal: 'changePasswordModal',
+      closePasswordModal: 'closePasswordModal',
+      cancelPasswordChange: 'cancelPasswordChange',
+      changePasswordForm: 'changePasswordForm'
     };
     
     this.elements = DOMHelper.getElements(selectors);

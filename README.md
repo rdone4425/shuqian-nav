@@ -71,10 +71,36 @@ wrangler pages project create bookmark-navigator
 # 5. 创建D1数据库
 wrangler d1 create bookmarks-db
 
-# 6. 更新wrangler.toml中的database_id
+# 6. （可选）创建R2存储桶用于备份
+wrangler r2 bucket create bookmark-backups
 
-# 7. 部署
+# 7. 配置绑定（见下方说明）
+
+# 8. 部署
 npm run deploy
+```
+
+#### 📊 Cloudflare绑定配置
+
+在Cloudflare Pages项目设置中配置以下绑定：
+
+**D1数据库绑定：**
+```
+变量名: BOOKMARKS_DB
+数据库: 你创建的数据库名称
+```
+
+**R2存储绑定（可选，用于备份功能）：**
+```
+变量名: BACKUP_BUCKET
+存储桶: bookmark-backups
+```
+
+**环境变量（可选）：**
+```
+NODE_VERSION: 18
+ADMIN_PASSWORD: 你的管理密码
+JWT_SECRET: 你的JWT密钥
 ```
 
 ## 🔒 安全配置
