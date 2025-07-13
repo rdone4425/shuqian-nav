@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>删除记录 - 书签导航</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/deleted-bookmarks-enhanced.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <!-- 统一的头部导航 -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">🗑️</span>
+                    <h1 class="logo-text">删除记录</h1>
+                </div>
+
+                <!-- 统一的功能按钮组 -->
+                <div class="header-actions">
+                    <!-- 工具菜单 -->
+                    <div class="action-group tools-menu">
+                        <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" title="工具菜单">
+                            <span class="btn-icon">🛠️</span>
+                            <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div id="toolsDropdown" class="dropdown-menu">
+                            <a href="/" class="dropdown-item">
+                                <span class="item-icon">🏠</span>
+                                <div class="item-content">
+                                    <span class="item-text">首页</span>
+                                    <span class="item-desc">返回书签首页</span>
+                                </div>
+                            </a>
+                            <a href="/token.html" class="dropdown-item">
+                                <span class="item-icon">🔑</span>
+                                <div class="item-content">
+                                    <span class="item-text">API令牌</span>
+                                    <span class="item-desc">管理访问令牌</span>
+                                </div>
+                            </a>
+                            <a href="/link-checker.html" class="dropdown-item">
+                                <span class="item-icon">🔗</span>
+                                <div class="item-content">
+                                    <span class="item-text">链接检查</span>
+                                    <span class="item-desc">检查链接有效性</span>
+                                </div>
+                            </a>
+                            <a href="/deleted-bookmarks.html" class="dropdown-item">
+                                <span class="item-icon">🗑️</span>
+                                <div class="item-content">
+                                    <span class="item-text">删除记录</span>
+                                    <span class="item-desc">查看和恢复删除的书签</span>
+                                </div>
+                            </a>
+                            <a href="/notifications.html" class="dropdown-item">
+                                <span class="item-icon">🔔</span>
+                                <div class="item-content">
+                                    <span class="item-text">通知中心</span>
+                                    <span class="item-desc">查看系统通知</span>
+                                </div>
+                            </a>
+                            <a href="/import.html" class="dropdown-item">
+                                <span class="item-icon">📥</span>
+                                <div class="item-content">
+                                    <span class="item-text">导入书签</span>
+                                    <span class="item-desc">从文件导入书签</span>
+                                </div>
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <button id="changePasswordBtn" class="dropdown-item">
+                                <span class="item-icon">🔐</span>
+                                <div class="item-content">
+                                    <span class="item-text">修改密码</span>
+                                    <span class="item-desc">更改管理员密码</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主要内容 -->
+        <main class="main-content">
+            <!-- 统计信息 -->
+            <div class="stats-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalDeleted">0</div>
+                        <div class="stat-label">总删除数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="manualDeleted">0</div>
+                        <div class="stat-label">手动删除</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="autoDeleted">0</div>
+                        <div class="stat-label">自动删除</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="todayDeleted">0</div>
+                        <div class="stat-label">今日删除</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 操作栏 -->
+            <div class="actions-section">
+                <div class="actions-left">
+                    <button id="refreshBtn" class="btn btn-primary">
+                        🔄 刷新列表
+                    </button>
+                    <button id="clearAllBtn" class="btn btn-danger">
+                        🧹 清空所有记录
+                    </button>
+                </div>
+                <div class="actions-right">
+                    <select id="filterSelect" class="filter-select">
+                        <option value="all">所有记录</option>
+                        <option value="manual_delete">手动删除</option>
+                        <option value="link_check_failed">链接检查失败</option>
+                        <option value="batch_delete_inaccessible">批量删除</option>
+                    </select>
+                    <input type="search" id="searchInput" placeholder="搜索标题或URL..." class="search-input">
+                </div>
+            </div>
+
+            <!-- 删除记录列表 -->
+            <div class="records-section">
+                <div id="recordsList" class="records-list">
+                    <div class="loading">加载删除记录...</div>
+                </div>
+                
+                <!-- 分页 -->
+                <div id="pagination" class="pagination hidden">
+                    <button id="prevPage" class="btn btn-secondary">上一页</button>
+                    <span id="pageInfo" class="page-info">第 1 页，共 1 页</span>
+                    <button id="nextPage" class="btn btn-secondary">下一页</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 恢复确认模态框 -->
+    <div id="restoreModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🔄 恢复书签</h3>
+                <button id="closeRestoreModal" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="restoreBookmarkInfo"></div>
+                <p>确定要恢复这个书签吗？</p>
+                <div class="modal-actions">
+                    <button id="cancelRestore" class="btn btn-secondary">取消</button>
+                    <button id="confirmRestore" class="btn btn-primary">确认恢复</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 详情模态框 -->
+    <div id="detailModal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>📋 删除详情</h3>
+                <button id="closeDetailModal" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="bookmarkDetails"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/js/utils/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/deleted-bookmarks.js"></script>
+</body>
+</html>

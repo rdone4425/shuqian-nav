@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据库诊断 - 书签导航</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+
+        .btn:hover {
+            background: #2563eb;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 6px;
+            border-left: 4px solid #e5e7eb;
+        }
+
+        .check-item.pass {
+            background: #f0fdf4;
+            border-left-color: #10b981;
+        }
+
+        .check-item.fail {
+            background: #fef2f2;
+            border-left-color: #ef4444;
+        }
+
+        .check-item.error {
+            background: #fffbeb;
+            border-left-color: #f59e0b;
+        }
+
+        .check-item.info {
+            background: #eff6ff;
+            border-left-color: #3b82f6;
+        }
+
+        .check-status {
+            font-weight: 600;
+            margin-right: 12px;
+            min-width: 60px;
+            font-size: 12px;
+        }
+
+        .check-content {
+            flex: 1;
+        }
+
+        .check-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .check-details {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .summary.healthy {
+            background: #f0fdf4;
+            border: 1px solid #10b981;
+        }
+
+        .summary.needs-attention {
+            background: #fef2f2;
+            border: 1px solid #ef4444;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .actions {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">🔍 数据库诊断</h1>
+            <p class="subtitle">检查数据库绑定和表结构状态</p>
+        </div>
+
+        <div class="actions">
+            <button id="runDiagnosis" class="btn">🔍 运行诊断</button>
+            <button id="showRaw" class="btn" style="display: none;">📄 显示原始数据</button>
+            <a href="/init.html" class="btn">🛠️ 初始化数据库</a>
+            <a href="/" class="btn">🏠 返回首页</a>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            正在运行诊断...
+        </div>
+
+        <div id="results" style="display: none;">
+            <div id="summary"></div>
+            <div id="checks"></div>
+            <div id="rawData" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        class DatabaseDiagnostic {
+            constructor() {
+                this.runBtn = document.getElementById('runDiagnosis');
+                this.showRawBtn = document.getElementById('showRaw');
+                this.loading = document.getElementById('loading');
+                this.results = document.getElementById('results');
+                this.summary = document.getElementById('summary');
+                this.checks = document.getElementById('checks');
+                this.rawData = document.getElementById('rawData');
+                
+                this.bindEvents();
+                this.runDiagnosis(); // 自动运行
+            }
+
+            bindEvents() {
+                this.runBtn.addEventListener('click', () => this.runDiagnosis());
+                this.showRawBtn.addEventListener('click', () => this.toggleRawData());
+            }
+
+            async runDiagnosis() {
+                try {
+                    this.loading.style.display = 'block';
+                    this.results.style.display = 'none';
+                    this.runBtn.disabled = true;
+
+                    const response = await fetch('/api/system/diagnose');
+                    const data = await response.json();
+
+                    this.displayResults(data);
+                    this.showRawBtn.style.display = 'inline-block';
+
+                } catch (error) {
+                    this.displayError(error);
+                } finally {
+                    this.loading.style.display = 'none';
+                    this.results.style.display = 'block';
+                    this.runBtn.disabled = false;
+                }
+            }
+
+            displayResults(data) {
+                // 显示总结
+                if (data.diagnosis && data.diagnosis.summary) {
+                    const summary = data.diagnosis.summary;
+                    const summaryClass = summary.overallStatus === 'HEALTHY' ? 'healthy' : 'needs-attention';
+                    
+                    this.summary.className = `summary ${summaryClass}`;
+                    this.summary.innerHTML = `
+                        <h3>📊 诊断总结</h3>
+                        <p><strong>整体状态:</strong> ${summary.overallStatus === 'HEALTHY' ? '✅ 健康' : '⚠️ 需要注意'}</p>
+                        <p><strong>表结构:</strong> ${summary.tablesExist ? '✅ 完整' : '❌ 缺失'}</p>
+                        <p><strong>需要初始化:</strong> ${summary.needsInitialization ? '是' : '否'}</p>
+                        <p><strong>检查结果:</strong> ${summary.totalChecks - summary.failedChecks}/${summary.totalChecks} 通过</p>
+                        ${data.recommendation ? `<p><strong>建议:</strong> ${data.recommendation}</p>` : ''}
+                    `;
+                }
+
+                // 显示详细检查
+                if (data.diagnosis && data.diagnosis.checks) {
+                    this.checks.innerHTML = '<h3>🔍 详细检查</h3>';
+                    
+                    data.diagnosis.checks.forEach(check => {
+                        const statusClass = check.status.toLowerCase();
+                        const checkElement = document.createElement('div');
+                        checkElement.className = `check-item ${statusClass}`;
+                        checkElement.innerHTML = `
+                            <div class="check-status">${check.status}</div>
+                            <div class="check-content">
+                                <div class="check-name">${check.name}</div>
+                                <div class="check-details">${check.message} - ${check.details}</div>
+                            </div>
+                        `;
+                        this.checks.appendChild(checkElement);
+                    });
+                }
+
+                // 保存原始数据
+                this.rawDataContent = data;
+            }
+
+            displayError(error) {
+                this.summary.className = 'summary needs-attention';
+                this.summary.innerHTML = `
+                    <h3>❌ 诊断失败</h3>
+                    <p>无法完成数据库诊断: ${error.message}</p>
+                `;
+                this.checks.innerHTML = '';
+            }
+
+            toggleRawData() {
+                if (this.rawData.style.display === 'none') {
+                    this.rawData.style.display = 'block';
+                    this.rawData.innerHTML = `
+                        <h3>📄 原始诊断数据</h3>
+                        <pre>${JSON.stringify(this.rawDataContent, null, 2)}</pre>
+                    `;
+                    this.showRawBtn.textContent = '📄 隐藏原始数据';
+                } else {
+                    this.rawData.style.display = 'none';
+                    this.showRawBtn.textContent = '📄 显示原始数据';
+                }
+            }
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            new DatabaseDiagnostic();
+        });
+    </script>
+</body>
+</html>

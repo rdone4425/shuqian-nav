@@ -1,0 +1,23 @@
+<!-- 
+这是一个占位符favicon文件。
+在实际部署时，请替换为真正的.ico文件。
+您可以使用在线工具如 favicon.io 来生成favicon。
+
+建议的favicon设计：
+- 使用书签或书本图标
+- 采用渐变色彩（蓝色到紫色）
+- 16x16, 32x32, 48x48 像素尺寸
+-->
+
+<!-- 临时使用SVG作为favicon -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" fill="url(#grad)" rx="6"/>
+  <path d="M8 6h16c1.1 0 2 .9 2 2v16c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2V8c0-1.1.9-2 2-2z" fill="white" opacity="0.9"/>
+  <path d="M10 10h12v2H10zm0 4h12v2H10zm0 4h8v2h-8z" fill="url(#grad)"/>
+</svg>

@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API访问令牌管理 - 书签导航</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/token-enhanced.css">
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 统一的头部导航 -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">🔑</span>
+                    <h1 class="logo-text">API访问令牌</h1>
+                </div>
+
+                <!-- 统一的功能按钮组 -->
+                <div class="header-actions">
+                    <!-- 工具菜单 -->
+                    <div class="action-group tools-menu">
+                        <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" title="工具菜单">
+                            <span class="btn-icon">🛠️</span>
+                            <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div id="toolsDropdown" class="dropdown-menu">
+                            <a href="/" class="dropdown-item">
+                                <span class="item-icon">🏠</span>
+                                <div class="item-content">
+                                    <span class="item-text">首页</span>
+                                    <span class="item-desc">返回书签首页</span>
+                                </div>
+                            </a>
+                            <a href="/link-checker.html" class="dropdown-item">
+                                <span class="item-icon">🔗</span>
+                                <div class="item-content">
+                                    <span class="item-text">链接检查</span>
+                                    <span class="item-desc">检查链接有效性</span>
+                                </div>
+                            </a>
+                            <a href="/deleted-bookmarks.html" class="dropdown-item">
+                                <span class="item-icon">🗑️</span>
+                                <div class="item-content">
+                                    <span class="item-text">删除记录</span>
+                                    <span class="item-desc">查看和恢复删除的书签</span>
+                                </div>
+                            </a>
+                            <a href="/notifications.html" class="dropdown-item">
+                                <span class="item-icon">🔔</span>
+                                <div class="item-content">
+                                    <span class="item-text">通知中心</span>
+                                    <span class="item-desc">查看系统通知</span>
+                                </div>
+                            </a>
+                            <a href="/import.html" class="dropdown-item">
+                                <span class="item-icon">📥</span>
+                                <div class="item-content">
+                                    <span class="item-text">导入书签</span>
+                                    <span class="item-desc">从文件导入书签</span>
+                                </div>
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <button id="changePasswordBtn" class="dropdown-item">
+                                <span class="item-icon">🔐</span>
+                                <div class="item-content">
+                                    <span class="item-text">修改密码</span>
+                                    <span class="item-desc">更改管理员密码</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="token-container">
+            <!-- 生成新令牌 -->
+            <div class="token-card">
+                <div class="token-header">
+                    <h2>🔑 生成新的API访问令牌</h2>
+                </div>
+                
+                <form id="tokenForm" class="token-form">
+                    <div class="form-group">
+                        <label class="form-label" for="tokenName">令牌名称 *</label>
+                        <input type="text" id="tokenName" class="form-input" 
+                               placeholder="例如: Chrome插件访问" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="tokenDescription">描述</label>
+                        <input type="text" id="tokenDescription" class="form-input" 
+                               placeholder="令牌用途说明（可选）">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="tokenExpires">有效期</label>
+                        <select id="tokenExpires" class="form-select">
+                            <option value="7">7天</option>
+                            <option value="30" selected>30天</option>
+                            <option value="90">90天</option>
+                            <option value="365">1年</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <span class="btn-icon">🔑</span>
+                        生成令牌
+                    </button>
+                </form>
+                
+                <!-- 生成的令牌显示 -->
+                <div id="tokenResult" class="hidden">
+                    <h3>✅ 令牌生成成功</h3>
+                    <div class="warning-box">
+                        <strong>⚠️ 重要提醒：</strong>
+                        请立即复制并保存此令牌，页面刷新后将无法再次查看！
+                    </div>
+                    <div class="token-display">
+                        <span id="generatedToken"></span>
+                        <button class="copy-btn" onclick="copyToken()">复制</button>
+                    </div>
+                    <div class="token-meta">
+                        <p><strong>令牌名称：</strong><span id="resultName"></span></p>
+                        <p><strong>过期时间：</strong><span id="resultExpires"></span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 现有令牌列表 -->
+            <div class="token-card">
+                <div class="token-header">
+                    <h2>📋 现有令牌</h2>
+                    <button onclick="loadTokens()" class="btn btn-outline">
+                        <span class="btn-icon">🔄</span>
+                        刷新
+                    </button>
+                </div>
+                
+                <div id="tokenList" class="token-list">
+                    <div class="loading">加载中...</div>
+                </div>
+            </div>
+
+            <!-- 使用说明 -->
+            <div class="token-card">
+                <h2>📖 使用说明</h2>
+                <div class="info-content">
+                    <h3>Chrome插件配置</h3>
+                    <ol>
+                        <li>生成API访问令牌</li>
+                        <li>在Chrome插件中配置服务器地址和令牌</li>
+                        <li>测试连接确保配置正确</li>
+                        <li>开始同步书签</li>
+                    </ol>
+                    
+                    <h3>令牌管理</h3>
+                    <ul>
+                        <li><strong>生成令牌：</strong>填写令牌名称和有效期，点击生成</li>
+                        <li><strong>查看令牌：</strong>在现有令牌列表中查看所有令牌状态</li>
+                        <li><strong>删除令牌：</strong>点击删除按钮可立即撤销令牌访问权限</li>
+                        <li><strong>过期处理：</strong>过期令牌会自动失效，建议及时清理</li>
+                    </ul>
+
+                    <h3>API使用方式</h3>
+                    <p>在HTTP请求头中添加：</p>
+                    <div class="token-display">
+                        X-API-Token: your-token-here
+                    </div>
+
+                    <h3>安全提醒</h3>
+                    <ul>
+                        <li>令牌具有完整的API访问权限，请妥善保管</li>
+                        <li>不要在公开场所或不安全的环境中暴露令牌</li>
+                        <li>定期检查和清理不需要的令牌</li>
+                        <li>如发现令牌泄露，请立即删除并重新生成</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/utils/api.js"></script>
+    <script>
+        // 工具菜单功能
+        document.addEventListener('DOMContentLoaded', () => {
+            const toolsMenuToggle = document.getElementById('toolsMenuToggle');
+            const toolsDropdown = document.getElementById('toolsDropdown');
+
+            if (toolsMenuToggle && toolsDropdown) {
+                // 切换下拉菜单
+                toolsMenuToggle.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toolsDropdown.classList.toggle('show');
+                    toolsMenuToggle.classList.toggle('active');
+                });
+
+                // 点击其他地方关闭菜单
+                document.addEventListener('click', (e) => {
+                    if (!toolsMenuToggle.contains(e.target) && !toolsDropdown.contains(e.target)) {
+                        toolsDropdown.classList.remove('show');
+                        toolsMenuToggle.classList.remove('active');
+                    }
+                });
+
+                // 修改密码按钮事件
+                const changePasswordBtn = document.getElementById('changePasswordBtn');
+                if (changePasswordBtn) {
+                    changePasswordBtn.addEventListener('click', () => {
+                        // 重定向到首页并触发密码修改模态框
+                        window.location.href = '/?action=change-password';
+                    });
+                }
+            }
+        });
+
+        // 页面加载时检查登录状态和加载令牌
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 检查是否已登录
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            await loadTokens();
+        });
+
+        // 生成令牌
+        document.getElementById('tokenForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('tokenName').value;
+            const description = document.getElementById('tokenDescription').value;
+            const expiresIn = parseInt(document.getElementById('tokenExpires').value);
+            
+            try {
+                const response = await API.post('/api/auth/token', {
+                    name,
+                    description,
+                    expiresIn
+                });
+                
+                if (response.success) {
+                    // 显示生成的令牌
+                    document.getElementById('generatedToken').textContent = response.data.token;
+                    document.getElementById('resultName').textContent = response.data.name;
+                    document.getElementById('resultExpires').textContent = response.data.expiresAt;
+                    document.getElementById('tokenResult').classList.remove('hidden');
+                    
+                    // 清空表单
+                    document.getElementById('tokenForm').reset();
+                    
+                    // 刷新令牌列表
+                    await loadTokens();
+                } else {
+                    alert('生成令牌失败: ' + response.error);
+                }
+            } catch (error) {
+                alert('生成令牌失败: ' + error.message);
+            }
+        });
+
+        // 加载令牌列表
+        async function loadTokens() {
+            try {
+                const response = await API.get('/api/auth/token');
+                const tokenList = document.getElementById('tokenList');
+                
+                if (response.success && response.data.length > 0) {
+                    tokenList.innerHTML = response.data.map(token => {
+                        const isExpired = new Date(token.expires) <= new Date();
+                        return `
+                        <div class="token-item" data-token-id="${token.id}" data-token-name="${token.name.replace(/"/g, '&quot;')}">
+                            <div class="token-info">
+                                <h4>${token.name}</h4>
+                                <div class="token-meta">
+                                    <div>描述: ${token.description || '无'}</div>
+                                    <div>创建时间: ${new Date(token.created).toLocaleString()}</div>
+                                    <div>过期时间: ${new Date(token.expires).toLocaleString()}</div>
+                                </div>
+                            </div>
+                            <div class="token-actions">
+                                <span class="status-badge ${isExpired ? 'disconnected' : 'connected'}">
+                                    ${isExpired ? '已过期' : '有效'}
+                                </span>
+                                <button class="delete-btn" data-action="delete" title="删除令牌">
+                                    🗑️ 删除
+                                </button>
+                            </div>
+                        </div>
+                        `;
+                    }).join('');
+
+                    // 移除旧的事件监听器并添加新的
+                    tokenList.removeEventListener('click', handleTokenAction);
+                    tokenList.addEventListener('click', handleTokenAction);
+                } else {
+                    tokenList.innerHTML = '<div class="empty-state">暂无API令牌</div>';
+                }
+            } catch (error) {
+                document.getElementById('tokenList').innerHTML = '<div class="error">加载失败: ' + error.message + '</div>';
+            }
+        }
+
+        // 处理token操作事件
+        function handleTokenAction(event) {
+            const button = event.target.closest('.delete-btn');
+            if (!button) return;
+
+            const tokenItem = button.closest('.token-item');
+            const tokenId = tokenItem.dataset.tokenId;
+            const tokenName = tokenItem.dataset.tokenName;
+
+            if (button.dataset.action === 'delete') {
+                deleteToken(tokenId, tokenName);
+            }
+        }
+
+        // 显示确认对话框
+        function showConfirmDialog(title, message, onConfirm) {
+            const dialog = document.createElement('div');
+            dialog.className = 'confirm-dialog';
+            dialog.innerHTML = `
+                <div class="confirm-content">
+                    <div class="confirm-title">${title}</div>
+                    <div class="confirm-message">${message}</div>
+                    <div class="confirm-actions">
+                        <button class="btn btn-secondary" id="cancelBtn">
+                            取消
+                        </button>
+                        <button class="btn btn-primary" style="background: var(--error-color);" id="confirmBtn">
+                            确认删除
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // 添加事件监听器
+            const cancelBtn = dialog.querySelector('#cancelBtn');
+            const confirmBtn = dialog.querySelector('#confirmBtn');
+
+            cancelBtn.addEventListener('click', () => {
+                dialog.remove();
+            });
+
+            confirmBtn.addEventListener('click', () => {
+                dialog.remove();
+                onConfirm();
+            });
+
+            document.body.appendChild(dialog);
+        }
+
+        // 删除令牌
+        function deleteToken(tokenId, tokenName) {
+            // 显示确认对话框
+            showConfirmDialog(
+                '⚠️ 删除API令牌',
+                `确定要删除令牌 "<strong>${tokenName}</strong>" 吗？<br><br>删除后该令牌将立即失效，无法恢复。`,
+                () => performDeleteToken(tokenId, tokenName)
+            );
+        }
+
+        // 执行删除操作
+        async function performDeleteToken(tokenId, tokenName) {
+            // 找到对应的删除按钮并禁用
+            const tokenItem = document.querySelector(`[data-token-id="${tokenId}"]`);
+            const deleteBtn = tokenItem?.querySelector('.delete-btn');
+
+            if (deleteBtn) {
+                deleteBtn.disabled = true;
+                deleteBtn.textContent = '删除中...';
+            }
+
+            try {
+                const response = await API.post('/api/auth/token', {
+                    action: 'delete',
+                    tokenId: tokenId
+                });
+
+                if (response.success) {
+                    // 显示成功消息
+                    showMessage(`令牌 "${tokenName}" 已成功删除`, 'success');
+
+                    // 刷新令牌列表
+                    await loadTokens();
+                } else {
+                    showMessage('删除失败: ' + (response.error || '未知错误'), 'error');
+
+                    // 恢复按钮状态
+                    if (deleteBtn) {
+                        deleteBtn.disabled = false;
+                        deleteBtn.textContent = '🗑️ 删除';
+                    }
+                }
+            } catch (error) {
+                let errorMessage = '删除失败';
+
+                if (error.message.includes('405')) {
+                    errorMessage = '服务器不支持此操作，请联系管理员';
+                } else if (error.message.includes('401')) {
+                    errorMessage = '权限不足，请重新登录';
+                } else if (error.message.includes('404')) {
+                    errorMessage = '令牌不存在或已被删除';
+                } else if (error.message.includes('400')) {
+                    errorMessage = '请求参数错误';
+                } else {
+                    errorMessage = '网络连接异常，请稍后重试';
+                }
+
+                showMessage(errorMessage, 'error');
+
+                // 恢复按钮状态
+                if (deleteBtn) {
+                    deleteBtn.disabled = false;
+                    deleteBtn.textContent = '🗑️ 删除';
+                }
+            }
+        }
+
+        // 显示消息提示
+        function showMessage(text, type = 'info') {
+            const message = document.createElement('div');
+            message.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                border-radius: 6px;
+                color: white;
+                font-weight: 500;
+                z-index: 1001;
+                animation: slideIn 0.3s ease-out;
+                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+            `;
+            message.textContent = text;
+
+            // 添加动画样式
+            if (!document.querySelector('#message-styles')) {
+                const style = document.createElement('style');
+                style.id = 'message-styles';
+                style.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            document.body.appendChild(message);
+
+            // 自动移除
+            setTimeout(() => {
+                message.style.animation = 'slideIn 0.3s ease-out reverse';
+                setTimeout(() => message.remove(), 300);
+            }, 3000);
+        }
+
+        // 复制令牌
+        function copyToken() {
+            const token = document.getElementById('generatedToken').textContent;
+            navigator.clipboard.writeText(token).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = '已复制';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!-- 统一的头部导航组件 -->
+<header class="header">
+    <div class="header-content">
+        <div class="logo">
+            <span class="logo-icon" id="pageLogoIcon">📚</span>
+            <h1 class="logo-text" id="pageLogoText">书签导航</h1>
+        </div>
+
+        <!-- 统一的功能按钮组 -->
+        <div class="header-actions">
+            <!-- 主要操作按钮 -->
+            <div class="action-group primary-actions">
+                <button id="searchToggle" class="action-btn-icon" title="搜索书签">
+                    <span class="btn-icon">🔍</span>
+                </button>
+                <button id="addBookmarkBtn" class="action-btn-icon primary hidden" title="添加新书签">
+                    <span class="btn-icon">➕</span>
+                </button>
+            </div>
+
+            <!-- 工具菜单 -->
+            <div class="action-group tools-menu">
+                <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" title="工具菜单">
+                    <span class="btn-icon">🛠️</span>
+                    <span class="dropdown-arrow">▼</span>
+                </button>
+                <div id="toolsDropdown" class="dropdown-menu">
+                    <a href="/" class="dropdown-item">
+                        <span class="item-icon">🏠</span>
+                        <div class="item-content">
+                            <span class="item-text">首页</span>
+                            <span class="item-desc">返回书签首页</span>
+                        </div>
+                    </a>
+                    <a href="/token.html" class="dropdown-item">
+                        <span class="item-icon">🔑</span>
+                        <div class="item-content">
+                            <span class="item-text">API令牌</span>
+                            <span class="item-desc">管理访问令牌</span>
+                        </div>
+                    </a>
+                    <a href="/link-checker.html" class="dropdown-item">
+                        <span class="item-icon">🔗</span>
+                        <div class="item-content">
+                            <span class="item-text">链接检查</span>
+                            <span class="item-desc">检查链接有效性</span>
+                        </div>
+                    </a>
+                    <a href="/deleted-bookmarks.html" class="dropdown-item">
+                        <span class="item-icon">🗑️</span>
+                        <div class="item-content">
+                            <span class="item-text">删除记录</span>
+                            <span class="item-desc">查看和恢复删除的书签</span>
+                        </div>
+                    </a>
+                    <a href="/notifications.html" class="dropdown-item">
+                        <span class="item-icon">🔔</span>
+                        <div class="item-content">
+                            <span class="item-text">通知中心</span>
+                            <span class="item-desc">查看系统通知</span>
+                        </div>
+                    </a>
+                    <a href="/import.html" class="dropdown-item">
+                        <span class="item-icon">📥</span>
+                        <div class="item-content">
+                            <span class="item-text">导入书签</span>
+                            <span class="item-desc">从文件导入书签</span>
+                        </div>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <button id="changePasswordBtn" class="dropdown-item">
+                        <span class="item-icon">🔐</span>
+                        <div class="item-content">
+                            <span class="item-text">修改密码</span>
+                            <span class="item-desc">更改管理员密码</span>
+                        </div>
+                    </button>
+                    <button id="settingsToggle" class="dropdown-item">
+                        <span class="item-icon">⚙️</span>
+                        <div class="item-content">
+                            <span class="item-text">系统设置</span>
+                            <span class="item-desc">配置系统选项</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- 统一的JavaScript导航功能 -->
+<script>
+// 页面特定的Logo和标题设置
+function setPageSpecificContent(icon, text) {
+    document.getElementById('pageLogoIcon').textContent = icon;
+    document.getElementById('pageLogoText').textContent = text;
+}
+
+// 初始化导航功能
+function initNavigation() {
+    // 工具菜单切换
+    const toolsMenuToggle = document.getElementById('toolsMenuToggle');
+    const toolsDropdown = document.getElementById('toolsDropdown');
+    
+    if (toolsMenuToggle && toolsDropdown) {
+        toolsMenuToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toolsDropdown.classList.toggle('show');
+        });
+
+        // 点击外部关闭菜单
+        document.addEventListener('click', (e) => {
+            if (!toolsMenuToggle.contains(e.target) && !toolsDropdown.contains(e.target)) {
+                toolsDropdown.classList.remove('show');
+            }
+        });
+    }
+
+    // 搜索功能
+    const searchToggle = document.getElementById('searchToggle');
+    const searchContainer = document.getElementById('searchContainer');
+    
+    if (searchToggle && searchContainer) {
+        searchToggle.addEventListener('click', () => {
+            searchContainer.classList.toggle('hidden');
+            if (!searchContainer.classList.contains('hidden')) {
+                document.getElementById('searchInput')?.focus();
+            }
+        });
+    }
+
+    // 设置面板
+    const settingsToggle = document.getElementById('settingsToggle');
+    if (settingsToggle) {
+        settingsToggle.addEventListener('click', () => {
+            const settingsPanel = document.getElementById('settingsPanel');
+            if (settingsPanel) {
+                settingsPanel.classList.toggle('hidden');
+            }
+        });
+    }
+
+    // 修改密码
+    const changePasswordBtn = document.getElementById('changePasswordBtn');
+    if (changePasswordBtn) {
+        changePasswordBtn.addEventListener('click', () => {
+            const modal = document.getElementById('changePasswordModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
+        });
+    }
+}
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', initNavigation);
+</script>

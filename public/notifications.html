@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>检查通知 - 书签导航</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/notifications-enhanced.css">
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 统一的头部导航 -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">🔔</span>
+                    <h1 class="logo-text">检查通知</h1>
+                </div>
+
+                <!-- 统一的功能按钮组 -->
+                <div class="header-actions">
+                    <!-- 工具菜单 -->
+                    <div class="action-group tools-menu">
+                        <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" title="工具菜单">
+                            <span class="btn-icon">🛠️</span>
+                            <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div id="toolsDropdown" class="dropdown-menu">
+                            <a href="/" class="dropdown-item">
+                                <span class="item-icon">🏠</span>
+                                <div class="item-content">
+                                    <span class="item-text">首页</span>
+                                    <span class="item-desc">返回书签首页</span>
+                                </div>
+                            </a>
+                            <a href="/token.html" class="dropdown-item">
+                                <span class="item-icon">🔑</span>
+                                <div class="item-content">
+                                    <span class="item-text">API令牌</span>
+                                    <span class="item-desc">管理访问令牌</span>
+                                </div>
+                            </a>
+                            <a href="/link-checker.html" class="dropdown-item">
+                                <span class="item-icon">🔗</span>
+                                <div class="item-content">
+                                    <span class="item-text">链接检查</span>
+                                    <span class="item-desc">检查链接有效性</span>
+                                </div>
+                            </a>
+                            <a href="/deleted-bookmarks.html" class="dropdown-item">
+                                <span class="item-icon">🗑️</span>
+                                <div class="item-content">
+                                    <span class="item-text">删除记录</span>
+                                    <span class="item-desc">查看和恢复删除的书签</span>
+                                </div>
+                            </a>
+                            <a href="/import.html" class="dropdown-item">
+                                <span class="item-icon">📥</span>
+                                <div class="item-content">
+                                    <span class="item-text">导入书签</span>
+                                    <span class="item-desc">从文件导入书签</span>
+                                </div>
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <button id="changePasswordBtn" class="dropdown-item">
+                                <span class="item-icon">🔐</span>
+                                <div class="item-content">
+                                    <span class="item-text">修改密码</span>
+                                    <span class="item-desc">更改管理员密码</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="notifications-container">
+            <!-- 汇总信息 -->
+            <div id="summaryCard" class="notification-card">
+                <h2>📊 检查汇总</h2>
+                <div class="notification-stats">
+                    <div class="stat-group">
+                        <span class="stat-icon">📊</span>
+                        <span class="stat-text">总检查次数</span>
+                        <span id="totalChecks" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-group">
+                        <span class="stat-icon">🗑️</span>
+                        <span class="stat-text">累计删除</span>
+                        <span id="totalDeleted" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-group">
+                        <span class="stat-icon">🕒</span>
+                        <span class="stat-text">最后检查</span>
+                        <span id="lastCheckTime" class="stat-value">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 通知列表 -->
+            <div class="notification-card">
+                <div class="notification-card-header">
+                    <h2 class="notification-card-title">🔔 检查通知记录</h2>
+                    <button onclick="loadNotifications()" class="btn btn-secondary">
+                        <span class="btn-icon">🔄</span>
+                        刷新
+                    </button>
+                </div>
+                
+                <div id="notificationsList">
+                    <div class="loading">加载中...</div>
+                </div>
+            </div>
+
+            <!-- 设置定时检查说明 -->
+            <div class="notification-card">
+                <h2 class="notification-card-title">⚙️ 定时检查设置</h2>
+                <div class="notification-content">
+                    <div class="notification-description">
+                        <h3>如何启用每周自动检查</h3>
+                        <ol>
+                            <li><strong>Cloudflare Cron触发器</strong>（推荐）：
+                                <ul>
+                                    <li>在Cloudflare Pages项目中配置Cron触发器</li>
+                                    <li>设置触发URL：<code>/api/cron/weekly-check</code></li>
+                                    <li>设置时间：每周日凌晨2点 <code>0 2 * * 0</code></li>
+                                    <li>添加Authorization头：<code>Bearer your-cron-secret</code></li>
+                                </ul>
+                            </li>
+                            <li><strong>外部定时服务</strong>：
+                                <ul>
+                                    <li>使用GitHub Actions、Jenkins等定时调用API</li>
+                                    <li>POST请求到：<code>https://your-domain.com/api/cron/weekly-check</code></li>
+                                    <li>添加Authorization头进行验证</li>
+                                </ul>
+                            </li>
+                        </ol>
+                        
+                        <h3>环境变量配置</h3>
+                        <p>在Cloudflare Pages环境变量中添加：</p>
+                        <ul>
+                            <li><code>CRON_SECRET</code>：定时任务验证密钥</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/utils/api.js"></script>
+    <script>
+        // 工具菜单功能
+        document.addEventListener('DOMContentLoaded', () => {
+            const toolsMenuToggle = document.getElementById('toolsMenuToggle');
+            const toolsDropdown = document.getElementById('toolsDropdown');
+
+            if (toolsMenuToggle && toolsDropdown) {
+                // 切换下拉菜单
+                toolsMenuToggle.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toolsDropdown.classList.toggle('show');
+                    toolsMenuToggle.classList.toggle('active');
+                });
+
+                // 点击其他地方关闭菜单
+                document.addEventListener('click', (e) => {
+                    if (!toolsMenuToggle.contains(e.target) && !toolsDropdown.contains(e.target)) {
+                        toolsDropdown.classList.remove('show');
+                        toolsMenuToggle.classList.remove('active');
+                    }
+                });
+
+                // 修改密码按钮事件
+                const changePasswordBtn = document.getElementById('changePasswordBtn');
+                if (changePasswordBtn) {
+                    changePasswordBtn.addEventListener('click', () => {
+                        // 重定向到首页并触发密码修改模态框
+                        window.location.href = '/?action=change-password';
+                    });
+                }
+            }
+        });
+
+        // 页面加载时检查登录状态并加载通知
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+            
+            await loadNotifications();
+        });
+
+        async function loadNotifications() {
+            try {
+                const response = await API.get('/api/cron/weekly-check');
+                if (response.success) {
+                    displayNotifications(response.data);
+                    updateSummary(response.data);
+                } else {
+                    throw new Error(response.error);
+                }
+            } catch (error) {
+                console.error('加载通知失败:', error);
+                document.getElementById('notificationsList').innerHTML = 
+                    '<div class="error">加载失败: ' + error.message + '</div>';
+            }
+        }
+
+        function displayNotifications(notifications) {
+            const notificationsList = document.getElementById('notificationsList');
+            
+            if (notifications.length === 0) {
+                notificationsList.innerHTML = '<div class="empty-state">暂无检查通知记录</div>';
+                return;
+            }
+
+            notificationsList.innerHTML = notifications.map(notification => {
+                const isAuto = notification.type === 'weekly_auto_check';
+                const hasDeleted = notification.deletedBookmarks && notification.deletedBookmarks.length > 0;
+                
+                return `
+                    <div class="notification-item">
+                        <div class="notification-type ${isAuto ? 'type-auto' : 'type-manual'}">
+                            ${isAuto ? '自动检查' : '手动检查'}
+                        </div>
+                        
+                        <div class="notification-header">
+                            <div class="notification-title">
+                                ${isAuto ? '🤖 每周自动检查' : '👤 手动链接检查'}
+                            </div>
+                            <div class="notification-time">
+                                ${new Date(notification.checkedAt).toLocaleString()}
+                            </div>
+                        </div>
+                        
+                        <div class="notification-stats">
+                            <span class="stat-item stat-total">总计: ${notification.total}</span>
+                            <span class="stat-item stat-accessible">可访问: ${notification.accessible}</span>
+                            <span class="stat-item stat-error">不可访问: ${notification.inaccessible}</span>
+                            ${notification.deleted ? `<span class="stat-item stat-deleted">已删除: ${notification.deleted}</span>` : ''}
+                        </div>
+                        
+                        ${hasDeleted ? `
+                            <div class="deleted-bookmarks">
+                                <h4>🗑️ 已删除的书签 (${notification.deletedBookmarks.length}个)</h4>
+                                ${notification.deletedBookmarks.slice(0, 5).map(bookmark => `
+                                    <div class="deleted-bookmark">
+                                        <div class="deleted-bookmark-title">${bookmark.title}</div>
+                                        <div class="deleted-bookmark-url">${bookmark.url}</div>
+                                        <div class="deleted-bookmark-reason">删除原因: ${bookmark.reason}</div>
+                                    </div>
+                                `).join('')}
+                                ${notification.deletedBookmarks.length > 5 ? 
+                                    `<div class="text-secondary">... 还有 ${notification.deletedBookmarks.length - 5} 个</div>` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateSummary(notifications) {
+            const totalChecks = notifications.length;
+            const totalDeleted = notifications.reduce((sum, n) => sum + (n.deleted || 0), 0);
+            const lastCheck = notifications.length > 0 ? 
+                new Date(notifications[0].checkedAt).toLocaleDateString() : '-';
+            
+            document.getElementById('totalChecks').textContent = totalChecks;
+            document.getElementById('totalDeleted').textContent = totalDeleted;
+            document.getElementById('lastCheckTime').textContent = lastCheck;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据库初始化 - 书签导航</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .init-container {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .init-header {
+            margin-bottom: 30px;
+        }
+
+        .init-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+
+        .init-subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .status-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .status-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .status-text {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .status-detail {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 10px;
+        }
+
+        .btn:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-success {
+            background: #10b981;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            color: #ef4444;
+            background: #fef2f2;
+            border-color: #ef4444;
+        }
+
+        .success {
+            color: #10b981;
+            background: #f0fdf4;
+            border-color: #10b981;
+        }
+
+        .warning {
+            color: #f59e0b;
+            background: #fffbeb;
+            border-color: #f59e0b;
+        }
+
+        .progress {
+            width: 100%;
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #3b82f6;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+    </style>
+</head>
+<body>
+    <div class="init-container">
+        <div class="init-header">
+            <h1 class="init-title">🚀 数据库初始化</h1>
+            <p class="init-subtitle">首次部署需要初始化数据库</p>
+        </div>
+
+        <div id="statusCard" class="status-card">
+            <div class="status-icon">⏳</div>
+            <div class="status-text">正在检查数据库状态...</div>
+            <div class="status-detail">请稍候</div>
+        </div>
+
+        <div id="progressContainer" class="progress" style="display: none;">
+            <div id="progressBar" class="progress-bar"></div>
+        </div>
+
+        <div id="actionButtons">
+            <button id="checkBtn" class="btn">🔍 检查状态</button>
+            <button id="initBtn" class="btn" style="display: none;">🛠️ 初始化数据库</button>
+            <button id="continueBtn" class="btn btn-success" style="display: none;">✅ 继续使用</button>
+        </div>
+    </div>
+
+    <script>
+        class DatabaseInitializer {
+            constructor() {
+                this.statusCard = document.getElementById('statusCard');
+                this.progressContainer = document.getElementById('progressContainer');
+                this.progressBar = document.getElementById('progressBar');
+                this.checkBtn = document.getElementById('checkBtn');
+                this.initBtn = document.getElementById('initBtn');
+                this.continueBtn = document.getElementById('continueBtn');
+                
+                this.bindEvents();
+                this.checkStatus();
+            }
+
+            bindEvents() {
+                this.checkBtn.addEventListener('click', () => this.checkStatus());
+                this.initBtn.addEventListener('click', () => this.initializeDatabase());
+                this.continueBtn.addEventListener('click', () => {
+                    window.location.href = '/';
+                });
+            }
+
+            updateStatus(icon, text, detail, className = '') {
+                this.statusCard.className = `status-card ${className}`;
+                this.statusCard.innerHTML = `
+                    <div class="status-icon">${icon}</div>
+                    <div class="status-text">${text}</div>
+                    <div class="status-detail">${detail}</div>
+                `;
+            }
+
+            showProgress(show = true) {
+                this.progressContainer.style.display = show ? 'block' : 'none';
+                if (show) {
+                    this.progressBar.style.width = '0%';
+                }
+            }
+
+            updateProgress(percent) {
+                this.progressBar.style.width = percent + '%';
+            }
+
+            showButtons(check = false, init = false, continue_ = false) {
+                this.checkBtn.style.display = check ? 'inline-block' : 'none';
+                this.initBtn.style.display = init ? 'inline-block' : 'none';
+                this.continueBtn.style.display = continue_ ? 'inline-block' : 'none';
+            }
+
+            async checkStatus() {
+                try {
+                    this.updateStatus('⏳', '正在检查数据库状态...', '请稍候');
+                    this.showButtons(false, false, false);
+                    this.showProgress(true);
+                    this.updateProgress(30);
+
+                    // 移动设备检测和优化
+                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                    const timeoutDuration = isMobile ? 15000 : 8000;
+                    
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
+
+                    const response = await fetch('/api/system/init-database', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Cache-Control': 'no-cache'
+                        },
+                        signal: controller.signal
+                    });
+
+                    clearTimeout(timeoutId);
+                    this.updateProgress(100);
+
+                    if (response.ok) {
+                        const data = await response.json();
+
+                        if (data.success && data.initialized) {
+                            this.updateStatus('✅', '数据库已初始化', '系统已准备就绪，可以正常使用', 'success');
+                            this.showButtons(true, false, true);
+                        } else if (data.success && !data.initialized) {
+                            this.updateStatus('⚠️', '数据库未初始化', '需要初始化数据库才能使用系统', 'warning');
+                            this.showButtons(true, true, false);
+                        } else {
+                            this.updateStatus('❌', '数据库检查失败', data.error || data.message || '未知错误', 'error');
+                            this.showButtons(true, true, false);
+                        }
+                    } else {
+                        // HTTP错误状态
+                        this.updateStatus('❌', '服务器错误', `HTTP ${response.status}: ${response.statusText}`, 'error');
+                        this.showButtons(true, true, false);
+                    }
+                } catch (error) {
+                    if (error.name === 'AbortError') {
+                        this.updateStatus('⚠️', '网络连接超时', '网络连接较慢，请重试或检查网络连接', 'warning');
+                    } else {
+                        this.updateStatus('❌', '连接失败', '无法连接到服务器: ' + error.message, 'error');
+                    }
+                    this.showButtons(true, true, false);
+                } finally {
+                    setTimeout(() => this.showProgress(false), 1000);
+                }
+            }
+
+            async initializeDatabase() {
+                try {
+                    this.updateStatus('🔄', '正在初始化数据库...', '这可能需要几秒钟时间');
+                    this.showButtons(false, false, false);
+                    this.showProgress(true);
+                    
+                    // 模拟进度
+                    for (let i = 0; i <= 80; i += 10) {
+                        this.updateProgress(i);
+                        await new Promise(resolve => setTimeout(resolve, 200));
+                    }
+
+                    const response = await fetch('/api/system/init-database', {
+                        method: 'POST'
+                    });
+                    const data = await response.json();
+                    
+                    this.updateProgress(100);
+                    
+                    if (data.success) {
+                        this.updateStatus('🎉', '初始化完成！', '数据库已成功初始化，系统已准备就绪', 'success');
+                        this.showButtons(false, false, true);
+                    } else {
+                        this.updateStatus('❌', '初始化失败', data.error || '未知错误', 'error');
+                        this.showButtons(true, true, false);
+                    }
+                } catch (error) {
+                    this.updateStatus('❌', '初始化失败', '网络错误: ' + error.message, 'error');
+                    this.showButtons(true, true, false);
+                } finally {
+                    setTimeout(() => this.showProgress(false), 1000);
+                }
+            }
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            new DatabaseInitializer();
+        });
+    </script>
+</body>
+</html>

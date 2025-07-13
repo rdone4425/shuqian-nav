@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>链接检查器 - 书签导航</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/link-checker-enhanced.css">
+    <style>
+        /* 仅保留必要的工具样式 */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 统一的头部导航 -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">🔗</span>
+                    <h1 class="logo-text">链接检查器</h1>
+                </div>
+
+                <!-- 统一的功能按钮组 -->
+                <div class="header-actions">
+                    <!-- 工具菜单 -->
+                    <div class="action-group tools-menu">
+                        <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" title="工具菜单">
+                            <span class="btn-icon">🛠️</span>
+                            <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div id="toolsDropdown" class="dropdown-menu">
+                            <a href="/" class="dropdown-item">
+                                <span class="item-icon">🏠</span>
+                                <div class="item-content">
+                                    <span class="item-text">首页</span>
+                                    <span class="item-desc">返回书签首页</span>
+                                </div>
+                            </a>
+                            <a href="/token.html" class="dropdown-item">
+                                <span class="item-icon">🔑</span>
+                                <div class="item-content">
+                                    <span class="item-text">API令牌</span>
+                                    <span class="item-desc">管理访问令牌</span>
+                                </div>
+                            </a>
+                            <a href="/link-checker.html" class="dropdown-item">
+                                <span class="item-icon">🔗</span>
+                                <div class="item-content">
+                                    <span class="item-text">链接检查</span>
+                                    <span class="item-desc">检查链接有效性</span>
+                                </div>
+                            </a>
+                            <a href="/deleted-bookmarks.html" class="dropdown-item">
+                                <span class="item-icon">🗑️</span>
+                                <div class="item-content">
+                                    <span class="item-text">删除记录</span>
+                                    <span class="item-desc">查看和恢复删除的书签</span>
+                                </div>
+                            </a>
+                            <a href="/notifications.html" class="dropdown-item">
+                                <span class="item-icon">🔔</span>
+                                <div class="item-content">
+                                    <span class="item-text">通知中心</span>
+                                    <span class="item-desc">查看系统通知</span>
+                                </div>
+                            </a>
+                            <a href="/import.html" class="dropdown-item">
+                                <span class="item-icon">📥</span>
+                                <div class="item-content">
+                                    <span class="item-text">导入书签</span>
+                                    <span class="item-desc">从文件导入书签</span>
+                                </div>
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <button id="changePasswordBtn" class="dropdown-item">
+                                <span class="item-icon">🔐</span>
+                                <div class="item-content">
+                                    <span class="item-text">修改密码</span>
+                                    <span class="item-desc">更改管理员密码</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="checker-container">
+            <!-- 检查控制面板 -->
+            <div class="controls-section">
+                <div class="checker-header">
+                    <h2>🔍 链接可访问性检查</h2>
+                </div>
+                <div class="safety-notice">
+                    🛡️ 安全模式：只检查不删除，需要手动确认删除
+                </div>
+
+                <div class="controls-row">
+                    <div class="control-group">
+                        <input type="checkbox" id="smartCheck" checked />
+                        <label for="smartCheck">智能检查（提高准确性）</label>
+                    </div>
+                    <div class="control-group">
+                        <label for="retryCount">重试次数:</label>
+                        <select id="retryCount">
+                            <option value="1">1次</option>
+                            <option value="2" selected>2次</option>
+                            <option value="3">3次</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label for="checkDelay">检查间隔:</label>
+                        <select id="checkDelay">
+                            <option value="200">0.2秒</option>
+                            <option value="500" selected>0.5秒</option>
+                            <option value="1000">1秒</option>
+                            <option value="2000">2秒</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button id="startCheck" class="btn btn-primary">
+                        🚀 开始检查
+                    </button>
+                    <button id="stopCheck" class="btn btn-secondary hidden">
+                        ⏹️ 停止检查
+                    </button>
+                    <button id="viewHistory" class="btn btn-secondary">
+                        📋 查看历史
+                    </button>
+                    <button id="batchDelete" class="btn btn-secondary hidden">
+                        🗑️ 删除所有无效链接
+                    </button>
+                </div>
+            </div>
+
+            <!-- 进度显示 -->
+            <div id="progressSection" class="progress-section">
+                <div class="progress-header">
+                    <span id="progressText" class="progress-text">准备检查...</span>
+                    <span id="progressPercent" class="progress-percent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item" data-filter="all">
+                        <span class="stat-value" id="totalBookmarks">0</span>
+                        <span class="stat-label">总计</span>
+                    </div>
+                    <div class="stat-item" data-filter="checked">
+                        <span class="stat-value" id="checkedCount">0</span>
+                        <span class="stat-label">已检查</span>
+                    </div>
+                    <div class="stat-item" data-filter="accessible">
+                        <span class="stat-value" id="accessibleCount">0</span>
+                        <span class="stat-label">可访问</span>
+                    </div>
+                    <div class="stat-item" data-filter="inaccessible">
+                        <span class="stat-value" id="inaccessibleCount">0</span>
+                        <span class="stat-label">不可访问</span>
+                    </div>
+                    <div class="stat-item" data-filter="deleted">
+                        <span class="stat-value" id="deletedCount">0</span>
+                        <span class="stat-label">已删除</span>
+                    </div>
+                    <div class="stat-item" data-filter="kept">
+                        <span class="stat-value" id="keptCount">0</span>
+                        <span class="stat-label">已保留</span>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+            <!-- 检查说明 -->
+            <div class="details-section">
+                <div class="details-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg);">
+                    <h3 style="margin: 0; font-size: var(--font-xl); font-weight: 700; color: var(--text-primary);">🔍 检查逻辑说明</h3>
+                    <button id="toggleExplanation" class="btn btn-secondary">
+                        📖 <span id="explanationToggleText">显示详情</span>
+                    </button>
+                </div>
+
+                <div id="explanationContent" class="details-content hidden">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--spacing-lg);">
+                        <div>
+                            <h4>✅ 认为可访问的情况</h4>
+                            <ul>
+                                <li>HTTP 2xx 状态码（成功）</li>
+                                <li>HTTP 3xx 状态码（重定向）</li>
+                                <li>HTTP 401（需要登录，但网站存在）</li>
+                                <li>Cloudflare 403/503（防护机制，网站正常）</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4>⚠️ 建议保留的情况</h4>
+                            <ul>
+                                <li>Cloudflare防护页面</li>
+                                <li>请求超时（可能是网络问题）</li>
+                                <li>5xx服务器错误（可能是临时维护）</li>
+                                <li>429限流（请求过于频繁）</li>
+                                <li>网络连接问题</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4>🗑️ 建议删除的情况</h4>
+                            <ul>
+                                <li>404 页面不存在</li>
+                                <li>410 页面已永久删除</li>
+                                <li>域名不存在（ENOTFOUND）</li>
+                                <li>SSL证书严重问题</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4>🛡️ 防误杀机制</h4>
+                            <ul>
+                                <li>使用真实浏览器User-Agent</li>
+                                <li>先尝试HEAD请求，失败后尝试GET</li>
+                                <li>特殊处理Cloudflare等CDN服务</li>
+                                <li>多次重试减少网络波动影响</li>
+                                <li>默认倾向于保留（安全优先）</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 书签列表 -->
+            <div id="bookmarksCard" class="bookmarks-section">
+                <div class="bookmarks-header">
+                    <h2>📚 书签列表</h2>
+                    <div style="display: flex; align-items: center; gap: var(--spacing-md);">
+                        <span id="filterStatus" class="bookmarks-stats"></span>
+                        <button id="loadBookmarks" class="btn btn-secondary">
+                            🔄 刷新列表
+                        </button>
+                    </div>
+                </div>
+
+                <div id="bookmarksList">
+                    <div class="loading">加载书签列表...</div>
+                </div>
+            </div>
+
+                <!-- 删除的书签列表 -->
+                <div id="deletedSection" class="hidden">
+                    <h3>🗑️ 已删除的书签</h3>
+                    <div id="deletedList"></div>
+                </div>
+
+                <!-- 无效链接列表 -->
+                <div id="inaccessibleSection" class="hidden">
+                    <h3>⚠️ 无法访问的链接</h3>
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>标题</th>
+                                <th>URL</th>
+                                <th>状态</th>
+                                <th>错误信息</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inaccessibleList">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 检查历史 -->
+            <div id="historyCard" class="checker-card hidden">
+                <div class="checker-header">
+                    <h2>📋 检查历史</h2>
+                    <button onclick="toggleHistory()" class="btn btn-outline">关闭</button>
+                </div>
+                <div id="historyList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/utils/api.js"></script>
+    <script>
+        // 工具菜单功能
+        document.addEventListener('DOMContentLoaded', () => {
+            const toolsMenuToggle = document.getElementById('toolsMenuToggle');
+            const toolsDropdown = document.getElementById('toolsDropdown');
+
+            if (toolsMenuToggle && toolsDropdown) {
+                // 切换下拉菜单
+                toolsMenuToggle.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toolsDropdown.classList.toggle('show');
+                    toolsMenuToggle.classList.toggle('active');
+                });
+
+                // 点击其他地方关闭菜单
+                document.addEventListener('click', (e) => {
+                    if (!toolsMenuToggle.contains(e.target) && !toolsDropdown.contains(e.target)) {
+                        toolsDropdown.classList.remove('show');
+                        toolsMenuToggle.classList.remove('active');
+                    }
+                });
+
+                // 修改密码按钮事件
+                const changePasswordBtn = document.getElementById('changePasswordBtn');
+                if (changePasswordBtn) {
+                    changePasswordBtn.addEventListener('click', () => {
+                        // 重定向到首页并触发密码修改模态框
+                        window.location.href = '/?action=change-password';
+                    });
+                }
+            }
+        });
+
+        let bookmarks = [];
+        let isChecking = false;
+        let checkingIndex = 0;
+        let currentFilter = 'all';
+        let stats = {
+            total: 0,
+            checked: 0,
+            accessible: 0,
+            inaccessible: 0,
+            deleted: 0,
+            kept: 0
+        };
+
+        // 页面加载时检查登录状态并加载书签
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            // 先执行数据库迁移
+            await performMigration();
+            // 然后加载书签
+            await loadBookmarks();
+        });
+
+        // 执行数据库迁移
+        async function performMigration() {
+            try {
+                console.log('检查数据库迁移...');
+                const response = await API.post('/api/system/migrate', {});
+                if (response.success) {
+                    console.log('数据库迁移完成:', response.message);
+                } else {
+                    console.warn('数据库迁移失败:', response.error);
+                }
+            } catch (error) {
+                console.warn('数据库迁移检查失败:', error.message);
+                // 迁移失败不影响页面正常使用
+            }
+        }
+
+        // 绑定事件
+        document.getElementById('startCheck').addEventListener('click', startLinkCheck);
+        document.getElementById('stopCheck').addEventListener('click', stopLinkCheck);
+        document.getElementById('loadBookmarks').addEventListener('click', loadBookmarks);
+        document.getElementById('viewHistory').addEventListener('click', async () => {
+            await loadHistory();
+            toggleHistory();
+        });
+        document.getElementById('batchDelete').addEventListener('click', batchDeleteInaccessible);
+        document.getElementById('toggleExplanation').addEventListener('click', toggleExplanation);
+
+        // 绑定统计项筛选事件
+        document.querySelectorAll('.stat-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const filter = this.dataset.filter;
+                currentFilter = filter;
+                filterBookmarksDisplay(filter);
+
+                // 更新活跃状态
+                document.querySelectorAll('.stat-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // 绑定筛选按钮和删除按钮事件
+        document.addEventListener('click', (e) => {
+            // 筛选按钮
+            if (e.target.classList.contains('filter-btn') || e.target.closest('.filter-btn')) {
+                const filterBtn = e.target.classList.contains('filter-btn') ? e.target : e.target.closest('.filter-btn');
+                const filter = filterBtn.dataset.filter;
+                setFilter(filter);
+            }
+
+            // 删除按钮
+            if (e.target.classList.contains('delete-single-btn')) {
+                const bookmarkId = e.target.dataset.bookmarkId;
+                if (bookmarkId) {
+                    deleteBookmark(parseInt(bookmarkId));
+                }
+            }
+
+            // 保留按钮
+            if (e.target.classList.contains('keep-btn')) {
+                const bookmarkId = e.target.dataset.bookmarkId;
+                if (bookmarkId) {
+                    keepBookmark(parseInt(bookmarkId));
+                }
+            }
+
+            // 取消保留按钮
+            if (e.target.classList.contains('unkeep-btn')) {
+                const bookmarkId = e.target.dataset.bookmarkId;
+                if (bookmarkId) {
+                    unkeepBookmark(parseInt(bookmarkId));
+                }
+            }
+        });
+
+        // 加载书签列表
+        async function loadBookmarks() {
+            try {
+                const response = await API.get('/api/system/check-links-stream');
+                if (response.success && response.data) {
+                    const newBookmarks = response.data;
+
+                    // 确保 newBookmarks 是数组
+                    if (!Array.isArray(newBookmarks)) {
+                        throw new Error('服务器返回的数据格式不正确');
+                    }
+
+                    // 如果已有书签数据，保留检查状态
+                    if (bookmarks && bookmarks.length > 0) {
+                        const checkedBookmarksMap = new Map();
+                        bookmarks.forEach(bookmark => {
+                            if (bookmark.checked) {
+                                checkedBookmarksMap.set(bookmark.id, {
+                                    checked: bookmark.checked,
+                                    checkedTime: bookmark.checkedTime,
+                                    accessible: bookmark.accessible,
+                                    status: bookmark.status,
+                                    statusCode: bookmark.statusCode,
+                                    statusText: bookmark.statusText,
+                                    error: bookmark.error,
+                                    keepStatus: bookmark.keepStatus,
+                                    deleted: bookmark.deleted
+                                });
+                            }
+                        });
+
+                        newBookmarks.forEach(bookmark => {
+                            const checkedData = checkedBookmarksMap.get(bookmark.id);
+                            if (checkedData) {
+                                Object.assign(bookmark, checkedData);
+                            }
+                        });
+                    }
+
+                    bookmarks = newBookmarks;
+                    stats.total = bookmarks.length;
+                    recalculateStats();
+                    displayBookmarks();
+                    updateStats();
+                } else {
+                    throw new Error(response.error || '服务器响应异常');
+                }
+            } catch (error) {
+                console.error('加载书签失败:', error);
+                document.getElementById('bookmarksList').innerHTML =
+                    '<div class="error">加载失败: ' + error.message + '</div>';
+                // 确保 bookmarks 仍然是数组
+                if (!Array.isArray(bookmarks)) {
+                    bookmarks = [];
+                }
+            }
+        }
+
+        // 重新计算统计数据
+        function recalculateStats() {
+            stats.checked = 0;
+            stats.accessible = 0;
+            stats.inaccessible = 0;
+            stats.deleted = 0;
+
+            bookmarks.forEach(bookmark => {
+                if (bookmark.checked) {
+                    stats.checked++;
+                    if (bookmark.deleted) {
+                        stats.deleted++;
+                    } else if (bookmark.accessible) {
+                        stats.accessible++;
+                    } else {
+                        stats.inaccessible++;
+                    }
+                }
+            });
+        }
+
+        // 设置筛选器
+        function setFilter(filter) {
+            currentFilter = filter;
+
+            // 更新筛选按钮状态
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+
+            // 重新显示书签列表
+            displayBookmarks();
+        }
+
+        // 筛选书签
+        function filterBookmarks(bookmarks) {
+            if (currentFilter === 'all') {
+                return bookmarks;
+            }
+
+            return bookmarks.filter(bookmark => {
+                switch (currentFilter) {
+                    case 'checked':
+                        return bookmark.checked === true;
+                    case 'accessible':
+                        return bookmark.status === 'accessible';
+                    case 'inaccessible':
+                        return bookmark.status === 'inaccessible';
+                    case 'deleted':
+                        return bookmark.status === 'deleted';
+                    case 'kept':
+                        return bookmark.keepStatus === 'keep';
+                    default:
+                        return true;
+                }
+            });
+        }
+
+        // 为显示排序书签：检查时只显示已检查的，未检查时显示全部
+        function sortBookmarksForDisplay(bookmarks) {
+            // 如果正在检查，只显示已检查的书签和正在检查的书签
+            let filteredBookmarks = bookmarks;
+            if (isChecking) {
+                filteredBookmarks = bookmarks.filter(bookmark =>
+                    bookmark.checked || bookmark.status === 'checking'
+                );
+            }
+
+            return filteredBookmarks.sort((a, b) => {
+                // 如果不在检查中，按原来的逻辑：未检查的在前
+                if (!isChecking) {
+                    if (a.checked !== b.checked) {
+                        return a.checked ? 1 : -1; // false (未检查) 在前，true (已检查) 在后
+                    }
+
+                    // 如果都是未检查的，按原始顺序（ID）排序
+                    if (!a.checked && !b.checked) {
+                        return a.id - b.id;
+                    }
+
+                    // 如果都是已检查的，按状态优先级排序
+                    if (a.checked && b.checked) {
+                        const statusPriority = {
+                            'accessible': 1,    // 可访问的
+                            'inaccessible': 2,  // 不可访问的
+                            'deleted': 3        // 已删除的在最后
+                        };
+
+                        const aPriority = statusPriority[a.status] || 999;
+                        const bPriority = statusPriority[b.status] || 999;
+
+                        if (aPriority !== bPriority) {
+                            return aPriority - bPriority;
+                        }
+
+                        // 同状态按ID排序
+                        return a.id - b.id;
+                    }
+                } else {
+                    // 检查中的排序逻辑：正在检查的在最前，然后按检查完成的时间倒序
+                    if (a.status === 'checking' && b.status !== 'checking') {
+                        return -1; // 正在检查的在最前
+                    }
+                    if (b.status === 'checking' && a.status !== 'checking') {
+                        return 1;
+                    }
+
+                    // 如果都是已检查完成的，按检查完成时间倒序（最新检查的在上面）
+                    if (a.checked && b.checked && a.status !== 'checking' && b.status !== 'checking') {
+                        // 使用检查完成时间戳，如果没有则使用ID倒序
+                        const aTime = a.checkedTime || (999999 - a.id);
+                        const bTime = b.checkedTime || (999999 - b.id);
+                        return bTime - aTime; // 倒序：最新的在上面
+                    }
+                }
+
+                return 0;
+            });
+        }
+
+        // 显示书签列表
+        function displayBookmarks() {
+            const bookmarksList = document.getElementById('bookmarksList');
+            const filterStatus = document.getElementById('filterStatus');
+
+            // 确保 bookmarks 是数组
+            if (!Array.isArray(bookmarks) || bookmarks.length === 0) {
+                bookmarksList.innerHTML = '<div class="empty-state">暂无书签</div>';
+                if (filterStatus) filterStatus.textContent = '';
+                return;
+            }
+
+            const filteredBookmarks = filterBookmarks(bookmarks);
+            updateFilterStatus(filteredBookmarks.length);
+
+            if (filteredBookmarks.length === 0) {
+                bookmarksList.innerHTML = `<div class="empty-state">没有符合筛选条件的书签</div>`;
+                return;
+            }
+
+            const sortedBookmarks = sortBookmarksForDisplay(filteredBookmarks);
+
+            bookmarksList.innerHTML = sortedBookmarks.map((bookmark, index) => {
+                const originalIndex = bookmarks.findIndex(b => b.id === bookmark.id);
+                const displayIndex = index + 1;
+
+                return `
+                <div class="bookmark-item ${bookmark.status || ''}" id="bookmark-${bookmark.id}" data-index="${originalIndex}">
+                    <div class="bookmark-status status-${bookmark.status || 'pending'}" id="status-${bookmark.id}">
+                        ${getStatusIcon(bookmark, displayIndex)}
+                    </div>
+                    <div class="bookmark-info">
+                        <div class="bookmark-title">
+                            ${bookmark.title || bookmark.name || '无标题'}
+                        </div>
+                        <div class="bookmark-url">
+                            <a href="${bookmark.url || '#'}" target="_blank" rel="noopener noreferrer" title="点击在新标签页中打开">
+                                ${bookmark.url || '无URL'}
+                            </a>
+                        </div>
+                    </div>
+                    <div class="bookmark-meta">
+                        <div class="bookmark-category" style="background-color: ${bookmark.categoryColor || '#6B7280'}">
+                            ${bookmark.category || '未分类'}
+                        </div>
+                        <div class="bookmark-result" id="result-${bookmark.id}">
+                            ${getResultText(bookmark)}
+                        </div>
+                    </div>
+                    <div class="bookmark-actions-container" id="actions-${bookmark.id}">
+                        ${getBookmarkActions(bookmark)}
+                    </div>
+                </div>
+                `;
+            }).join('');
+
+            // 确保操作按钮对不可访问的书签可见
+            setTimeout(() => {
+                ensureActionButtonsVisible();
+            }, 100);
+        }
+
+        // 获取结果文本
+        function getResultText(bookmark) {
+            if (!bookmark.checked) {
+                return '等待检查';
+            }
+
+            switch (bookmark.status) {
+                case 'checking':
+                    return '检查中...';
+                case 'accessible':
+                    return `${bookmark.statusCode} ${bookmark.statusText}`;
+                case 'inaccessible':
+                    return bookmark.error || `${bookmark.statusCode} ${bookmark.statusText}`;
+                case 'deleted':
+                    return '已删除';
+                default:
+                    return '等待检查';
+            }
+        }
+
+        // 获取状态图标
+        function getStatusIcon(bookmark, displayIndex) {
+            switch (bookmark.status) {
+                case 'pending':
+                    return displayIndex; // 显示序号
+                case 'checking':
+                    return '⏳';
+                case 'accessible':
+                    return '✓';
+                case 'inaccessible':
+                    return '✗';
+                case 'deleted':
+                    return '🗑️';
+                default:
+                    return displayIndex; // 默认显示序号
+            }
+        }
+
+        // 确保操作按钮对不可访问的书签可见
+        function ensureActionButtonsVisible() {
+            bookmarks.forEach(bookmark => {
+                if ((bookmark.status === 'inaccessible' || (bookmark.checked && !bookmark.accessible)) && !bookmark.deleted) {
+                    const actionsContainer = document.getElementById(`actions-${bookmark.id}`);
+                    if (actionsContainer && (!actionsContainer.innerHTML.trim() || !actionsContainer.querySelector('.bookmark-actions'))) {
+                        const actionsHtml = `
+                            <div class="bookmark-actions">
+                                <button class="keep-btn" data-bookmark-id="${bookmark.id}" title="标记为保留（不再建议删除）">
+                                    📌 保留
+                                </button>
+                                <button class="delete-single-btn" data-bookmark-id="${bookmark.id}" title="删除此书签">
+                                    🗑️ 删除
+                                </button>
+                            </div>
+                        `;
+                        actionsContainer.innerHTML = actionsHtml;
+                    }
+                }
+            });
+        }
+
+        // 手动触发按钮显示（用于测试）
+        window.forceShowButtons = function() {
+            console.log('手动触发按钮显示...');
+            ensureActionButtonsVisible();
+        };
+
+        // 获取书签操作按钮
+        function getBookmarkActions(bookmark) {
+            // 如果已删除，不显示任何操作
+            if (bookmark.deleted || bookmark.status === 'deleted') {
+                return '';
+            }
+
+            // 如果已标记为保留
+            if (bookmark.keepStatus === 'keep') {
+                return `<div class="bookmark-actions">
+                    <span class="keep-status">📌 已保留</span>
+                    <button class="unkeep-btn" data-bookmark-id="${bookmark.id}" title="取消保留标记">
+                        ❌ 取消保留
+                    </button>
+                    ${bookmark.status === 'inaccessible' ?
+                        `<button class="delete-single-btn" data-bookmark-id="${bookmark.id}" title="删除此书签">
+                            🗑️ 删除
+                        </button>` : ''
+                    }
+                </div>`;
+            }
+
+            // 如果是不可访问的书签 - 强制显示按钮
+            if (bookmark.status === 'inaccessible' || (bookmark.checked && !bookmark.accessible)) {
+                return `<div class="bookmark-actions">
+                    <button class="keep-btn" data-bookmark-id="${bookmark.id}" title="标记为保留（不再建议删除）">
+                        📌 保留
+                    </button>
+                    <button class="delete-single-btn" data-bookmark-id="${bookmark.id}" title="删除此书签">
+                        🗑️ 删除
+                    </button>
+                </div>`;
+            }
+
+            // 其他情况不显示操作按钮
+            return '';
+        }
+
+        // 更新筛选状态显示
+        function updateFilterStatus(filteredCount) {
+            const filterStatus = document.getElementById('filterStatus');
+
+            if (isChecking) {
+                // 检查时显示特殊信息
+                filterStatus.textContent = `检查中：显示已检查的书签 (${filteredCount} 个)`;
+            } else if (currentFilter === 'all') {
+                filterStatus.textContent = `显示全部 ${filteredCount} 个书签`;
+            } else {
+                const filterNames = {
+                    'checked': '已检查',
+                    'accessible': '可访问',
+                    'inaccessible': '不可访问',
+                    'deleted': '已删除',
+                    'kept': '已保留'
+                };
+                filterStatus.textContent = `筛选: ${filterNames[currentFilter]} (${filteredCount}/${bookmarks.length})`;
+            }
+        }
+
+        // 开始检查
+        async function startLinkCheck() {
+            if (isChecking) return;
+
+            const smartCheck = document.getElementById('smartCheck').checked;
+            const retryCount = parseInt(document.getElementById('retryCount').value);
+            const checkDelay = parseInt(document.getElementById('checkDelay').value);
+
+            if (bookmarks.length === 0) {
+                alert('没有书签需要检查');
+                return;
+            }
+
+            isChecking = true;
+            checkingIndex = 0;
+            stats = { total: bookmarks.length, checked: 0, accessible: 0, inaccessible: 0, deleted: 0 };
+
+            // 更新UI状态
+            document.getElementById('startCheck').classList.add('hidden');
+            document.getElementById('stopCheck').classList.remove('hidden');
+            document.getElementById('progressSection').style.display = 'block';
+            document.getElementById('batchDelete').classList.add('hidden'); // 隐藏批量删除按钮
+
+            // 重置所有书签状态
+            bookmarks.forEach(bookmark => {
+                bookmark.status = 'pending';
+                bookmark.checked = false;
+                bookmark.retryCount = 0;
+                bookmark.deleted = false; // 重置删除状态
+                updateBookmarkDisplay(bookmark);
+            });
+
+            // 开始检查时重新显示书签列表（只显示已检查的）
+            displayBookmarks();
+
+            // 开始逐个检查
+            await checkNextBookmark(smartCheck, retryCount, checkDelay);
+        }
+
+        // 检查下一个书签
+        async function checkNextBookmark(smartCheck, retryCount, checkDelay) {
+            if (!isChecking || checkingIndex >= bookmarks.length) {
+                finishChecking();
+                return;
+            }
+
+            const bookmark = bookmarks[checkingIndex];
+
+            // 更新当前书签为检查中状态
+            bookmark.status = 'checking';
+            updateBookmarkDisplay(bookmark);
+            updateProgress();
+
+            try {
+                const result = await checkBookmarkWithRetry(bookmark, smartCheck, retryCount);
+
+                bookmark.checked = true;
+                bookmark.checkedTime = Date.now(); // 记录检查完成时间
+                bookmark.accessible = result.accessible;
+                bookmark.status = result.accessible ? 'accessible' : 'inaccessible';
+                bookmark.statusCode = result.status;
+                bookmark.statusText = result.statusText;
+                bookmark.error = result.error;
+                bookmark.deleted = false;
+
+                // 智能检查逻辑 - 添加详细建议信息
+                if (!result.accessible && smartCheck) {
+                    const recommendation = getDeleteRecommendation(result);
+                    bookmark.error = `${result.error} (${recommendation.reason})`;
+                    bookmark.deleteRecommendation = recommendation;
+                } else if (!result.accessible) {
+                    bookmark.error = result.error;
+                }
+
+                // 更新统计
+                stats.checked++;
+                if (result.accessible) {
+                    stats.accessible++;
+                } else {
+                    stats.inaccessible++;
+                }
+
+                updateBookmarkDisplay(bookmark);
+                updateStats();
+
+            } catch (error) {
+                console.error(`检查书签失败 (${bookmark.title}):`, error);
+                bookmark.checked = true;
+                bookmark.checkedTime = Date.now(); // 记录检查完成时间
+                bookmark.accessible = false;
+                bookmark.status = 'inaccessible';
+                bookmark.error = error.message;
+                stats.checked++;
+                stats.inaccessible++;
+                updateBookmarkDisplay(bookmark);
+                updateStats();
+            }
+
+            checkingIndex++;
+
+            // 延迟后检查下一个
+            if (isChecking) {
+                setTimeout(() => checkNextBookmark(smartCheck, retryCount, checkDelay), checkDelay);
+            }
+        }
+
+        // 带重试的书签检查
+        async function checkBookmarkWithRetry(bookmark, smartCheck, maxRetries) {
+            let lastResult = null;
+
+            for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                try {
+                    const response = await API.post('/api/system/check-links-stream', {
+                        bookmarkId: bookmark.id,
+                        url: bookmark.url,
+                        attempt: attempt,
+                        maxRetries: maxRetries
+                    });
+
+                    if (response.success) {
+                        lastResult = response.data;
+
+                        // 如果成功访问，直接返回
+                        if (lastResult.accessible) {
+                            return lastResult;
+                        }
+
+                        // 如果是最后一次尝试，返回结果
+                        if (attempt === maxRetries) {
+                            return lastResult;
+                        }
+
+                        // 如果不是最后一次，等待一下再重试
+                        if (attempt < maxRetries) {
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+                        }
+                    } else {
+                        throw new Error(response.error);
+                    }
+                } catch (error) {
+                    lastResult = {
+                        accessible: false,
+                        status: 0,
+                        statusText: 'Network Error',
+                        error: error.message
+                    };
+
+                    if (attempt < maxRetries) {
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
+                }
+            }
+
+            return lastResult;
+        }
+
+        // 智能判断是否应该删除书签 - 更新版本，更好地处理Cloudflare等情况
+        function shouldDeleteBookmark(result) {
+            // 如果网站可访问，不删除
+            if (result.accessible) {
+                return false;
+            }
+
+            // 明确的错误类型，建议删除
+            const deleteReasons = [
+                '域名不存在',        // 域名确实不存在
+                '连接被拒绝',        // 服务器拒绝连接
+                'SSL证书问题'        // 证书问题
+            ];
+
+            // 明确的HTTP状态码，建议删除
+            const deleteStatusCodes = [
+                404, // 页面不存在
+                410  // 页面已永久删除
+            ];
+
+            // 应该保留的情况（可能是临时问题或防护机制）
+            const keepReasons = [
+                'Cloudflare防护',    // Cloudflare防护
+                '请求超时',          // 可能是网络问题
+                '网站响应缓慢',      // 响应慢但可能正常
+                '服务器内部错误',    // 500错误可能是临时的
+                '网关错误',          // 502错误可能是临时的
+                '服务暂时不可用',    // 503可能是维护
+                '网关超时',          // 504可能是临时的
+                '请求过于频繁',      // 429限流
+                '访问被禁止',        // 403可能需要登录
+                '网络连接问题'       // 网络问题
+            ];
+
+            // 检查是否应该保留
+            if (result.error) {
+                for (const reason of keepReasons) {
+                    if (result.error.includes(reason)) {
+                        return false; // 建议保留
+                    }
+                }
+
+                // 检查是否应该删除
+                for (const reason of deleteReasons) {
+                    if (result.error.includes(reason)) {
+                        return true; // 建议删除
+                    }
+                }
+            }
+
+            // 检查状态码
+            if (deleteStatusCodes.includes(result.status)) {
+                return true; // 建议删除
+            }
+
+            // 默认情况：如果不确定，建议保留（安全优先）
+            return false;
+        }
+
+        // 获取删除建议的详细说明
+        function getDeleteRecommendation(result) {
+            if (result.accessible) {
+                return { shouldDelete: false, reason: '网站可正常访问' };
+            }
+
+            const shouldDelete = shouldDeleteBookmark(result);
+
+            if (shouldDelete) {
+                if (result.status === 404) {
+                    return { shouldDelete: true, reason: '页面不存在，建议删除' };
+                }
+                if (result.status === 410) {
+                    return { shouldDelete: true, reason: '页面已永久删除，建议删除' };
+                }
+                if (result.error && result.error.includes('域名不存在')) {
+                    return { shouldDelete: true, reason: '域名不存在，建议删除' };
+                }
+                return { shouldDelete: true, reason: '网站确实失效，建议删除' };
+            } else {
+                if (result.error && result.error.includes('Cloudflare防护')) {
+                    return { shouldDelete: false, reason: 'Cloudflare防护，网站正常，建议保留' };
+                }
+                if (result.error && result.error.includes('超时')) {
+                    return { shouldDelete: false, reason: '网络超时，可能是临时问题，建议保留' };
+                }
+                if (result.status >= 500) {
+                    return { shouldDelete: false, reason: '服务器错误，可能是临时问题，建议保留' };
+                }
+                return { shouldDelete: false, reason: '可能是临时问题，建议保留' };
+            }
+        }
+
+        // 停止检查
+        function stopLinkCheck() {
+            isChecking = false;
+            finishChecking();
+        }
+
+        // 完成检查
+        function finishChecking() {
+            isChecking = false;
+            document.getElementById('startCheck').classList.remove('hidden');
+            document.getElementById('stopCheck').classList.add('hidden');
+
+            updateProgress();
+
+            // 显示完成消息
+            const message = `检查完成！总计: ${stats.total}, 可访问: ${stats.accessible}, 不可访问: ${stats.inaccessible}${stats.deleted > 0 ? `, 已删除: ${stats.deleted}` : ''}`;
+            document.getElementById('progressText').textContent = message;
+
+            // 检查完成后重新显示所有书签
+            displayBookmarks();
+
+            // 如果有不可访问的链接，显示批量删除按钮
+            const inaccessibleCount = bookmarks.filter(b => b.status === 'inaccessible' && !b.deleted).length;
+            const batchDeleteBtn = document.getElementById('batchDelete');
+            if (inaccessibleCount > 0) {
+                batchDeleteBtn.classList.remove('hidden');
+                batchDeleteBtn.innerHTML = `<span class="btn-icon">🗑️</span>删除所有无效链接 (${inaccessibleCount})`;
+            } else {
+                batchDeleteBtn.classList.add('hidden');
+            }
+        }
+
+        // 批量删除不可访问的书签
+        async function batchDeleteInaccessible() {
+            const inaccessibleBookmarks = bookmarks.filter(b => b.status === 'inaccessible' && !b.deleted);
+
+            if (inaccessibleBookmarks.length === 0) {
+                showMessage('没有需要删除的无效链接', 'info');
+                return;
+            }
+
+            const confirmMessage = `⚠️ 批量删除确认\n\n确定要删除所有 ${inaccessibleBookmarks.length} 个无效链接吗？\n\n将删除以下书签：\n${inaccessibleBookmarks.slice(0, 5).map(b => `• ${b.title}`).join('\n')}${inaccessibleBookmarks.length > 5 ? `\n... 还有 ${inaccessibleBookmarks.length - 5} 个` : ''}\n\n⚠️ 重要提醒：\n• 此操作不可撤销！\n• 建议先手动检查几个链接确认\n• 某些网站可能临时无法访问\n\n确定继续吗？`;
+
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            let deletedCount = 0;
+            let failedCount = 0;
+
+            for (const bookmark of inaccessibleBookmarks) {
+                try {
+                    // 准备删除请求，包含检查状态信息
+                    const deleteData = {
+                        reason: 'batch_delete_inaccessible',
+                        checkStatus: bookmark.status,
+                        statusCode: bookmark.statusCode,
+                        statusText: bookmark.statusText,
+                        errorMessage: bookmark.error,
+                        keepStatus: bookmark.keepStatus
+                    };
+
+                    const response = await API.request(`/api/bookmarks/${bookmark.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(deleteData)
+                    });
+
+                    if (response.success) {
+                        bookmark.deleted = true;
+                        bookmark.status = 'deleted';
+                        deletedCount++;
+                    } else {
+                        failedCount++;
+                        console.error(`删除书签失败: ${bookmark.title}`, response.error);
+                    }
+                } catch (error) {
+                    failedCount++;
+                    console.error(`删除书签失败: ${bookmark.title}`, error);
+                }
+            }
+
+            // 更新统计
+            stats.deleted += deletedCount;
+            stats.inaccessible -= deletedCount;
+
+            // 更新显示
+            updateStats();
+            displayBookmarks();
+
+            // 隐藏批量删除按钮
+            document.getElementById('batchDelete').classList.add('hidden');
+
+            // 显示结果消息
+            if (failedCount === 0) {
+                showMessage(`成功删除 ${deletedCount} 个无效链接`, 'success');
+            } else {
+                showMessage(`删除完成：成功 ${deletedCount} 个，失败 ${failedCount} 个`, 'info');
+            }
+        }
+
+        // 更新书签显示
+        function updateBookmarkDisplay(bookmark) {
+            const importantStatusChanges = ['checking', 'accessible', 'inaccessible', 'deleted'];
+            if (importantStatusChanges.includes(bookmark.status)) {
+                displayBookmarks();
+                setTimeout(() => {
+                    ensureActionButtonsVisible();
+                }, 50);
+                return;
+            }
+
+            // 对于非重要状态变化，只更新单个元素
+            const bookmarkElement = document.getElementById(`bookmark-${bookmark.id}`);
+            const statusElement = document.getElementById(`status-${bookmark.id}`);
+            const resultElement = document.getElementById(`result-${bookmark.id}`);
+
+            if (!bookmarkElement) {
+                // 如果当前筛选下看不到这个书签，重新显示列表
+                displayBookmarks();
+                return;
+            }
+
+            // 更新书签项样式
+            bookmarkElement.className = `bookmark-item ${bookmark.status}`;
+
+            // 更新状态图标
+            statusElement.className = `bookmark-status status-${bookmark.status}`;
+
+            let statusIcon = '';
+            let resultText = getResultText(bookmark);
+
+            switch (bookmark.status) {
+                case 'pending':
+                    statusIcon = bookmarkElement.dataset.index ? parseInt(bookmarkElement.dataset.index) + 1 : '?';
+                    break;
+                case 'checking':
+                    statusIcon = '⏳';
+                    break;
+                case 'accessible':
+                    statusIcon = '✓';
+                    break;
+                case 'inaccessible':
+                    statusIcon = '✗';
+                    break;
+                case 'deleted':
+                    statusIcon = '🗑️';
+                    break;
+            }
+
+            statusElement.textContent = statusIcon;
+            resultElement.textContent = resultText;
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            // 重新计算统计数据
+            stats.total = bookmarks.length;
+            stats.checked = bookmarks.filter(b => b.checked).length;
+            stats.accessible = bookmarks.filter(b => b.status === 'accessible').length;
+            stats.inaccessible = bookmarks.filter(b => b.status === 'inaccessible' && !b.deleted).length;
+            stats.deleted = bookmarks.filter(b => b.deleted || b.status === 'deleted').length;
+            stats.kept = bookmarks.filter(b => b.keepStatus === 'keep').length;
+
+            // 更新显示
+            document.getElementById('totalBookmarks').textContent = stats.total;
+            document.getElementById('checkedCount').textContent = stats.checked;
+            document.getElementById('accessibleCount').textContent = stats.accessible;
+            document.getElementById('inaccessibleCount').textContent = stats.inaccessible;
+            document.getElementById('deletedCount').textContent = stats.deleted;
+            document.getElementById('keptCount').textContent = stats.kept;
+        }
+
+        // 更新进度
+        function updateProgress() {
+            const percentage = stats.total > 0 ? Math.round((stats.checked / stats.total) * 100) : 0;
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('progressPercent').textContent = `${percentage}%`;
+
+            if (isChecking && checkingIndex < bookmarks.length) {
+                const currentBookmark = bookmarks[checkingIndex];
+                document.getElementById('progressText').textContent = `正在检查: ${currentBookmark.title}`;
+            }
+        }
+
+        // 删除单个书签
+        async function deleteBookmark(bookmarkId) {
+            const bookmark = bookmarks.find(b => b.id == bookmarkId); // 使用 == 而不是 === 来处理类型转换
+            if (!bookmark) {
+                console.error('未找到书签，ID:', bookmarkId);
+                return;
+            }
+
+            if (!confirm(`⚠️ 删除确认\n\n确定要删除书签 "${bookmark.title}" 吗？\n\nURL: ${bookmark.url}\n\n⚠️ 注意：\n• 此操作不可撤销！\n• 建议先手动访问确认链接确实无效\n• 某些网站可能只是临时无法访问\n\n确定删除吗？`)) {
+                return;
+            }
+
+            try {
+                // 准备删除请求，包含检查状态信息
+                const deleteData = {
+                    reason: bookmark.status === 'inaccessible' ? 'link_check_failed' : 'manual_delete',
+                    checkStatus: bookmark.status,
+                    statusCode: bookmark.statusCode,
+                    statusText: bookmark.statusText,
+                    errorMessage: bookmark.error,
+                    keepStatus: bookmark.keepStatus
+                };
+
+                const response = await API.request(`/api/bookmarks/${bookmarkId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(deleteData)
+                });
+
+                if (response.success) {
+                    // 更新书签状态为已删除
+                    bookmark.deleted = true;
+                    bookmark.status = 'deleted';
+                    stats.deleted++;
+                    stats.inaccessible--;
+
+                    updateBookmarkDisplay(bookmark);
+                    updateStats();
+                    displayBookmarks(); // 重新显示以更新删除按钮
+
+                    // 显示成功消息
+                    showMessage(`书签 "${bookmark.title}" 已删除`, 'success');
+                } else {
+                    showMessage('删除失败: ' + response.error, 'error');
+                }
+            } catch (error) {
+                showMessage('删除失败: ' + error.message, 'error');
+            }
+        }
+
+        // 显示消息提示
+        function showMessage(text, type = 'info') {
+            const message = document.createElement('div');
+            message.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                border-radius: 6px;
+                color: white;
+                font-weight: 500;
+                z-index: 1001;
+                animation: slideIn 0.3s ease-out;
+                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+            `;
+            message.textContent = text;
+
+            // 添加动画样式
+            if (!document.querySelector('#message-styles')) {
+                const style = document.createElement('style');
+                style.id = 'message-styles';
+                style.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            document.body.appendChild(message);
+
+            // 自动移除
+            setTimeout(() => {
+                message.style.animation = 'slideIn 0.3s ease-out reverse';
+                setTimeout(() => message.remove(), 300);
+            }, 3000);
+        }
+
+        // 标记书签为保留
+        async function keepBookmark(bookmarkId) {
+            const bookmark = bookmarks.find(b => b.id == bookmarkId);
+            if (!bookmark) {
+                console.error('未找到书签，ID:', bookmarkId);
+                return;
+            }
+
+            if (!confirm(`确定要标记书签 "${bookmark.title}" 为保留吗？\n\n标记为保留后：\n• 即使检查失败也不会建议删除\n• 可以随时取消保留标记\n• 仍会参与链接检查`)) {
+                return;
+            }
+
+            try {
+                const response = await API.post('/api/bookmarks/keep-status', {
+                    bookmarkId: bookmarkId,
+                    keepStatus: 'keep'
+                });
+
+                if (response.success) {
+                    // 更新书签状态
+                    bookmark.keepStatus = 'keep';
+
+                    // 重新显示书签列表
+                    displayBookmarks();
+
+                    // 显示成功消息
+                    showMessage(`书签 "${bookmark.title}" 已标记为保留`, 'success');
+                } else {
+                    showMessage('标记保留失败: ' + response.error, 'error');
+                }
+            } catch (error) {
+                showMessage('标记保留失败: ' + error.message, 'error');
+            }
+        }
+
+        // 取消书签保留标记
+        async function unkeepBookmark(bookmarkId) {
+            const bookmark = bookmarks.find(b => b.id == bookmarkId);
+            if (!bookmark) {
+                console.error('未找到书签，ID:', bookmarkId);
+                return;
+            }
+
+            if (!confirm(`确定要取消书签 "${bookmark.title}" 的保留标记吗？\n\n取消后：\n• 如果链接检查失败，会重新建议删除\n• 可以重新标记为保留`)) {
+                return;
+            }
+
+            try {
+                const response = await API.post('/api/bookmarks/keep-status', {
+                    bookmarkId: bookmarkId,
+                    keepStatus: 'normal'
+                });
+
+                if (response.success) {
+                    // 更新书签状态
+                    bookmark.keepStatus = 'normal';
+
+                    // 重新显示书签列表
+                    displayBookmarks();
+
+                    // 显示成功消息
+                    showMessage(`书签 "${bookmark.title}" 已取消保留标记`, 'success');
+                } else {
+                    showMessage('取消保留失败: ' + response.error, 'error');
+                }
+            } catch (error) {
+                showMessage('取消保留失败: ' + error.message, 'error');
+            }
+        }
+
+        async function loadHistory() {
+            try {
+                const response = await API.get('/api/system/check-links');
+                if (response.success) {
+                    displayHistory(response.data);
+                }
+            } catch (error) {
+                console.error('加载历史失败:', error);
+            }
+        }
+
+        function displayHistory(history) {
+            const historyList = document.getElementById('historyList');
+            
+            if (history.length === 0) {
+                historyList.innerHTML = '<div class="empty-state">暂无检查历史</div>';
+                return;
+            }
+
+            historyList.innerHTML = history.map(record => `
+                <div class="history-item">
+                    <div class="history-header">
+                        <strong>${new Date(record.checkedAt).toLocaleString()}</strong>
+                        <div class="history-stats">
+                            <span>总计: ${record.total}</span>
+                            <span style="color: #28a745;">可访问: ${record.accessible}</span>
+                            <span style="color: #dc3545;">不可访问: ${record.inaccessible}</span>
+                            ${record.autoDelete ? `<span style="color: #ffc107;">已删除: ${record.inaccessible}</span>` : ''}
+                        </div>
+                    </div>
+                    <div>
+                        ${record.autoDelete ? '✅ 自动删除已启用' : '⚠️ 仅检查，未删除'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleHistory() {
+            const historyCard = document.getElementById('historyCard');
+            historyCard.classList.toggle('hidden');
+        }
+
+        // 切换说明面板
+        function toggleExplanation() {
+            const content = document.getElementById('explanationContent');
+            const toggleText = document.getElementById('explanationToggleText');
+
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                toggleText.textContent = '隐藏详情';
+            } else {
+                content.classList.add('hidden');
+                toggleText.textContent = '显示详情';
+            }
+        }
+
+        // 筛选书签显示
+        function filterBookmarksDisplay(filter) {
+            const bookmarkItems = document.querySelectorAll('.bookmark-item');
+            let visibleCount = 0;
+
+            bookmarkItems.forEach(item => {
+                let shouldShow = false;
+
+                switch (filter) {
+                    case 'all':
+                        shouldShow = true;
+                        break;
+                    case 'checked':
+                        shouldShow = item.classList.contains('accessible') ||
+                                   item.classList.contains('inaccessible') ||
+                                   item.classList.contains('kept') ||
+                                   item.classList.contains('deleted');
+                        break;
+                    case 'accessible':
+                        shouldShow = item.classList.contains('accessible');
+                        break;
+                    case 'inaccessible':
+                        shouldShow = item.classList.contains('inaccessible');
+                        break;
+                    case 'deleted':
+                        shouldShow = item.classList.contains('deleted');
+                        break;
+                    case 'kept':
+                        shouldShow = item.classList.contains('kept');
+                        break;
+                }
+
+                if (shouldShow) {
+                    item.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // 更新筛选状态显示
+            const filterStatus = document.getElementById('filterStatus');
+            if (filterStatus) {
+                if (filter === 'all') {
+                    filterStatus.textContent = `显示全部 (${visibleCount})`;
+                } else {
+                    const filterNames = {
+                        'checked': '已检查',
+                        'accessible': '可访问',
+                        'inaccessible': '不可访问',
+                        'deleted': '已删除',
+                        'kept': '已保留'
+                    };
+                    filterStatus.textContent = `筛选: ${filterNames[filter]} (${visibleCount})`;
+                }
+            }
+        }
+    </script>
+</body>
+</html>

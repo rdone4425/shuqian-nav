@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>导入书签 - 书签导航</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/import-enhanced.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 统一的头部导航 -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">📥</span>
+                    <h1 class="logo-text">导入书签</h1>
+                </div>
+
+                <!-- 统一的功能按钮组 -->
+                <div class="header-actions">
+                    <!-- 工具菜单 -->
+                    <div class="action-group tools-menu">
+                        <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" title="工具菜单">
+                            <span class="btn-icon">🛠️</span>
+                            <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div id="toolsDropdown" class="dropdown-menu">
+                            <a href="/" class="dropdown-item">
+                                <span class="item-icon">🏠</span>
+                                <div class="item-content">
+                                    <span class="item-text">首页</span>
+                                    <span class="item-desc">返回书签首页</span>
+                                </div>
+                            </a>
+                            <a href="/token.html" class="dropdown-item">
+                                <span class="item-icon">🔑</span>
+                                <div class="item-content">
+                                    <span class="item-text">API令牌</span>
+                                    <span class="item-desc">管理访问令牌</span>
+                                </div>
+                            </a>
+                            <a href="/link-checker.html" class="dropdown-item">
+                                <span class="item-icon">🔗</span>
+                                <div class="item-content">
+                                    <span class="item-text">链接检查</span>
+                                    <span class="item-desc">检查链接有效性</span>
+                                </div>
+                            </a>
+                            <a href="/deleted-bookmarks.html" class="dropdown-item">
+                                <span class="item-icon">🗑️</span>
+                                <div class="item-content">
+                                    <span class="item-text">删除记录</span>
+                                    <span class="item-desc">查看和恢复删除的书签</span>
+                                </div>
+                            </a>
+                            <a href="/notifications.html" class="dropdown-item">
+                                <span class="item-icon">🔔</span>
+                                <div class="item-content">
+                                    <span class="item-text">通知中心</span>
+                                    <span class="item-desc">查看系统通知</span>
+                                </div>
+                            </a>
+                            <a href="/import.html" class="dropdown-item">
+                                <span class="item-icon">📥</span>
+                                <div class="item-content">
+                                    <span class="item-text">导入书签</span>
+                                    <span class="item-desc">从文件导入书签</span>
+                                </div>
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <button id="changePasswordBtn" class="dropdown-item">
+                                <span class="item-icon">🔐</span>
+                                <div class="item-content">
+                                    <span class="item-text">修改密码</span>
+                                    <span class="item-desc">更改管理员密码</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 导入步骤指示器 -->
+        <div class="steps-indicator">
+            <div class="step active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="step-label">选择文件</div>
+            </div>
+            <div class="step" data-step="2">
+                <div class="step-number">2</div>
+                <div class="step-label">预览数据</div>
+            </div>
+            <div class="step" data-step="3">
+                <div class="step-number">3</div>
+                <div class="step-label">导入设置</div>
+            </div>
+            <div class="step" data-step="4">
+                <div class="step-number">4</div>
+                <div class="step-label">完成导入</div>
+            </div>
+        </div>
+
+        <!-- 帮助区域 -->
+        <div id="helpSection" class="help-section hidden">
+            <div class="help-content">
+                <h3>📖 导入帮助</h3>
+                <div class="help-grid">
+                    <div class="help-item">
+                        <h4>🌐 HTML 格式</h4>
+                        <p>标准浏览器书签文件，从浏览器导出的书签通常是这种格式。</p>
+                        <ul>
+                            <li>支持分类结构</li>
+                            <li>包含书签标题、URL、描述</li>
+                            <li>兼容所有主流浏览器</li>
+                        </ul>
+                    </div>
+                    <div class="help-item">
+                        <h4>📄 JSON 格式</h4>
+                        <p>结构化数据格式，包含完整的书签和分类信息。</p>
+                        <ul>
+                            <li>包含详细的元数据</li>
+                            <li>支持自定义分类颜色</li>
+                            <li>便于程序处理</li>
+                        </ul>
+                    </div>
+                    <div class="help-item">
+                        <h4>📋 注意事项</h4>
+                        <ul>
+                            <li>文件大小不超过 10MB</li>
+                            <li>建议书签数量在 1000 个以内</li>
+                            <li>URL 必须是有效的 http 或 https 链接</li>
+                            <li>重复的书签会根据设置进行处理</li>
+                        </ul>
+                    </div>
+                    <div class="help-item">
+                        <h4>🔧 导入模式</h4>
+                        <ul>
+                            <li><strong>合并导入：</strong>保留现有书签，只添加新的</li>
+                            <li><strong>替换导入：</strong>清除现有书签，只保留导入的</li>
+                            <li>建议首次导入使用替换模式</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主要内容区域 -->
+        <main class="main-content">
+            <!-- 步骤1: 选择文件 -->
+            <div class="import-step active" id="step1">
+                <div class="step-content">
+                    <h2>选择导入文件</h2>
+                    <p class="step-description">请选择要导入的书签文件，支持 HTML 和 JSON 格式</p>
+                    
+                    <div class="file-upload-area">
+                        <div class="upload-area" id="fileDropZone">
+                            <div class="upload-content">
+                                <div class="upload-icon">📁</div>
+                                <h3>拖拽文件到此处</h3>
+                                <p>或者点击下方按钮选择文件</p>
+                                <button class="btn btn-primary" id="selectFileBtn">
+                                    <span class="btn-icon">📂</span>
+                                    选择文件
+                                </button>
+                                <input type="file" id="fileInput" accept=".html,.htm,.json" style="display: none;">
+                            </div>
+                        </div>
+                        
+                        <div class="file-info">
+                            <h4>支持的文件格式：</h4>
+                            <ul>
+                                <li><strong>HTML 格式</strong> - 浏览器标准书签文件</li>
+                                <li><strong>JSON 格式</strong> - 结构化书签数据文件</li>
+                                <li>文件大小限制：10MB</li>
+                                <li>建议书签数量：1000个以内</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 步骤2: 预览数据 -->
+            <div class="import-step" id="step2">
+                <div class="step-content">
+                    <h2>预览导入数据</h2>
+                    <p class="step-description">请确认要导入的书签信息</p>
+                    
+                    <div class="preview-summary">
+                        <div class="summary-cards">
+                            <div class="summary-card">
+                                <div class="card-icon">📚</div>
+                                <div class="card-content">
+                                    <div class="card-number" id="previewBookmarkCount">0</div>
+                                    <div class="card-label">书签数量</div>
+                                </div>
+                            </div>
+                            <div class="summary-card">
+                                <div class="card-icon">📁</div>
+                                <div class="card-content">
+                                    <div class="card-number" id="previewCategoryCount">0</div>
+                                    <div class="card-label">分类数量</div>
+                                </div>
+                            </div>
+                            <div class="summary-card">
+                                <div class="card-icon">📄</div>
+                                <div class="card-content">
+                                    <div class="card-number" id="previewFileSize">0 KB</div>
+                                    <div class="card-label">文件大小</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="preview-details">
+                        <h3>书签预览</h3>
+                        <div class="preview-list" id="previewList">
+                            <!-- 动态生成预览内容 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 步骤3: 导入设置 -->
+            <div class="import-step" id="step3">
+                <div class="step-content">
+                    <h2>导入设置</h2>
+                    <p class="step-description">配置导入选项</p>
+                    
+                    <div class="import-options">
+                        <div class="option-group">
+                            <h3>数据处理方式</h3>
+                            <div class="radio-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="importMode" value="merge" checked>
+                                    <span class="radio-mark"></span>
+                                    <div class="option-content">
+                                        <div class="option-title">合并导入</div>
+                                        <div class="option-desc">保留现有书签，只导入不重复的新书签</div>
+                                    </div>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="importMode" value="replace">
+                                    <span class="radio-mark"></span>
+                                    <div class="option-content">
+                                        <div class="option-title">替换导入</div>
+                                        <div class="option-desc">清除所有现有书签，只保留导入的书签</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="option-group">
+                            <h3>重复处理</h3>
+                            <div class="checkbox-group">
+                                <label class="checkbox-option">
+                                    <input type="checkbox" id="skipDuplicates" checked>
+                                    <span class="checkbox-mark"></span>
+                                    <div class="option-content">
+                                        <div class="option-title">跳过重复书签</div>
+                                        <div class="option-desc">基于URL判断，跳过已存在的书签</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="option-group">
+                            <h3>分类处理</h3>
+                            <div class="checkbox-group">
+                                <label class="checkbox-option">
+                                    <input type="checkbox" id="createCategories" checked>
+                                    <span class="checkbox-mark"></span>
+                                    <div class="option-content">
+                                        <div class="option-title">自动创建分类</div>
+                                        <div class="option-desc">为导入的书签自动创建新分类</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 步骤4: 导入进度和结果 -->
+            <div class="import-step" id="step4">
+                <div class="step-content">
+                    <h2>导入进度</h2>
+                    <p class="step-description">正在导入书签，请稍候...</p>
+                    
+                    <div class="progress-section">
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                            <div class="progress-text" id="progressText">准备导入...</div>
+                        </div>
+                    </div>
+
+                    <div class="import-result hidden" id="importResult">
+                        <!-- 动态生成结果内容 -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 底部操作按钮 -->
+        <footer class="page-footer">
+            <div class="footer-actions">
+                <button class="btn btn-secondary" id="prevBtn" style="display: none;">
+                    <span class="btn-icon">←</span>
+                    上一步
+                </button>
+                <button class="btn btn-primary" id="nextBtn" disabled>
+                    下一步
+                    <span class="btn-icon">→</span>
+                </button>
+                <button class="btn btn-primary" id="importBtn" style="display: none;">
+                    <span class="btn-icon">📥</span>
+                    开始导入
+                </button>
+                <button class="btn btn-success" id="finishBtn" style="display: none;">
+                    <span class="btn-icon">✓</span>
+                    完成
+                </button>
+            </div>
+        </footer>
+    </div>
+
+
+
+    <!-- JavaScript 文件 -->
+    <script src="/js/utils/storage.js"></script>
+    <script src="/js/utils/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/import.js"></script>
+</body>
+</html>

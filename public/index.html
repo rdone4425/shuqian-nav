@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>书签导航 - 现代化书签管理</title>
+    <meta name="description" content="现代化的书签导航网站，支持分类管理、搜索排序，基于Cloudflare技术栈">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/bookmarks-enhanced.css">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+</head>
+<body>
+    <!-- 主容器 -->
+    <div class="container">
+        <!-- 头部导航 -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">📚</span>
+                    <h1 class="logo-text">书签导航</h1>
+                </div>
+
+                <!-- 统一的功能按钮组 -->
+                <div class="header-actions">
+                    <!-- 主要操作按钮 -->
+                    <div class="action-group primary-actions">
+                        <button id="searchToggle" class="action-btn-icon" title="搜索书签">
+                            <span class="btn-icon">🔍</span>
+                        </button>
+                        <button id="addBookmarkBtn" class="action-btn-icon primary" title="添加新书签">
+                            <span class="btn-icon">➕</span>
+                        </button>
+                    </div>
+
+                    <!-- 工具菜单 -->
+                    <div class="action-group tools-menu">
+                        <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" title="工具菜单">
+                            <span class="btn-icon">🛠️</span>
+                            <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div id="toolsDropdown" class="dropdown-menu">
+                            <a href="/token.html" class="dropdown-item">
+                                <span class="item-icon">🔑</span>
+                                <div class="item-content">
+                                    <span class="item-text">API令牌</span>
+                                    <span class="item-desc">管理访问令牌</span>
+                                </div>
+                            </a>
+                            <a href="/link-checker.html" class="dropdown-item">
+                                <span class="item-icon">🔗</span>
+                                <div class="item-content">
+                                    <span class="item-text">链接检查</span>
+                                    <span class="item-desc">检查链接有效性</span>
+                                </div>
+                            </a>
+                            <a href="/deleted-bookmarks" class="dropdown-item">
+                                <span class="item-icon">🗑️</span>
+                                <div class="item-content">
+                                    <span class="item-text">删除记录</span>
+                                    <span class="item-desc">查看和恢复删除的书签</span>
+                                </div>
+                            </a>
+                            <a href="/notifications.html" class="dropdown-item">
+                                <span class="item-icon">🔔</span>
+                                <div class="item-content">
+                                    <span class="item-text">通知中心</span>
+                                    <span class="item-desc">查看系统通知</span>
+                                </div>
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <button id="changePasswordBtn" class="dropdown-item">
+                                <span class="item-icon">🔐</span>
+                                <div class="item-content">
+                                    <span class="item-text">修改密码</span>
+                                    <span class="item-desc">更改管理员密码</span>
+                                </div>
+                            </button>
+                            <button id="settingsToggle" class="dropdown-item">
+                                <span class="item-icon">⚙️</span>
+                                <div class="item-content">
+                                    <span class="item-text">系统设置</span>
+                                    <span class="item-desc">配置系统选项</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 搜索栏 -->
+        <div id="searchContainer" class="search-container hidden">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="搜索书签标题、描述或URL..." class="search-input">
+                <button id="searchBtn" class="search-btn">
+                    <span class="icon">🔍</span>
+                </button>
+                <button id="clearSearchBtn" class="search-btn clear-btn">
+                    <span class="icon">✖️</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 过滤和排序控制 -->
+        <div class="controls-bar">
+            <div class="filter-controls">
+                <select id="categoryFilter" class="filter-select">
+                    <option value="">所有分类</option>
+                </select>
+                <select id="sortSelect" class="filter-select">
+                    <option value="created_at:desc">最新添加</option>
+                    <option value="popularity:desc">🔥 热门书签</option>
+                    <option value="visit_count:desc">👁️ 访问最多</option>
+                    <option value="last_visited:desc">🕒 最近访问</option>
+                    <option value="title:asc">标题 A-Z</option>
+                    <option value="title:desc">标题 Z-A</option>
+                    <option value="updated_at:desc">最近更新</option>
+                    <option value="created_at:asc">最早添加</option>
+                </select>
+            </div>
+            <div class="view-controls">
+                <button id="gridViewBtn" class="view-btn active" title="网格视图">
+                    <span class="icon">⊞</span>
+                </button>
+                <button id="listViewBtn" class="view-btn" title="列表视图">
+                    <span class="icon">☰</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 统计信息 -->
+        <div class="stats-bar">
+            <div class="stats-item">
+                <span class="stats-label">总计:</span>
+                <span id="totalCount" class="stats-value">0</span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-label">当前页:</span>
+                <span id="currentPageInfo" class="stats-value">0</span>
+            </div>
+        </div>
+
+        <!-- 书签网格 -->
+        <main class="main-content">
+            <div id="bookmarksGrid" class="bookmarks-grid">
+                <!-- 书签卡片将通过JavaScript动态生成 -->
+            </div>
+
+            <!-- 加载状态 -->
+            <div id="loadingState" class="loading-state">
+                <div class="loading-spinner"></div>
+                <p>加载中...</p>
+            </div>
+
+            <!-- 空状态 -->
+            <div id="emptyState" class="empty-state hidden">
+                <div class="empty-icon">📖</div>
+                <h3>暂无书签</h3>
+                <p>点击右上角的 ➕ 按钮添加您的第一个书签</p>
+            </div>
+
+            <!-- 错误状态 -->
+            <div id="errorState" class="error-state hidden">
+                <div class="error-icon">⚠️</div>
+                <h3>加载失败</h3>
+                <p id="errorMessage">网络连接异常，请稍后重试</p>
+                <button id="retryBtn" class="btn btn-primary">重试</button>
+            </div>
+        </main>
+
+        <!-- 分页控制 -->
+        <div id="paginationContainer" class="pagination-container hidden">
+            <div class="pagination">
+                <button id="prevPageBtn" class="pagination-btn" disabled>
+                    <span class="icon">◀</span>
+                    上一页
+                </button>
+                <div id="pageNumbers" class="page-numbers">
+                    <!-- 页码按钮将动态生成 -->
+                </div>
+                <button id="nextPageBtn" class="pagination-btn" disabled>
+                    下一页
+                    <span class="icon">▶</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加/编辑书签模态框 -->
+    <div id="bookmarkModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">添加书签</h3>
+                <button id="closeModalBtn" class="btn-close">×</button>
+            </div>
+            <form id="bookmarkForm" class="modal-body">
+                <div class="form-group">
+                    <label for="bookmarkTitle">标题 *</label>
+                    <input type="text" id="bookmarkTitle" required class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="bookmarkUrl">URL *</label>
+                    <input type="url" id="bookmarkUrl" required class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="bookmarkDescription">描述</label>
+                    <textarea id="bookmarkDescription" class="form-textarea" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="bookmarkCategory">分类</label>
+                    <select id="bookmarkCategory" class="form-select">
+                        <option value="">无分类</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="cancelBtn" class="btn btn-secondary">取消</button>
+                    <button type="submit" id="saveBtn" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 设置面板 -->
+    <div id="settingsPanel" class="settings-panel hidden">
+        <div class="panel-header">
+            <h3>⚙️ 设置</h3>
+            <button id="settingsClose" class="btn-close">×</button>
+        </div>
+        <div class="panel-content">
+            <div class="settings-section">
+                <h4>账户管理</h4>
+                <button id="logoutBtn" class="btn btn-outline">退出登录</button>
+            </div>
+            <div class="settings-section">
+                <h4>数据管理</h4>
+                <div class="export-buttons">
+                    <button id="exportBtn" class="btn btn-outline">导出为HTML</button>
+                    <button id="exportJSONBtn" class="btn btn-outline">导出为JSON</button>
+                </div>
+                <div class="backup-buttons">
+                    <button id="fullBackupJSONBtn" class="btn btn-primary">🛡️ 完整备份(JSON)</button>
+                    <button id="fullBackupHTMLBtn" class="btn btn-primary">🛡️ 完整备份(HTML)</button>
+                </div>
+                <button id="importBtn" class="btn btn-outline">导入书签</button>
+            </div>
+            <div class="settings-section">
+                <h4>数据库管理</h4>
+                <p class="settings-info">⚠️ 危险操作，请谨慎使用</p>
+                <div class="database-buttons">
+                    <button id="clearSampleDataBtn" class="btn btn-outline btn-warning">清除示例数据</button>
+                    <button id="resetDatabaseBtn" class="btn btn-outline btn-danger">重置数据库</button>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h4>关于</h4>
+                <p class="settings-info">书签导航 v1.0.0</p>
+                <p class="settings-info">基于 Cloudflare Pages + D1</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 消息提示 -->
+    <div id="messageContainer" class="message-container hidden">
+        <div id="messageText" class="message-text"></div>
+    </div>
+
+    <!-- 修改密码模态框 -->
+    <div id="changePasswordModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🔐 修改密码</h3>
+                <button id="closePasswordModal" class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="changePasswordForm">
+                    <div class="form-group">
+                        <label for="currentPassword">当前密码</label>
+                        <input type="password" id="currentPassword" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">新密码</label>
+                        <input type="password" id="newPassword" required minlength="6">
+                        <small>密码长度至少6位</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">确认新密码</label>
+                        <input type="password" id="confirmPassword" required minlength="6">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="cancelPasswordChange" class="btn btn-secondary">取消</button>
+                        <button type="submit" class="btn btn-primary">确认修改</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript模块 -->
+    <script src="/js/utils/storage.js"></script>
+    <script src="/js/utils/api.js"></script>
+    <script src="/js/utils/sorting.js"></script>
+    <script src="/js/utils/dom-helper.js"></script>
+    <script src="/js/utils/ui-helper.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/bookmarks.js"></script>
+    <script src="/js/ui-enhancements.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>

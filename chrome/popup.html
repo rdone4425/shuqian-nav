@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- 头部 -->
+    <div class="header">
+      <div class="header-content">
+        <div class="logo">
+          <span class="logo-icon">📚</span>
+          <span class="logo-text">书签同步</span>
+        </div>
+        <div class="header-actions">
+          <button id="settingsToggle" class="btn-icon" title="设置">
+            <span class="icon">⚙️</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 主要内容区域 -->
+    <div class="main-content">
+      <!-- 状态卡片 -->
+      <div class="status-card">
+        <div class="card-header">
+          <h3>📊 同步状态</h3>
+          <span id="connectionStatus" class="status-badge checking">检查中</span>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-value" id="localCount">-</div>
+            <div class="stat-label">本地书签</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="serverCount">-</div>
+            <div class="stat-label">服务器书签</div>
+          </div>
+          <div class="stat-item highlight">
+            <div class="stat-value" id="needSyncCount">-</div>
+            <div class="stat-label">待同步</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 同步操作区域 -->
+      <div class="sync-card">
+        <button id="syncBtn" class="btn-sync">
+          <span class="btn-icon">🔄</span>
+          <span class="btn-text">开始同步</span>
+        </button>
+
+        <div id="progressContainer" class="progress-container hidden">
+          <div class="progress-wrapper">
+            <div class="progress-bar">
+              <div id="progressFill" class="progress-fill"></div>
+            </div>
+            <div class="progress-info">
+              <span id="progressText" class="progress-text">准备中...</span>
+              <span id="progressPercent" class="progress-percent">0%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部信息 -->
+    <div class="footer-info">
+      <div class="info-item">
+        <span class="info-label">最后同步:</span>
+        <span id="lastSyncTime" class="info-value">从未同步</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">版本:</span>
+        <span class="info-value">v1.0.0</span>
+      </div>
+    </div>
+
+    <!-- 设置面板 -->
+    <div id="settingsPanel" class="settings-panel hidden">
+      <div class="panel-header">
+        <h3>⚙️ 连接设置</h3>
+        <button id="settingsClose" class="btn-close">×</button>
+      </div>
+
+      <div class="panel-content">
+        <div class="input-group">
+          <label for="apiUrl">
+            <span class="label-icon">🌐</span>
+            <span class="label-text">服务器地址</span>
+          </label>
+          <input type="text" id="apiUrl" placeholder="https://new-nav.pages.dev" class="input-field">
+          <div class="input-hint">生产环境: https://new-nav.pages.dev | 本地: http://127.0.0.1:8788</div>
+        </div>
+
+        <div class="input-group">
+          <label for="apiToken">
+            <span class="label-icon">🔑</span>
+            <span class="label-text">访问令牌</span>
+          </label>
+          <input type="password" id="apiToken" placeholder="输入JWT令牌" class="input-field">
+          <div class="input-hint">访问 /token.html 页面生成令牌</div>
+        </div>
+
+        <div class="panel-actions">
+          <button id="testBtn" class="btn btn-outline">
+            <span class="btn-icon">🔍</span>
+            测试连接
+          </button>
+          <button id="saveBtn" class="btn btn-primary">
+            <span class="btn-icon">💾</span>
+            保存设置
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 消息提示 -->
+    <div id="messageContainer" class="message-container hidden">
+      <div id="messageText" class="message-text"></div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

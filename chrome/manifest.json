@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "书签同步助手",
+  "version": "1.0.0",
+  "description": "将Chrome书签同步到服务器",
+  "permissions": [
+    "bookmarks",
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://new-nav.pages.dev/*",
+    "http://localhost:*/*",
+    "http://127.0.0.1:*/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "书签同步"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}

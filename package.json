@@ -1,0 +1,76 @@
+{
+  "name": "bookmark-navigator-enhanced",
+  "version": "2.0.0",
+  "description": "强化版书签导航系统 - 支持性能监控、统计分析、自动备份",
+  "main": "public/index.html",
+  "scripts": {
+    "dev": "wrangler pages dev public --compatibility-date=2024-01-01 --d1=BOOKMARKS_DB",
+    "dev:local": "wrangler pages dev public --local --compatibility-date=2024-01-01 --d1=BOOKMARKS_DB",
+    "start": "npm run dev",
+    "build": "echo '构建完成 - 无需额外构建步骤'",
+    "deploy": "wrangler pages deploy public --project-name=bookmark-navigator",
+    "deploy:staging": "wrangler pages deploy public --project-name=bookmark-navigator-staging",
+    "setup": "npm run reset && npm run dev",
+    "setup:clean": "npm run reset:clean && npm run dev",
+    "setup:test": "node scripts/setup-local-test.js",
+    "test:local": "npm run setup:test && npm run dev:local",
+    "config": "node scripts/setup-config.js",
+    "reset": "node scripts/reset.js",
+    "reset:clean": "node scripts/reset.js --clean",
+    "reset:custom": "node scripts/reset.js",
+    "lint": "eslint public/js/**/*.js functions/**/*.js --ext .js",
+    "lint:fix": "eslint public/js/**/*.js functions/**/*.js --ext .js --fix",
+    "format": "prettier --write \"**/*.{js,json,md,css}\"",
+    "format:check": "prettier --check \"**/*.{js,json,md,css}\"",
+    "test": "npm run lint && npm run format:check && echo '✅ 所有检查通过'",
+    "test:api": "node scripts/test-api-endpoints.js",
+    "validate": "node scripts/validate-project.js",
+    "backup": "node scripts/create-backup.js",
+    "db:init": "wrangler d1 execute bookmark-navigator-local --local --file=scripts/local-database-init.sql",
+    "db:init:remote": "wrangler d1 execute BOOKMARKS_DB --file=scripts/database-schema.sql",
+    "db:backup": "wrangler d1 export BOOKMARKS_DB --output=backups/",
+    "db:reset": "npm run db:init",
+    "optimize": "node scripts/optimize-performance.js",
+    "health-check": "node scripts/health-check.js",
+    "deploy:init": "echo '⚠️  请手动执行: npx wrangler d1 execute bookmark-navigator-db --file=./schemas/schema-production.sql'",
+    "deploy:reset": "echo '⚠️  请手动执行: npx wrangler d1 execute bookmark-navigator-db --file=./schemas/schema-production.sql'",
+    "postinstall": "echo '\n🎉 安装完成！新增功能：性能监控、统计分析、自动备份\n💡 运行 npm run test:local 开始本地测试\n'"
+  },
+  "keywords": [
+    "bookmark",
+    "navigation",
+    "cloudflare",
+    "pages",
+    "functions",
+    "d1",
+    "performance",
+    "analytics",
+    "backup",
+    "jwt",
+    "modern-ui"
+  ],
+  "author": "Bookmark Navigator Team",
+  "license": "MIT",
+  "dependencies": {
+    "jose": "^5.2.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5",
+    "wrangler": "^3.28.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "config": {
+    "wrangler": {
+      "compatibility_date": "2024-01-01"
+    }
+  },
+  "browserslist": [
+    "defaults",
+    "not IE 11",
+    "not op_mini all"
+  ]
+}

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - 书签导航</title>
+    <meta name="description" content="书签导航系统登录页面">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+</head>
+<body class="login-page">
+    <div class="login-container">
+        <!-- 登录卡片 -->
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo">
+                    <span class="logo-icon">📚</span>
+                    <h1 class="logo-text">书签导航</h1>
+                </div>
+                <p class="login-subtitle">请输入密码以访问您的书签</p>
+            </div>
+
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="password" class="form-label">
+                        <span class="label-icon">🔑</span>
+                        <span class="label-text">访问密码</span>
+                    </label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        required 
+                        class="form-input"
+                        placeholder="请输入访问密码"
+                        autocomplete="current-password"
+                    >
+                </div>
+
+                <button type="submit" id="loginBtn" class="btn btn-primary btn-full">
+                    <span class="btn-icon">🚀</span>
+                    <span class="btn-text">登录</span>
+                </button>
+            </form>
+
+            <!-- 登录状态提示 -->
+            <div id="loginStatus" class="login-status hidden">
+                <div class="status-icon">⏳</div>
+                <div class="status-text">正在验证...</div>
+            </div>
+
+            <!-- 错误提示 -->
+            <div id="errorMessage" class="error-message hidden">
+                <div class="error-icon">⚠️</div>
+                <div class="error-text">密码错误，请重试</div>
+            </div>
+        </div>
+
+        <!-- 页面底部信息 -->
+        <div class="login-footer">
+            <div class="footer-info">
+                <p>书签导航系统 v1.0.0</p>
+                <p>基于 Cloudflare Pages + Functions + D1</p>
+            </div>
+            <div class="footer-links">
+                <a href="/api/health" target="_blank" class="footer-link">系统状态</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 背景装饰 -->
+    <div class="login-background">
+        <div class="bg-shape shape-1"></div>
+        <div class="bg-shape shape-2"></div>
+        <div class="bg-shape shape-3"></div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/js/utils/storage.js"></script>
+    <script src="/js/utils/api.js"></script>
+    <script src="/js/auth.js"></script>
+    
+    <script>
+        // 登录页面逻辑
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = document.getElementById('loginForm');
+            const passwordInput = document.getElementById('password');
+            const loginBtn = document.getElementById('loginBtn');
+            const loginStatus = document.getElementById('loginStatus');
+            const errorMessage = document.getElementById('errorMessage');
+
+            // 检查是否已登录
+            if (Auth.checkAuthenticated()) {
+                window.location.href = '/';
+                return;
+            }
+
+            // 处理登录表单提交
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const password = passwordInput.value.trim();
+                if (!password) {
+                    showError('请输入密码');
+                    return;
+                }
+
+                try {
+                    showLoading();
+                    const result = await Auth.login(password);
+                    
+                    if (result.success) {
+                        showSuccess('登录成功，正在跳转...');
+                        setTimeout(() => {
+                            Auth.redirectAfterLogin();
+                        }, 1000);
+                    } else {
+                        // 处理特殊错误状态
+                        if (result.isDefaultPassword || result.requirePasswordChange) {
+                            showError('检测到默认密码，请先设置安全密码');
+                            setTimeout(() => {
+                                window.location.href = '/setup-password.html';
+                            }, 2000);
+                        } else if (result.requireInitialSetup) {
+                            showError('系统未初始化，正在跳转到密码设置页面...');
+                            setTimeout(() => {
+                                window.location.href = '/setup-password.html';
+                            }, 2000);
+                        } else if (result.configRequired) {
+                            showError('系统配置不完整：' + (result.details || result.error));
+                        } else {
+                            showError(result.error || '登录失败');
+                        }
+                    }
+                } catch (error) {
+                    console.error('登录错误:', error);
+                    showError('网络连接异常，请稍后重试');
+                }
+            });
+
+            // 显示加载状态
+            function showLoading() {
+                loginBtn.disabled = true;
+                loginBtn.querySelector('.btn-text').textContent = '登录中...';
+                loginStatus.classList.remove('hidden');
+                errorMessage.classList.add('hidden');
+            }
+
+            // 显示错误信息
+            function showError(message) {
+                loginBtn.disabled = false;
+                loginBtn.querySelector('.btn-text').textContent = '登录';
+                loginStatus.classList.add('hidden');
+                errorMessage.querySelector('.error-text').textContent = message;
+                errorMessage.classList.remove('hidden');
+                
+                // 聚焦到密码输入框
+                passwordInput.focus();
+                passwordInput.select();
+            }
+
+            // 显示成功信息
+            function showSuccess(message) {
+                loginStatus.querySelector('.status-icon').textContent = '✅';
+                loginStatus.querySelector('.status-text').textContent = message;
+                errorMessage.classList.add('hidden');
+            }
+
+            // 自动聚焦到密码输入框
+            passwordInput.focus();
+
+            // 回车键快捷登录
+            passwordInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    loginForm.dispatchEvent(new Event('submit'));
+                }
+            });
+        });
+    </script>
+</body>
+</html>
