@@ -118,15 +118,15 @@
                     } else {
                         // 处理特殊错误状态
                         if (result.isDefaultPassword || result.requirePasswordChange) {
-                            showError('🔒 安全提示：检测到默认密码，需要设置新密码才能继续使用');
+                            showError('🔒 安全提示：检测到默认密码，正在跳转到密码设置页面...');
                             setTimeout(() => {
                                 window.location.href = '/setup-password.html';
-                            }, 3000);
+                            }, 1500);
                         } else if (result.requireInitialSetup) {
-                            showError('🚀 首次使用：系统需要初始化，请设置登录密码');
+                            showError('🚀 首次使用：系统需要初始化，正在跳转到密码设置页面...');
                             setTimeout(() => {
                                 window.location.href = '/setup-password.html';
-                            }, 3000);
+                            }, 1500);
                         } else if (result.configRequired) {
                             showError('⚙️ 配置错误：' + (result.details || result.error));
                         } else {
