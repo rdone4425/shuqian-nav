@@ -7,7 +7,7 @@
     "dev": "wrangler pages dev public --compatibility-date=2024-01-01 --d1=BOOKMARKS_DB",
     "dev:local": "wrangler pages dev public --local --compatibility-date=2024-01-01 --d1=BOOKMARKS_DB",
     "start": "npm run dev",
-    "build": "echo '构建完成 - 静态站点无需构建'",
+    "build": "echo '静态站点无需构建步骤'",
     "deploy": "wrangler pages deploy public --project-name=bookmark-navigator",
     "deploy:staging": "wrangler pages deploy public --project-name=bookmark-navigator-staging",
     "setup": "npm run reset && npm run dev",

@@ -41,7 +41,9 @@ nav/
    - 访问 [Cloudflare Pages](https://pages.cloudflare.com/)
    - 点击"创建项目" → "连接到Git" 
    - 选择你的仓库
-   - 部署设置保持默认即可
+   - **重要**: 在构建设置中手动配置：
+     - **构建命令**: `npm install`
+     - **输出目录**: `public`
 3. **等待部署完成**，访问你的网站
 4. **首次访问**会自动跳转到密码设置页面
 5. **设置强密码**，立即开始使用！
@@ -159,6 +161,34 @@ JWT_SECRET=your-secret-key
 npm run dev
 
 # 4. 访问 http://localhost:8788
+```
+
+## 🔧 故障排除
+
+### 部署问题
+
+**问题**: `Could not resolve "jose"` 错误
+```
+解决方案：
+1. 确保构建命令设置为 `npm install`
+2. 确保输出目录设置为 `public`
+3. 不要使用 wrangler.toml 文件（Cloudflare Pages 不需要）
+```
+
+**问题**: Functions 不工作
+```
+解决方案：
+1. 检查 D1 数据库绑定是否正确配置
+2. 确认环境变量设置
+3. 查看 Functions 日志获取详细错误信息
+```
+
+**问题**: 部署后页面空白
+```
+解决方案：
+1. 确认输出目录设置为 `public`
+2. 检查浏览器控制台错误信息
+3. 确认静态文件路径正确
 ```
 
 ## 🧰 核心功能
