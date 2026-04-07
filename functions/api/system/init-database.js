@@ -120,6 +120,8 @@ const DATABASE_SCHEMA = {
       ['admin_password', 'admin123', '管理员密码'],
       ['site_title', '书签导航', '网站标题'],
       ['site_description', '现代化书签管理系统', '网站描述']
+      ['ai_api_endpoint', '', 'AI 鎺ュ彛鍦板潃锛岃┍鍔ㄩ噸鍐?ENV 閰嶇疆'],
+      ['ai_model', '', 'AI 妯″潡鍚嶇О锛屽彧鍙敤鍙傛暟鍐冲畾']
     ]},
     { table: 'categories', data: [
       ['工具', '#10B981', '开发工具和实用工具'],

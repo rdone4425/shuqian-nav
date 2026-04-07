@@ -135,6 +135,7 @@ const BookmarkManager = {
         this.updatePagination(response.data.pagination);
         this.renderBookmarks();
         this.updateStats();
+        this.refreshWikiView();
       } else {
         this.showError(response.error || '加载书签失败');
       }
@@ -151,6 +152,7 @@ const BookmarkManager = {
       if (response.success) {
         this.categories = response.data;
         this.renderCategoryFilter();
+        this.refreshWikiView();
       }
     } catch (error) {
       console.error('加载分类错误:', error);
@@ -404,6 +406,20 @@ const BookmarkManager = {
 
   hideStates() {
     DOMHelper.hide('loadingState', 'emptyState', 'errorState');
+  },
+
+  refreshWikiView() {
+    if (!window.WikiView || typeof WikiView.update !== 'function') return;
+    const snapshot = this.mergeVisitData(this.bookmarks || []);
+    WikiView.update({
+      bookmarks: snapshot,
+      categories: this.categories,
+      summary: {
+        total: this.totalCount,
+        search: this.currentFilters.search,
+        category: this.currentFilters.category
+      }
+    });
   },
 
   // 恢复用户偏好设置

@@ -56,6 +56,15 @@ CREATE INDEX IF NOT EXISTS idx_bookmarks_visit_count ON bookmarks(visit_count DE
 CREATE INDEX IF NOT EXISTS idx_bookmarks_last_visited ON bookmarks(last_visited DESC);
 CREATE INDEX IF NOT EXISTS idx_system_config_key ON system_config(config_key);
 
+-- 鎻掑叆绯荤粺閰嶇疆
+INSERT OR IGNORE INTO system_config (config_key, config_value, description) VALUES
+('initialized', 'true', '绯荤粺鏄惁宸插垵濮嬪寲'),
+('admin_password', 'admin123', '绠＄悊鍛樺瘑鐮?),
+('site_title', '涔︾瀵艰埅', '缃戠珯鏍囬'),
+('site_description', '鐜頒唬鍖栦功绛剧鐞嗙郴缁?, '缃戠珯鎻忚堪'),
+('ai_api_endpoint', '', 'AI 鎺ュ彛鍦板潃锛岃┍鍔ㄩ噸鍐?ENV 閰嶇疆'),
+('ai_model', '', 'AI 妯″潡鍚嶇О锛屽彧鍙敤鍙傛暟鍐冲畾');
+
 -- 插入默认数据
 INSERT OR IGNORE INTO categories (id, name, color, description) VALUES 
 (1, '工作学习', '#007bff', '工作和学习相关网站'),

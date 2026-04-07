@@ -5,6 +5,9 @@ const App = {
   // 应用状态
   isInitialized: false,
   currentBookmark: null,
+  aiSettingsLoaded: false,
+  aiSettingsLoading: false,
+  aiSettingsSaving: false,
 
   // UI元素
   elements: {},
@@ -23,6 +26,10 @@ const App = {
       
       // 绑定事件
       this.bindEvents();
+      
+      if (window.WikiView && typeof WikiView.init === 'function') {
+        WikiView.init();
+      }
       
       // 初始化书签管理器
       await BookmarkManager.init();
@@ -89,7 +96,10 @@ const App = {
       changePasswordModal: 'changePasswordModal',
       closePasswordModal: 'closePasswordModal',
       cancelPasswordChange: 'cancelPasswordChange',
-      changePasswordForm: 'changePasswordForm'
+      changePasswordForm: 'changePasswordForm',
+      aiSettingsForm: 'aiSettingsForm',
+      aiEndpointInput: 'aiEndpointInput',
+      aiModelInput: 'aiModelInput'
     };
     
     this.elements = DOMHelper.getElements(selectors);
@@ -189,6 +199,11 @@ const App = {
 
     this.elements.importBtn?.addEventListener('click', () => {
       this.importBookmarks();
+    });
+
+    this.elements.aiSettingsForm?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.saveAiSettings();
     });
 
     // 视图切换
@@ -504,7 +519,11 @@ const App = {
 
   // 切换设置面板
   toggleSettings() {
-    this.elements.settingsPanel?.classList.toggle('hidden');
+    if (!this.elements.settingsPanel) return;
+    this.elements.settingsPanel.classList.toggle('hidden');
+    if (!this.elements.settingsPanel.classList.contains('hidden') && !this.aiSettingsLoaded && !this.aiSettingsLoading) {
+      this.loadAiSettings();
+    }
     // 关闭工具菜单
     this.hideToolsMenu();
   },
@@ -512,6 +531,62 @@ const App = {
   // 隐藏设置面板
   hideSettings() {
     this.elements.settingsPanel?.classList.add('hidden');
+  },
+
+  async loadAiSettings() {
+    if (this.aiSettingsLoading) return;
+    this.aiSettingsLoading = true;
+    try {
+      const response = await SystemAPI.getConfig();
+      if (!response.success) {
+        throw new Error(response.error || '获取 AI 配置失败');
+      }
+      const map = {};
+      (response.data || []).forEach((item) => {
+        map[item.config_key] = item.config_value || '';
+      });
+      if (this.elements.aiEndpointInput) {
+        this.elements.aiEndpointInput.value = map.ai_api_endpoint || '';
+      }
+      if (this.elements.aiModelInput) {
+        this.elements.aiModelInput.value = map.ai_model || '';
+      }
+      this.aiSettingsLoaded = true;
+    } catch (error) {
+      console.error('获取 AI 配置失败:', error);
+      this.showMessage('获取 AI 配置失败: ' + error.message, 'error');
+    } finally {
+      this.aiSettingsLoading = false;
+    }
+  },
+
+  async saveAiSettings() {
+    if (this.aiSettingsSaving) return;
+    const endpoint = this.elements.aiEndpointInput?.value?.trim() || '';
+    const model = this.elements.aiModelInput?.value?.trim() || '';
+    const submitBtn = this.elements.aiSettingsForm?.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
+    this.aiSettingsSaving = true;
+    try {
+      const [endpointResult, modelResult] = await Promise.all([
+        SystemAPI.updateConfig('ai_api_endpoint', endpoint),
+        SystemAPI.updateConfig('ai_model', model)
+      ]);
+      if (!endpointResult.success) {
+        throw new Error(endpointResult.error || 'AI 接口保存失败');
+      }
+      if (!modelResult.success) {
+        throw new Error(modelResult.error || 'AI 模型保存失败');
+      }
+      this.aiSettingsLoaded = true;
+      this.showMessage('AI 配置已保存，重新生成 AI Wiki 后生效', 'success');
+    } catch (error) {
+      console.error('保存 AI 配置失败:', error);
+      this.showMessage('保存 AI 配置失败: ' + error.message, 'error');
+    } finally {
+      this.aiSettingsSaving = false;
+      if (submitBtn) submitBtn.disabled = false;
+    }
   },
 
   // 登出

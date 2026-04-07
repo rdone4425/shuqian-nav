@@ -7,6 +7,7 @@
     <meta name="description" content="现代化的书签导航网站，支持分类管理、搜索排序，基于Cloudflare技术栈">
     <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="/css/bookmarks-enhanced.css">
+    <link rel="stylesheet" href="/css/wiki-layout.css">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
 </head>
 <body>
@@ -142,8 +143,61 @@
 
         <!-- 书签网格 -->
         <main class="main-content">
-            <div id="bookmarksGrid" class="bookmarks-grid">
-                <!-- 书签卡片将通过JavaScript动态生成 -->
+            <div class="wiki-layout" id="wikiLayout">
+                <aside class="wiki-sidebar">
+                    <div class="sidebar-section sidebar-search-section">
+                        <div class="sidebar-search-box">
+                            <input type="text" id="wikiSearchInput" placeholder="像查文档一样检索书签...">
+                            <button id="openCommandPalette" class="ghost-btn" title="Command Palette">
+                                Ctrl + K
+                            </button>
+                        </div>
+                        <p class="sidebar-hint">实时过滤 + 命令面板，快速定位任意收藏</p>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <div class="section-heading">
+                            <h3>目录</h3>
+                            <span id="wikiCategoryCount" class="section-meta">0</span>
+                        </div>
+                        <nav id="wikiToc" class="wiki-toc"></nav>
+                    </div>
+
+                    <div class="sidebar-section">
+                        <div class="section-heading">
+                            <h3>常用 / 置顶</h3>
+                        </div>
+                        <div id="wikiPinned" class="wiki-pinned-list"></div>
+                    </div>
+                </aside>
+
+                <section class="wiki-content-panel">
+                    <header class="wiki-hero">
+                    <div>
+                        <p class="hero-eyebrow">书签知识库</p>
+                        <h2>像浏览 Wiki 一样浏览你的收藏</h2>
+                        <p class="hero-subtitle">
+                            <span id="wikiSummaryCount">0</span> 条书签 · 即时搜索 · 按分类生成章节 &amp; 目录
+                        </p>
+                        <p class="wiki-ai-status" id="wikiAiStatus">AI 视图：尚未生成</p>
+                    </div>
+                    <div class="wiki-hero-actions">
+                        <button id="generateAiWikiBtn" class="primary-btn">AI 自动整理</button>
+                        <button id="toggleWikiModeBtn" class="ghost-btn" type="button">使用本地视图</button>
+                        <button id="openQuickSearch" class="ghost-btn" type="button">打开指令面板</button>
+                        <button id="scrollTopBtn" class="ghost-btn" type="button">返回顶部</button>
+                    </div>
+                </header>
+
+                    <div id="wikiContent" class="wiki-content"></div>
+                    <div id="wikiEmptyState" class="wiki-empty hidden">
+                        <p>还没有匹配的书签，尝试换个关键词?</p>
+                    </div>
+                </section>
+            </div>
+
+            <div id="bookmarksGrid" class="bookmarks-grid hidden" aria-hidden="true">
+                <!-- legacy grid kept for compatibility -->
             </div>
 
             <!-- 加载状态 -->
@@ -169,7 +223,7 @@
         </main>
 
         <!-- 分页控制 -->
-        <div id="paginationContainer" class="pagination-container hidden">
+        <div id="paginationContainer" class="pagination-container hidden" aria-hidden="true">
             <div class="pagination">
                 <button id="prevPageBtn" class="pagination-btn" disabled>
                     <span class="icon">◀</span>
@@ -244,6 +298,23 @@
                 <button id="importBtn" class="btn btn-outline">导入书签</button>
             </div>
             <div class="settings-section">
+                <h4>AI 配置</h4>
+                <p class="settings-info">自定义 AI 接口与模型，运行 AI Wiki 前请确保密钥有效。</p>
+                <form id="aiSettingsForm" class="settings-form">
+                    <div class="form-group">
+                        <label for="aiEndpointInput">AI 接口 URL</label>
+                        <input type="url" id="aiEndpointInput" class="form-input" placeholder="https://api.openai.com/v1/chat/completions">
+                        <small>留空时使用环境变量 AI_API_ENDPOINT</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="aiModelInput">默认模型</label>
+                        <input type="text" id="aiModelInput" class="form-input" placeholder="gpt-4o-mini">
+                        <small>留空时使用环境变量 AI_MODEL</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary">保存 AI 配置</button>
+                </form>
+            </div>
+            <div class="settings-section">
                 <h4>数据库管理</h4>
                 <p class="settings-info">⚠️ 危险操作，请谨慎使用</p>
                 <div class="database-buttons">
@@ -295,12 +366,24 @@
         </div>
     </div>
 
+    <div id="commandPalette" class="command-palette hidden" role="dialog" aria-modal="true">
+        <div class="command-panel">
+            <div class="command-header">
+                <span class="command-icon">⌘</span>
+                <input type="text" id="paletteInput" placeholder="搜索书签、分类或输入关键词..." autocomplete="off">
+                <button id="commandCloseBtn" class="ghost-btn" type="button">×</button>
+            </div>
+            <div id="paletteResults" class="command-results"></div>
+        </div>
+    </div>
+
     <!-- JavaScript模块 -->
     <script src="/js/utils/storage.js"></script>
     <script src="/js/utils/api.js"></script>
     <script src="/js/utils/sorting.js"></script>
     <script src="/js/utils/dom-helper.js"></script>
     <script src="/js/utils/ui-helper.js"></script>
+    <script src="/js/wiki-view.js"></script>
     <script src="/js/auth.js"></script>
     <script src="/js/bookmarks.js"></script>
     <script src="/js/ui-enhancements.js"></script>

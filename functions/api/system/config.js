@@ -1,24 +1,29 @@
-// 系统配置API
+// 绯荤粺閰嶇疆API
 import { authenticateRequest } from '../auth/verify.js';
 
-// 获取系统配置
+const CONFIG_DESCRIPTIONS = {
+  ai_api_endpoint: 'AI 鎺ュ彛鍦板潃锛岃┍鍔ㄩ噸鍐?ENV 閰嶇疆',
+  ai_model: 'AI 妯″潡鍚嶇О锛岃嫢涓虹┖鍒欐敮鎸乶NV 鍙傛暟'
+};
+
+// 鑾峰彇绯荤粺閰嶇疆
 export async function onRequestGet(context) {
   const { request, env } = context;
 
   try {
-    // 验证管理员权限
+    // 楠岃瘉绠＄悊鍛樻潈闄?
     const auth = await authenticateRequest(request, env);
     if (!auth.authenticated) {
       return new Response(JSON.stringify({
         success: false,
-        error: '需要管理员权限'
+        error: '闇€瑕佺鐞嗗憳鏉冮檺'
       }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    // 获取系统配置
+    // 鑾峰彇绯荤粺閰嶇疆
     const configs = await env.BOOKMARKS_DB
       .prepare('SELECT config_key, config_value, description FROM system_config ORDER BY config_key')
       .all();
@@ -32,10 +37,10 @@ export async function onRequestGet(context) {
     });
 
   } catch (error) {
-    console.error('获取系统配置失败:', error);
+    console.error('鑾峰彇绯荤粺閰嶇疆澶辫触:', error);
     return new Response(JSON.stringify({
       success: false,
-      error: '获取系统配置失败',
+      error: '鑾峰彇绯荤粺閰嶇疆澶辫触',
       message: error.message
     }), {
       status: 500,
@@ -44,17 +49,17 @@ export async function onRequestGet(context) {
   }
 }
 
-// 更新系统配置
+// 鏇存柊绯荤粺閰嶇疆
 export async function onRequestPost(context) {
   const { request, env } = context;
 
   try {
-    // 验证管理员权限
+    // 楠岃瘉绠＄悊鍛樻潈闄?
     const auth = await authenticateRequest(request, env);
     if (!auth.authenticated) {
       return new Response(JSON.stringify({
         success: false,
-        error: '需要管理员权限'
+        error: '闇€瑕佺鐞嗗憳鏉冮檺'
       }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' }
@@ -66,32 +71,49 @@ export async function onRequestPost(context) {
     if (!config_key) {
       return new Response(JSON.stringify({
         success: false,
-        error: '配置键不能为空'
+        error: '閰嶇疆閿笉鑳戒负绌?'
       }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    // 更新配置
-    await env.BOOKMARKS_DB
-      .prepare('UPDATE system_config SET config_value = ?, updated_at = CURRENT_TIMESTAMP WHERE config_key = ?')
-      .bind(config_value, config_key)
-      .run();
+    const normalizedValue =
+      typeof config_value === 'string'
+        ? config_value
+        : config_value === null || config_value === undefined
+          ? ''
+          : String(config_value);
+
+    const existing = await env.BOOKMARKS_DB
+      .prepare('SELECT description FROM system_config WHERE config_key = ?')
+      .bind(config_key)
+      .first();
+
+    const description = existing?.description ?? CONFIG_DESCRIPTIONS[config_key] ?? '';
+
+    await env.BOOKMARKS_DB.prepare(`
+      INSERT INTO system_config (config_key, config_value, description, updated_at)
+      VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+      ON CONFLICT(config_key) DO UPDATE SET
+        config_value = excluded.config_value,
+        description = excluded.description,
+        updated_at = CURRENT_TIMESTAMP
+    `).bind(config_key, normalizedValue, description).run();
 
     return new Response(JSON.stringify({
       success: true,
-      message: '配置更新成功'
+      message: '閰嶇疆鏇存柊鎴愬姛'
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
 
   } catch (error) {
-    console.error('更新系统配置失败:', error);
+    console.error('鏇存柊绯荤粺閰嶇疆澶辫触:', error);
     return new Response(JSON.stringify({
       success: false,
-      error: '更新系统配置失败',
+      error: '鏇存柊绯荤粺閰嶇疆澶辫触',
       message: error.message
     }), {
       status: 500,

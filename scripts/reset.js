@@ -121,7 +121,9 @@ function createTablesDirectly() {
     'INSERT OR IGNORE INTO system_config (config_key, config_value, description) VALUES ("initialized", "true", "系统是否已初始化")',
     'INSERT OR IGNORE INTO system_config (config_key, config_value, description) VALUES ("admin_password", "admin123", "管理员密码")',
     'INSERT OR IGNORE INTO system_config (config_key, config_value, description) VALUES ("site_title", "书签导航", "网站标题")',
-    'INSERT OR IGNORE INTO system_config (config_key, config_value, description) VALUES ("site_description", "现代化书签管理系统", "网站描述")'
+    'INSERT OR IGNORE INTO system_config (config_key, config_value, description) VALUES ("site_description", "现代化书签管理系统", "网站描述")',
+    'INSERT OR IGNORE INTO system_config (config_key, config_value, description) VALUES ("ai_api_endpoint", "", "AI 鎺ュ彛鍦板潃锛岃┍鍔ㄩ噸鍐?ENV 閰嶇疆")',
+    'INSERT OR IGNORE INTO system_config (config_key, config_value, description) VALUES ("ai_model", "", "AI 妯″潡鍚嶇О锛屽彧鍙敤鍙傛暟鍐冲畾")'
   ];
 
   const categoryCommands = [

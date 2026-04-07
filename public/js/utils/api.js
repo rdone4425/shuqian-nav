@@ -280,6 +280,14 @@ const BookmarkAPI = {
       userAgent: navigator.userAgent,
       referrer: document.referrer
     });
+  },
+
+  async getAIWikiSnapshot() {
+    return await API.get('/api/wiki');
+  },
+
+  async generateAIWiki() {
+    return await API.post('/api/wiki');
   }
 };
 
@@ -417,6 +425,17 @@ const SystemAPI = {
     }
 
     return response;
+  }
+
+  async getConfig() {
+    return await API.get('/api/system/config');
+  },
+
+  async updateConfig(key, value) {
+    return await API.post('/api/system/config', {
+      config_key: key,
+      config_value: value
+    });
   }
 };
 
