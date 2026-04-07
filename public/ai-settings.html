@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 配置中心 - 书签导航</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/ai-settings.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-icon">🤖</span>
+                    <h1 class="logo-text">AI 配置中心</h1>
+                </div>
+                <div class="header-actions">
+                    <div class="action-group tools-menu">
+                        <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" title="工具菜单">
+                            <span class="btn-icon">🧰</span>
+                            <span class="dropdown-arrow">▾</span>
+                        </button>
+                        <div id="toolsDropdown" class="dropdown-menu">
+                            <a href="/" class="dropdown-item">
+                                <span class="item-icon">🏠</span>
+                                <div class="item-content">
+                                    <span class="item-text">返回首页</span>
+                                    <span class="item-desc">书签仪表盘</span>
+                                </div>
+                            </a>
+                            <a href="/token.html" class="dropdown-item">
+                                <span class="item-icon">🔑</span>
+                                <div class="item-content">
+                                    <span class="item-text">API 访问密钥</span>
+                                    <span class="item-desc">管理后台令牌</span>
+                                </div>
+                            </a>
+                            <a href="/link-checker.html" class="dropdown-item">
+                                <span class="item-icon">🧪</span>
+                                <div class="item-content">
+                                    <span class="item-text">链接检查</span>
+                                    <span class="item-desc">批量检测书签</span>
+                                </div>
+                            </a>
+                            <a href="/deleted-bookmarks.html" class="dropdown-item">
+                                <span class="item-icon">🗃️</span>
+                                <div class="item-content">
+                                    <span class="item-text">删除记录</span>
+                                    <span class="item-desc">查看已删除书签</span>
+                                </div>
+                            </a>
+                            <a href="/notifications.html" class="dropdown-item">
+                                <span class="item-icon">🔔</span>
+                                <div class="item-content">
+                                    <span class="item-text">通知中心</span>
+                                    <span class="item-desc">查看系统提醒</span>
+                                </div>
+                            </a>
+                            <a href="/import.html" class="dropdown-item">
+                                <span class="item-icon">📥</span>
+                                <div class="item-content">
+                                    <span class="item-text">导入书签</span>
+                                    <span class="item-desc">从文件导入数据</span>
+                                </div>
+                            </a>
+                            <a href="/ai-settings.html" class="dropdown-item active">
+                                <span class="item-icon">🤖</span>
+                                <div class="item-content">
+                                    <span class="item-text">AI 配置</span>
+                                    <span class="item-desc">管理 AI 接口与模型</span>
+                                </div>
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <button id="changePasswordBtn" class="dropdown-item">
+                                <span class="item-icon">🛡️</span>
+                                <div class="item-content">
+                                    <span class="item-text">修改密码</span>
+                                    <span class="item-desc">跳转至首页修改</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="ai-wrapper">
+            <section class="ai-hero">
+                <div>
+                    <h1>统一管理 AI 接口 & 模型</h1>
+                    <p>
+                        配置将写入数据库，可随时调整，无需重新部署。AI Wiki 会优先读取这里设置的接口，
+                        为空时才回退到环境变量 <code>AI_API_ENDPOINT</code> / <code>AI_MODEL</code>。
+                    </p>
+                    <div class="hero-meta">
+                        <span class="hero-tag">默认使用 OpenAI 兼容协议</span>
+                        <span class="hero-tag">支持自定义兼容模型</span>
+                        <span id="aiStatusPill" class="hero-tag">正在加载配置...</span>
+                    </div>
+                </div>
+                <div class="tip-card">
+                    <strong>安全提示</strong>
+                    <p>密钥仍需在环境变量 <code>AI_API_KEY</code> 中配置，本页仅管理可公开的接口地址与默认模型。</p>
+                </div>
+            </section>
+
+            <section class="ai-card">
+                <h2>AI 服务设置</h2>
+                <p>填写新的接口地址与模型，或清空后保存以恢复为环境变量。</p>
+                <form id="aiSettingsForm" class="form-grid">
+                    <div class="form-group">
+                        <label for="aiEndpointInput">AI 接口 URL</label>
+                        <input type="url" id="aiEndpointInput" class="form-input" placeholder="https://api.openai.com/v1/chat/completions">
+                        <small>建议使用 OpenAI 兼容接口，可选第三方代理或自建网关。</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="aiModelInput">默认模型</label>
+                        <input type="text" id="aiModelInput" class="form-input" placeholder="gpt-4o-mini">
+                        <small>例如 gpt-4o-mini、moonshot-v1-8k、glm-4-air 等。</small>
+                    </div>
+                    <div class="button-row">
+                        <button type="submit" class="btn btn-primary" id="saveBtn">保存配置</button>
+                        <button type="button" class="btn btn-outline" id="resetBtn">恢复默认</button>
+                        <a href="/" class="btn btn-outline">返回首页</a>
+                    </div>
+                    <div id="lastUpdated" class="status-pill warning">正在读取配置...</div>
+                </form>
+            </section>
+
+            <section class="ai-card">
+                <h2>使用说明</h2>
+                <div class="tips-grid">
+                    <div class="tip-card">
+                        <strong>接口优先级</strong>
+                        <p>配置值 → 环境变量 → 代码默认值，三个层级依次回退，确保在没有配置的情况下依旧工作。</p>
+                    </div>
+                    <div class="tip-card">
+                        <strong>模型兼容性</strong>
+                        <p>AI Wiki 只需要 chat-completion 接口即可，只要第三方提供兼容格式即可接入。</p>
+                    </div>
+                    <div class="tip-card">
+                        <strong>密钥管理</strong>
+                        <p>AI_API_KEY 不会在这里展示，如需替换请在 Cloudflare Pages / .dev.vars 中更新。</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/js/utils/api.js"></script>
+    <script>
+        const toolsMenuToggle = document.getElementById('toolsMenuToggle');
+        const toolsDropdown = document.getElementById('toolsDropdown');
+        toolsMenuToggle?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toolsDropdown?.classList.toggle('show');
+            toolsMenuToggle.classList.toggle('active');
+        });
+        document.addEventListener('click', (e) => {
+            if (!toolsMenuToggle?.contains(e.target) && !toolsDropdown?.contains(e.target)) {
+                toolsDropdown?.classList.remove('show');
+                toolsMenuToggle?.classList.remove('active');
+            }
+        });
+        document.getElementById('changePasswordBtn')?.addEventListener('click', () => {
+            window.location.href = '/?action=change-password';
+        });
+
+        const form = document.getElementById('aiSettingsForm');
+        const endpointInput = document.getElementById('aiEndpointInput');
+        const modelInput = document.getElementById('aiModelInput');
+        const lastUpdated = document.getElementById('lastUpdated');
+        const statusPill = document.getElementById('aiStatusPill');
+        const saveBtn = document.getElementById('saveBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        const State = {
+            loading: false,
+            saving: false,
+            configMap: {},
+        };
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `message-toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 2200);
+        }
+
+        async function ensureAuthenticated() {
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return false;
+            }
+            return true;
+        }
+
+        async function loadAiSettings() {
+            if (!(await ensureAuthenticated())) return;
+            State.loading = true;
+            saveBtn.disabled = true;
+            resetBtn.disabled = true;
+            lastUpdated.textContent = '正在读取配置...';
+            lastUpdated.className = 'status-pill warning';
+            statusPill.textContent = '正在读取配置...';
+            try {
+                const response = await SystemAPI.getConfig();
+                if (!response.success) {
+                    throw new Error(response.error || '无法获取配置');
+                }
+                const map = {};
+                (response.data || []).forEach(item => {
+                    map[item.config_key] = item.config_value || '';
+                    if (item.config_key === 'ai_api_endpoint' && item.updated_at) {
+                        map.ai_api_endpoint_updated_at = item.updated_at;
+                    }
+                    if (item.config_key === 'ai_model' && item.updated_at) {
+                        map.ai_model_updated_at = item.updated_at;
+                    }
+                });
+                State.configMap = map;
+                endpointInput.value = map.ai_api_endpoint || '';
+                modelInput.value = map.ai_model || '';
+                const lastTime = map.ai_api_endpoint_updated_at || map.ai_model_updated_at;
+                if (lastTime) {
+                    lastUpdated.textContent = `最近保存：${new Date(lastTime).toLocaleString()}`;
+                    lastUpdated.className = 'status-pill success';
+                    statusPill.textContent = '配置已同步';
+                } else {
+                    lastUpdated.textContent = '尚未进行自定义配置，当前使用环境变量';
+                    lastUpdated.className = 'status-pill warning';
+                    statusPill.textContent = '使用默认配置';
+                }
+            } catch (error) {
+                console.error(error);
+                lastUpdated.textContent = `加载失败：${error.message}`;
+                lastUpdated.className = 'status-pill warning';
+                statusPill.textContent = '配置读取失败';
+                showToast('加载 AI 配置失败：' + error.message, 'error');
+            } finally {
+                State.loading = false;
+                saveBtn.disabled = false;
+                resetBtn.disabled = false;
+            }
+        }
+
+        async function persistSettings(endpoint, model) {
+            State.saving = true;
+            saveBtn.disabled = true;
+            saveBtn.textContent = '保存中...';
+            try {
+                const [endpointResult, modelResult] = await Promise.all([
+                    SystemAPI.updateConfig('ai_api_endpoint', endpoint),
+                    SystemAPI.updateConfig('ai_model', model)
+                ]);
+                if (!endpointResult.success) {
+                    throw new Error(endpointResult.error || '保存接口地址失败');
+                }
+                if (!modelResult.success) {
+                    throw new Error(modelResult.error || '保存模型失败');
+                }
+                showToast('AI 配置保存成功，重新生成 Wiki 后生效');
+                await loadAiSettings();
+            } catch (error) {
+                console.error(error);
+                showToast(error.message || '保存失败', 'error');
+            } finally {
+                State.saving = false;
+                saveBtn.disabled = false;
+                saveBtn.textContent = '保存配置';
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (State.loading || State.saving) return;
+            const endpoint = endpointInput.value.trim();
+            const model = modelInput.value.trim();
+            await persistSettings(endpoint, model);
+        });
+
+        resetBtn.addEventListener('click', async () => {
+            if (State.loading || State.saving) return;
+            endpointInput.value = '';
+            modelInput.value = '';
+            await persistSettings('', '');
+        });
+
+        document.addEventListener('DOMContentLoaded', loadAiSettings);
+    </script>
+</body>
+</html>
