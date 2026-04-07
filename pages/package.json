@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "wrangler pages dev",
     "dev:local": "wrangler pages dev --local",
-    "deploy": "wrangler pages deploy ../public --branch main"
+    "deploy": "wrangler pages deploy ../public --branch main --commit-dirty=true"
+  },
+  "dependencies": {
+    "jose": "^5.2.0"
   },
   "devDependencies": {
     "wrangler": "^4.72.0"
