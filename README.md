@@ -303,6 +303,18 @@ Cloudflare token verification failed
 - Token 已过期、被删除，或被重新生成过
 - `CLOUDFLARE_ACCOUNT_ID` 和 token 对应的账号不一致
 
+如果日志里出现类似：
+
+```text
+CLOUDFLARE_ACCOUNT_ID does not match any account accessible by this token
+```
+
+说明：
+
+- `CLOUDFLARE_ACCOUNT_ID` 填错了
+- token 的资源范围没有覆盖这个账号
+- 你在 Cloudflare 后台复制了另一个账号的 ID
+
 ### 本地 D1 初始化失败
 
 优先检查：
