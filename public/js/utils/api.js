@@ -425,7 +425,7 @@ const SystemAPI = {
     }
 
     return response;
-  }
+  },
 
   async getConfig() {
     return await API.get('/api/system/config');
