@@ -1,0 +1,14 @@
+{
+  "name": "bookmark-navigator-pages",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Deployment wrapper for Cloudflare Pages.",
+  "scripts": {
+    "dev": "wrangler pages dev",
+    "dev:local": "wrangler pages dev --local",
+    "deploy": "wrangler pages deploy --branch production"
+  },
+  "devDependencies": {
+    "wrangler": "^4.72.0"
+  }
+}

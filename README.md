@@ -1,258 +1,302 @@
-# 📚 书签导航
+# 书签导航
 
-现代化书签管理系统，基于 Cloudflare Pages + Functions + D1 数据库。
+一个基于 Cloudflare Pages、Pages Functions 和 D1 的书签管理项目。
 
-## ✨ 特性
+当前仓库的部署结构已经重构为参考 `cloudflare_temp_email` 的分层模式：
 
-- 🔐 JWT认证保护
-- 📚 书签增删改查
-- 🔍 智能搜索排序
-- 📱 响应式设计
-- 🚀 无服务器架构
-- 🔗 链接检查器 - 自动检查和清理无效链接
-- 🔔 定时通知 - 每周自动检查，智能删除失效书签
-- 🔄 Chrome插件同步 - 支持Chrome书签自动同步
-- 🔑 API令牌管理 - 安全的API访问控制
+- `public/` 负责静态页面资源
+- `pages/` 负责 Cloudflare Pages 部署入口
+- `pages/functions/` 负责 Pages Functions
+- `db/schema.sql` 负责 D1 初始化 schema
+- `.github/workflows/frontend_pagefunction_deploy.yml` 负责 CI 部署
 
-## 📦 项目结构
+## 项目结构
 
+```text
+.tmp-shuqian-nav/
+├── .github/
+│   └── workflows/
+│       └── frontend_pagefunction_deploy.yml
+├── chrome/
+├── db/
+│   └── schema.sql
+├── pages/
+│   ├── functions/
+│   ├── package.json
+│   └── wrangler.toml
+├── public/
+├── scripts/
+│   ├── reset.cjs
+│   └── setup-config.cjs
+├── package.json
+└── README.md
 ```
-nav/
-├── functions/                 # Cloudflare Pages Functions
-│   ├── _middleware.js        # 全局中间件（CORS）
-│   ├── api/                  # API端点
-│   └── utils/                # 工具库
-├── public/                   # 静态文件
-│   ├── index.html           # 主页面
-│   ├── css/                 # 样式文件
-│   └── js/                  # JavaScript模块
-├── chrome/                  # Chrome插件
-├── scripts/                 # 工具脚本
-├── wrangler.toml           # Cloudflare配置
-└── package.json            # 项目依赖
-```
 
-## 🚀 快速部署
+## 技术栈
 
-### ⚡ 零配置部署（推荐）
+- Cloudflare Pages
+- Cloudflare Pages Functions
+- Cloudflare D1
+- 原生 HTML、CSS、JavaScript
+- Chrome Extension 同步支持
 
-1. **Fork或下载本项目**到你的仓库
-2. **连接到 Cloudflare Pages**：
-   - 访问 [Cloudflare Pages](https://pages.cloudflare.com/)
-   - 点击"创建项目" → "连接到Git" 
-   - 选择你的仓库
-   - **重要**: 在构建设置中手动配置：
-     - **构建命令**: `npm install`
-     - **输出目录**: `public`
-3. **等待部署完成**，访问你的网站
-4. **首次访问**会自动跳转到密码设置页面
-5. **设置强密码**，立即开始使用！
+## 快速开始
 
-系统会自动：
-- 🔐 生成安全的JWT密钥并存储到数据库
-- 🛡️ 强制设置强密码（禁用默认密码）
-- 📊 初始化数据库结构
+### 1. 安装依赖
 
-### 🔧 手动部署（高级用户）
-
-如果需要自定义配置：
+根目录负责项目脚本和基础检查，`pages/` 目录负责 Pages 部署依赖。
 
 ```bash
-# 1. 安装依赖
 npm install
+npm --prefix pages install
+```
 
-# 2. 安装Wrangler CLI
-npm install -g wrangler
+### 2. 生成本地配置
 
-# 3. 登录Cloudflare
-wrangler auth login
+执行：
 
-# 4. 创建Pages项目
-wrangler pages project create bookmark-navigator
+```bash
+npm run config
+```
 
-# 5. 创建D1数据库
-wrangler d1 create bookmarks-db
+这个命令会生成：
 
-# 6. （可选）创建R2存储桶用于备份
-wrangler r2 bucket create bookmark-backups
+- `pages/wrangler.toml`
+- `.dev.vars`
 
-# 7. 配置绑定（见下方说明）
+其中：
 
-# 8. 部署
+- `.dev.vars` 用于本地开发时的 `ADMIN_PASSWORD`、`JWT_SECRET`
+- `pages/wrangler.toml` 用于本地 Pages 配置
+
+### 3. 初始化本地 D1
+
+```bash
+npm run db:init:local
+```
+
+或者：
+
+```bash
+npm run reset
+```
+
+`reset` 现在的职责很单一，只做一件事：
+
+- 把 `db/schema.sql` 应用到本地 D1
+
+它不再负责生成示例数据，也不再维护多份分散的数据库初始化逻辑。
+
+### 4. 启动本地开发
+
+```bash
+npm run dev
+```
+
+如果你想强制本地模式：
+
+```bash
+npm run dev:local
+```
+
+## 常用脚本
+
+| 命令 | 作用 |
+| --- | --- |
+| `npm run config` | 生成本地 `pages/wrangler.toml` 和 `.dev.vars` |
+| `npm run reset` | 将 `db/schema.sql` 应用到本地 D1 |
+| `npm run db:init:local` | 直接执行本地 D1 schema 初始化 |
+| `npm run db:init:remote` | 直接执行远程 D1 schema 初始化 |
+| `npm run dev` | 启动 Pages 本地开发环境 |
+| `npm run dev:local` | 以 `--local` 模式启动 Pages |
+| `npm run deploy` | 使用 `pages/` 下的 wrangler 执行部署 |
+| `npm run lint` | 检查 `public/js/` 和 `pages/functions/` |
+| `npm run format:check` | 检查格式 |
+| `npm run test` | 运行 `lint + format:check` |
+
+## 部署说明
+
+### 本地部署入口
+
+项目的部署入口已经从“根目录直接跑 Pages”改成“`pages/` 单独负责部署”。
+
+实际执行入口是：
+
+```bash
 npm run deploy
 ```
 
-#### 📊 Cloudflare绑定配置
-
-在Cloudflare Pages项目设置中配置以下绑定：
-
-**D1数据库绑定：**
-```
-变量名: BOOKMARKS_DB
-数据库: 你创建的数据库名称
-```
-
-**R2存储绑定（可选，用于备份功能）：**
-```
-变量名: BACKUP_BUCKET
-存储桶: bookmark-backups
-```
-
-**环境变量（可选）：**
-```
-NODE_VERSION: 18
-ADMIN_PASSWORD: 你的管理密码
-JWT_SECRET: 你的JWT密钥
-```
-
-## 🔒 安全配置
-
-### JWT密钥管理
-- 系统启动时自动生成256位安全密钥
-- 密钥存储在D1数据库中，确保安全性
-- 支持密钥轮换和更新
-
-### 密码安全
-- 强制使用强密码（最少8位，包含字母数字特殊字符）
-- 禁用默认密码`admin123`，强制首次设置
-- 支持密码修改和重置
-
-### API访问控制
-- JWT令牌认证，确保API安全
-- 支持令牌生成、刷新和撤销
-- 细粒度的权限控制
-
-## 🔄 Chrome插件同步
-
-### 安装Chrome插件
-
-1. **加载插件**：
-   - 打开 `chrome://extensions/`
-   - 开启"开发者模式"
-   - 点击"加载已解压的扩展程序"
-   - 选择项目中的 `chrome/` 文件夹
-
-2. **配置插件**：
-   - 点击插件图标 → 设置
-   - 配置服务器地址（你的网站URL）
-   - 输入API令牌（从网站令牌管理获取）
-   - 测试连接并保存
-
-3. **同步书签**：
-   - 点击"开始同步"即可
-
-### API令牌获取
-1. 登录书签导航网站
-2. 点击顶部🔑图标进入令牌管理
-3. 生成新的API令牌
-4. 复制到Chrome插件配置中
-
-## 🛠️ 本地开发
+它等价于：
 
 ```bash
-# 1. 安装依赖
+npm --prefix pages run deploy
+```
+
+### `pages/wrangler.toml`
+
+仓库中的 [pages/wrangler.toml](/E:/app/.tmp-shuqian-nav/pages/wrangler.toml) 默认只保留安全的本地占位配置：
+
+- `name`
+- `pages_build_output_dir`
+- `compatibility_date`
+- `ENVIRONMENT=development`
+
+默认不把生产 D1 绑定直接写死在仓库里。
+
+### 生产配置推荐方式
+
+参考 `cloudflare_temp_email`，推荐通过 GitHub Actions secret 注入生产配置，而不是把正式 `wrangler.toml` 直接提交到仓库。
+
+需要的 GitHub Secrets：
+
+- `CLOUDFLARE_ACCOUNT_ID`
+- `CLOUDFLARE_API_TOKEN`
+- `PAGE_TOML`
+
+`PAGE_TOML` 示例：
+
+```toml
+name = "bookmark-navigator-pages"
+pages_build_output_dir = "../public"
+compatibility_date = "2026-04-07"
+
+[vars]
+ENVIRONMENT = "production"
+
+[[d1_databases]]
+binding = "BOOKMARKS_DB"
+database_name = "bookmark-navigator"
+database_id = "YOUR_D1_DATABASE_ID"
+```
+
+## GitHub Actions
+
+当前工作流文件：
+
+- [frontend_pagefunction_deploy.yml](/E:/app/.tmp-shuqian-nav/.github/workflows/frontend_pagefunction_deploy.yml)
+
+它的流程是：
+
+1. 检查 `PAGE_TOML` secret 是否存在
+2. 安装 `pages/` 下的部署依赖
+3. 用 `PAGE_TOML` 覆盖生成生产用 `pages/wrangler.toml`
+4. 调用 `npm --prefix pages run deploy`
+
+如果没有配置 `PAGE_TOML`，工作流会跳过部署步骤。
+
+## D1 数据库
+
+统一 schema 文件：
+
+```text
+db/schema.sql
+```
+
+这样做的目的是把数据库初始化来源收敛为一个入口，避免出现：
+
+- 一个 API 里维护一份 schema
+- 一个脚本里维护一份 schema
+- 另一个 SQL 文件里再维护一份 schema
+
+目前仓库里仍然保留部分旧初始化逻辑，但部署主入口已经切到 `db/schema.sql`。
+
+## 本地开发需要的文件
+
+### `.dev.vars`
+
+本地开发通常至少需要这些变量：
+
+```env
+ADMIN_PASSWORD=change-me-now
+JWT_SECRET=your-random-secret
+ENVIRONMENT=development
+```
+
+### `pages/wrangler.toml`
+
+本地版本至少要包含：
+
+```toml
+name = "bookmark-navigator-pages"
+pages_build_output_dir = "../public"
+compatibility_date = "2026-04-07"
+
+[vars]
+ENVIRONMENT = "development"
+```
+
+如果要直接绑定 D1，也可以补上：
+
+```toml
+[[d1_databases]]
+binding = "BOOKMARKS_DB"
+database_name = "bookmark-navigator"
+database_id = "YOUR_D1_DATABASE_ID"
+```
+
+## 与旧结构的区别
+
+这次重构后，和旧版本相比主要有这些变化：
+
+1. `functions/` 已迁移到 `pages/functions/`
+2. 部署入口从根目录移到 `pages/`
+3. D1 schema 主入口统一为 `db/schema.sql`
+4. `scripts/reset.js`、`scripts/setup-config.js` 已改成 `.cjs`
+5. GitHub Actions 改为通过 `PAGE_TOML` secret 注入部署配置
+
+## 故障排查
+
+### `eslint` 找不到
+
+如果执行 `npm run test` 时看到：
+
+```text
+'eslint' is not recognized as an internal or external command
+```
+
+通常说明根目录依赖还没安装：
+
+```bash
 npm install
-
-# 2. 创建环境变量文件 .dev.vars
-ADMIN_PASSWORD=your-password
-JWT_SECRET=your-secret-key
-
-# 3. 启动开发服务器
-npm run dev
-
-# 4. 访问 http://localhost:8788
 ```
 
-## 🔧 故障排除
+### `wrangler` 找不到
 
-### 部署问题
+通常说明 `pages/` 下依赖还没安装：
 
-**问题**: `Could not resolve "jose"` 错误
-```
-解决方案：
-1. 确保构建命令设置为 `npm install`
-2. 确保输出目录设置为 `public`
-3. 不要使用 wrangler.toml 文件（Cloudflare Pages 不需要）
+```bash
+npm --prefix pages install
 ```
 
-**问题**: Functions 不工作
-```
-解决方案：
-1. 检查 D1 数据库绑定是否正确配置
-2. 确认环境变量设置
-3. 查看 Functions 日志获取详细错误信息
-```
+### 本地 D1 初始化失败
 
-**问题**: 部署后页面空白
-```
-解决方案：
-1. 确认输出目录设置为 `public`
-2. 检查浏览器控制台错误信息
-3. 确认静态文件路径正确
+先检查：
+
+- `db/schema.sql` 是否存在
+- `wrangler` 是否已安装
+- 当前目录是否在项目根目录
+
+再执行：
+
+```bash
+npm run db:init:local
 ```
 
-## 🧰 核心功能
+### 开发环境启动但没有 D1 绑定
 
-### 书签管理
-- ✅ 增删改查书签
-- ✅ 分类管理
-- ✅ 搜索和排序
-- ✅ 批量操作
+先执行：
 
-### 链接检查
-- ✅ 自动检查无效链接
-- ✅ 智能清理失效书签
-- ✅ 定时任务支持
+```bash
+npm run config
+```
 
-### 数据管理
-- ✅ 导入/导出功能
-- ✅ 数据备份
-- ✅ 数据库优化
+如果是生产环境，请确认 `PAGE_TOML` 里已经包含 `[[d1_databases]]`。
 
-## 🔧 API接口
+## 后续建议
 
-### 认证接口
-- `POST /api/auth/login` - 用户登录
-- `POST /api/auth/setup-password` - 设置密码
-- `POST /api/auth/change-password` - 修改密码
+当前 README 已经和新的部署结构保持一致，但项目本身还有两类事情建议后续继续做：
 
-### 书签接口
-- `GET /api/bookmarks` - 获取书签列表
-- `POST /api/bookmarks` - 创建书签
-- `PUT /api/bookmarks/[id]` - 更新书签
-- `DELETE /api/bookmarks/[id]` - 删除书签
+- 继续把旧的数据库初始化逻辑收敛到 `db/schema.sql`
+- 继续修复认证和默认密码相关的安全问题
 
-### 系统接口
-- `GET /api/health` - 健康检查
-- `GET /api/system/diagnose` - 系统诊断
-- `POST /api/system/backup` - 数据备份
-
-## 📝 更新日志
-
-### v2.0.0
-- ✅ 零配置部署支持
-- ✅ 自动JWT密钥生成
-- ✅ 强制密码安全设置
-- ✅ Chrome插件同步
-- ✅ 代码重构优化
-- ✅ 统一工具库
-- ✅ 响应式设计升级
-
-### v1.0.0
-- ✅ 基础书签管理功能
-- ✅ JWT认证系统
-- ✅ 数据库自动初始化
-- ✅ 链接检查器
-- ✅ 导入导出功能
-
-## 🤝 贡献
-
-欢迎提交 Issue 和 Pull Request！
-
-## 📄 许可证
-
-MIT License
-
----
-
-💡 **提示**: 这是一个完全开源的项目，您可以自由使用、修改和分发。如果遇到问题，请查看项目的 Issues 页面或创建新的 Issue。
+如果你后面继续迭代部署结构，这份 README 也应该优先同步更新。

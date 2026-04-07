@@ -1,0 +1,52 @@
+name: Deploy Pages App
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      has_config: ${{ steps.check.outputs.has_config }}
+    steps:
+      - name: Check PAGE_TOML
+        id: check
+        run: |
+          if [ -n "$PAGE_TOML" ]; then
+            echo "has_config=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_config=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          PAGE_TOML: ${{ secrets.PAGE_TOML }}
+
+  deploy:
+    needs: check
+    if: ${{ needs.check.outputs.has_config == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Install Pages deployment dependencies
+        run: npm --prefix pages install
+
+      - name: Write production Pages config
+        run: |
+          cat <<'EOF' > pages/wrangler.toml
+          ${{ secrets.PAGE_TOML }}
+          EOF
+
+      - name: Deploy Cloudflare Pages project
+        run: npm --prefix pages run deploy
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

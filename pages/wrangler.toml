@@ -1,0 +1,13 @@
+name = "bookmark-navigator-pages"
+pages_build_output_dir = "../public"
+compatibility_date = "2026-04-07"
+
+[vars]
+ENVIRONMENT = "development"
+
+# Production deploys should replace this file with a secret-backed version.
+# Example:
+# [[d1_databases]]
+# binding = "BOOKMARKS_DB"
+# database_name = "bookmark-navigator"
+# database_id = "YOUR_D1_DATABASE_ID"
