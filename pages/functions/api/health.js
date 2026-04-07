@@ -1,84 +1,85 @@
-// 健康检查API
+function corsHeaders() {
+  return {
+    "Content-Type": "application/json",
+    "Cache-Control": "no-cache",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-API-Token",
+  };
+}
+
+function hasDatabaseBinding(env) {
+  return typeof env?.BOOKMARKS_DB?.prepare === "function";
+}
+
 export async function onRequestGet(context) {
   const { env } = context;
 
   try {
-    // 测试数据库连接
-    let dbStatus = "unknown";
+    let dbStatus = "missing";
     let dbError = null;
 
-    try {
-      const result = await env.BOOKMARKS_DB.prepare("SELECT 1 as test").first();
-      dbStatus = result ? "connected" : "error";
-    } catch (error) {
-      dbStatus = "error";
-      dbError = error.message;
+    if (hasDatabaseBinding(env)) {
+      try {
+        const result =
+          await env.BOOKMARKS_DB.prepare("SELECT 1 as test").first();
+        dbStatus = result ? "connected" : "error";
+      } catch (error) {
+        dbStatus = "error";
+        dbError = error.message;
+      }
+    } else {
+      dbError = "BOOKMARKS_DB binding is missing.";
     }
-
-    // 检查环境变量配置
-    const configStatus = {
-      adminPassword: !!env.ADMIN_PASSWORD,
-      jwtSecret: !!env.JWT_SECRET,
-      database: !!env.BOOKMARKS_DB,
-    };
 
     const healthData = {
       success: true,
-      status: "healthy",
+      status: dbStatus === "connected" ? "healthy" : "warning",
       timestamp: new Date().toISOString(),
       version: "1.0.0",
       database: {
         status: dbStatus,
         error: dbError,
       },
-      config: configStatus,
-      environment: env.ENVIRONMENT || "development",
+      config: {
+        adminPassword: Boolean(env?.ADMIN_PASSWORD),
+        jwtSecret: Boolean(env?.JWT_SECRET),
+        database: hasDatabaseBinding(env),
+      },
+      environment: env?.ENVIRONMENT || "development",
     };
 
-    // 如果数据库连接失败，返回警告状态
-    if (dbStatus === "error") {
-      healthData.status = "warning";
-      healthData.message = "数据库连接异常";
+    if (dbStatus !== "connected") {
+      healthData.message =
+        dbStatus === "missing"
+          ? "Database binding is missing."
+          : "Database connectivity check failed.";
     }
 
     return new Response(JSON.stringify(healthData), {
-      status: dbStatus === "error" ? 503 : 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Cache-Control": "no-cache",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS",
-        "Access-Control-Allow-Headers":
-          "Content-Type, Authorization, X-API-Token",
-      },
+      status: dbStatus === "connected" ? 200 : 503,
+      headers: corsHeaders(),
     });
   } catch (error) {
-    console.error("健康检查错误:", error);
+    console.error("Health check error:", error);
 
     return new Response(
       JSON.stringify({
         success: false,
         status: "error",
         timestamp: new Date().toISOString(),
-        error: "健康检查失败",
+        error: "Health check failed.",
         message: error.message,
       }),
       {
         status: 500,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, OPTIONS",
-          "Access-Control-Allow-Headers":
-            "Content-Type, Authorization, X-API-Token",
-        },
+        headers: corsHeaders(),
       },
     );
   }
 }
 
-// 处理OPTIONS预检请求
-export async function onRequestOptions(context) {
+export async function onRequestOptions() {
   return new Response(null, {
     status: 200,
     headers: {

@@ -85,7 +85,10 @@ const API = {
         return await this.parseResponse(response);
       } catch (error) {
         lastError = error;
-        if (attempt === this.config.retryAttempts || !this.shouldRetry(error)) {
+        if (
+          attempt === this.config.retryAttempts ||
+          !this.shouldRetry(error, finalOptions)
+        ) {
           break;
         }
 
@@ -105,7 +108,14 @@ const API = {
     return await response.text();
   },
 
-  shouldRetry(error) {
+  shouldRetry(error, requestOptions = {}) {
+    const method = (requestOptions.method || "GET").toUpperCase();
+    const isRetryableMethod = ["GET", "HEAD", "OPTIONS"].includes(method);
+
+    if (!isRetryableMethod) {
+      return false;
+    }
+
     if (error.name === "AbortError" || error.name === "TypeError") {
       return true;
     }

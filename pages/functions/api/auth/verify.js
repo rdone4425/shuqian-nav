@@ -3,6 +3,10 @@ import { JWTKeyManager } from "../../utils/jwt-manager.js";
 
 const DEFAULT_ADMIN_PASSWORD = "admin123";
 
+function hasDatabaseBinding(env) {
+  return typeof env?.BOOKMARKS_DB?.prepare === "function";
+}
+
 export async function verifyToken(token, env) {
   try {
     const secret = await JWTKeyManager.getJWTSecret(env);
@@ -15,8 +19,12 @@ export async function verifyToken(token, env) {
 }
 
 async function resolveAdminPassword(env) {
-  if (env.ADMIN_PASSWORD) {
+  if (env?.ADMIN_PASSWORD) {
     return env.ADMIN_PASSWORD;
+  }
+
+  if (!hasDatabaseBinding(env)) {
+    return DEFAULT_ADMIN_PASSWORD;
   }
 
   try {
@@ -27,8 +35,8 @@ async function resolveAdminPassword(env) {
       .first();
 
     return configResult?.config_value || DEFAULT_ADMIN_PASSWORD;
-  } catch (dbError) {
-    console.error("Failed to read admin password from D1:", dbError);
+  } catch (error) {
+    console.error("Failed to read admin password from D1:", error);
     return DEFAULT_ADMIN_PASSWORD;
   }
 }
@@ -52,18 +60,18 @@ export async function authenticateRequest(request, env) {
           };
         }
 
-        return { authenticated: false, error: "密码错误" };
+        return { authenticated: false, error: "Password is incorrect." };
       }
     }
   }
 
   if (!token) {
-    return { authenticated: false, error: "缺少认证令牌" };
+    return { authenticated: false, error: "Missing authentication token." };
   }
 
   const verification = await verifyToken(token, env);
   if (!verification.valid) {
-    return { authenticated: false, error: "无效的认证令牌" };
+    return { authenticated: false, error: "Authentication token is invalid." };
   }
 
   return { authenticated: true, payload: verification.payload };
@@ -90,7 +98,7 @@ export async function onRequestPost(context) {
     return new Response(
       JSON.stringify({
         success: true,
-        message: "令牌有效",
+        message: "Authentication token is valid.",
         user: auth.payload,
       }),
       {
@@ -103,8 +111,8 @@ export async function onRequestPost(context) {
     return new Response(
       JSON.stringify({
         success: false,
-        error: "验证失败",
-        details: "服务器内部错误",
+        error: "Token verification failed.",
+        details: "The server could not verify the authentication token.",
       }),
       {
         status: 500,
