@@ -285,6 +285,24 @@ npm --prefix pages install
 - Token 是否同时包含 `Cloudflare Pages: Edit` 和 `D1: Edit`
 - 当前 Cloudflare Account 下是否允许创建 Pages / D1 资源
 
+如果日志里出现：
+
+```text
+Authentication error
+```
+
+或者：
+
+```text
+Cloudflare token verification failed
+```
+
+通常说明：
+
+- `CLOUDFLARE_API_TOKEN` 填的不是 API Token，而是 Global API Key
+- Token 已过期、被删除，或被重新生成过
+- `CLOUDFLARE_ACCOUNT_ID` 和 token 对应的账号不一致
+
 ### 本地 D1 初始化失败
 
 优先检查：
