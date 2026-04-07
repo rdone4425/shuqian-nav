@@ -81,11 +81,9 @@ npm run db:init:local
 npm run reset
 ```
 
-`reset` 现在的职责很单一，只做一件事：
+`reset` 现在只做一件事：
 
 - 把 `db/schema.sql` 应用到本地 D1
-
-它不再负责生成示例数据，也不再维护多份分散的数据库初始化逻辑。
 
 ### 4. 启动本地开发
 
@@ -93,7 +91,7 @@ npm run reset
 npm run dev
 ```
 
-如果你想强制本地模式：
+如果想强制本地模式：
 
 ```bash
 npm run dev:local
@@ -153,7 +151,41 @@ npm --prefix pages run deploy
 - `CLOUDFLARE_API_TOKEN`
 - `PAGE_TOML`
 
-`PAGE_TOML` 示例：
+### `CLOUDFLARE_API_TOKEN` 权限
+
+当前仓库中的 CI 工作流只执行 Pages 部署：
+
+```bash
+npm --prefix pages run deploy
+```
+
+因此推荐的最小权限是：
+
+- `Account -> Cloudflare Pages: Edit`
+
+资源范围建议：
+
+- 只选择当前项目所在的 Cloudflare Account
+
+如果后续要在 CI 中加入 D1 相关命令，例如：
+
+- `wrangler d1 create`
+- `wrangler d1 execute`
+- `npm run db:init:remote`
+
+则需要额外增加：
+
+- `Account -> D1: Edit`
+
+不建议使用：
+
+- Global API Key
+- 超出当前部署需要的高权限 Token
+- 与当前 Pages 发布流程无关的额外权限
+
+按当前 [frontend_pagefunction_deploy.yml](/E:/app/.tmp-shuqian-nav/.github/workflows/frontend_pagefunction_deploy.yml) 的实现，如果只是部署 Pages，通常 `Cloudflare Pages: Edit` 就足够。
+
+### `PAGE_TOML` 示例
 
 ```toml
 name = "bookmark-navigator-pages"
@@ -299,4 +331,4 @@ npm run config
 - 继续把旧的数据库初始化逻辑收敛到 `db/schema.sql`
 - 继续修复认证和默认密码相关的安全问题
 
-如果你后面继续迭代部署结构，这份 README 也应该优先同步更新。
+如果后面继续迭代部署结构，这份 README 也应该优先同步更新。
