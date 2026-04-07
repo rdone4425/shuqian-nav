@@ -1,1507 +1,375 @@
-﻿<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>閾炬帴妫€鏌ュ櫒 - 涔︾瀵艰埅</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/link-checker-enhanced.css">
-    <style>
-        /* 浠呬繚鐣欏繀瑕佺殑宸ュ叿鏍峰紡 */
-        .hidden {
-            display: none;
-        }
-</head>
-<body>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Link Checker - Bookmark Navigator</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/link-checker-enhanced.css" />
+  </head>
+  <body>
     <div class="container">
-        <!-- 缁熶竴鐨勫ご閮ㄥ鑸?-->
-        <header class="header">
-            <div class="header-content">
-                <div class="logo">
-                    <span class="logo-icon">馃敆</span>
-                    <h1 class="logo-text">閾炬帴妫€鏌ュ櫒</h1>
-                </div>
-
-                <!-- 缁熶竴鐨勫姛鑳芥寜閽粍 -->
-                <div class="header-actions">
-                    <!-- 宸ュ叿鑿滃崟 -->
-                    <div class="action-group tools-menu">
-                        <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" title="宸ュ叿鑿滃崟">
-                            <span class="btn-icon">馃洜锔?/span>
-                            <span class="dropdown-arrow">鈻?/span>
-                        </button>
-                        <div id="toolsDropdown" class="dropdown-menu">
-                            <a href="/" class="dropdown-item">
-                                <span class="item-icon">馃彔</span>
-                                <div class="item-content">
-                                    <span class="item-text">棣栭〉</span>
-                                    <span class="item-desc">杩斿洖涔︾棣栭〉</span>
-                                </div>
-                            </a>
-                            <a href="/token.html" class="dropdown-item">
-                                <span class="item-icon">馃攽</span>
-                                <div class="item-content">
-                                    <span class="item-text">API浠ょ墝</span>
-                                    <span class="item-desc">绠＄悊璁块棶浠ょ墝</span>
-                                </div>
-                            </a>
-                            <a href="/link-checker.html" class="dropdown-item">
-                                <span class="item-icon">馃敆</span>
-                                <div class="item-content">
-                                    <span class="item-text">閾炬帴妫€鏌?/span>
-                                    <span class="item-desc">妫€鏌ラ摼鎺ユ湁鏁堟€?/span>
-                                </div>
-                            </a>
-                            <a href="/deleted-bookmarks.html" class="dropdown-item">
-                                <span class="item-icon">馃棏锔?/span>
-                                <div class="item-content">
-                                    <span class="item-text">鍒犻櫎璁板綍</span>
-                                    <span class="item-desc">鏌ョ湅鍜屾仮澶嶅垹闄ょ殑涔︾</span>
-                                </div>
-                            </a>
-                            <a href="/notifications.html" class="dropdown-item">
-                                <span class="item-icon">馃敂</span>
-                                <div class="item-content">
-                                    <span class="item-text">閫氱煡涓績</span>
-                                    <span class="item-desc">鏌ョ湅绯荤粺閫氱煡</span>
-                                </div>
-                            </a>
-                            <a href="/import.html" class="dropdown-item">
-                                <span class="item-icon">馃摜</span>
-                                <div class="item-content">
-                                    <span class="item-text">瀵煎叆涔︾</span>
-                                    <span class="item-desc">浠庢枃浠跺鍏ヤ功绛?/span>
-                                </div>
-                            </a>
-                            <a href="/ai-settings.html" class="dropdown-item">
-    <span class="item-icon">AI</span>
-    <div class="item-content">
-        <span class="item-text">AI Settings</span>
-        <span class="item-desc">Manage AI endpoint and model</span>
-    </div>
-</a>
-                            <div class="dropdown-divider"></div>
-                            <button id="changePasswordBtn" class="dropdown-item">
-                                <span class="item-icon">馃攼</span>
-                                <div class="item-content">
-                                    <span class="item-text">淇敼瀵嗙爜</span>
-                                    <span class="item-desc">鏇存敼绠＄悊鍛樺瘑鐮?/span>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+      <header class="header">
+        <div class="header-content">
+          <div class="logo">
+            <span class="logo-icon">CHK</span>
+            <h1 class="logo-text">Link Checker</h1>
+          </div>
+          <div class="header-actions">
+            <div class="action-group tools-menu">
+              <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" title="Tools menu">
+                <span class="btn-icon">...</span>
+                <span class="dropdown-arrow">v</span>
+              </button>
+              <div id="toolsDropdown" class="dropdown-menu">
+                <a href="/" class="dropdown-item"><span class="item-icon">H</span><div class="item-content"><span class="item-text">Home</span><span class="item-desc">Back to the main bookmark page</span></div></a>
+                <a href="/token.html" class="dropdown-item"><span class="item-icon">API</span><div class="item-content"><span class="item-text">API Tokens</span><span class="item-desc">Manage access tokens</span></div></a>
+                <a href="/deleted-bookmarks.html" class="dropdown-item"><span class="item-icon">DEL</span><div class="item-content"><span class="item-text">Deleted</span><span class="item-desc">Review deleted bookmarks</span></div></a>
+                <a href="/notifications.html" class="dropdown-item"><span class="item-icon">MSG</span><div class="item-content"><span class="item-text">Notifications</span><span class="item-desc">View recent notices</span></div></a>
+                <a href="/import.html" class="dropdown-item"><span class="item-icon">IMP</span><div class="item-content"><span class="item-text">Import</span><span class="item-desc">Import from a file</span></div></a>
+                <a href="/ai-settings.html" class="dropdown-item"><span class="item-icon">AI</span><div class="item-content"><span class="item-text">AI Settings</span><span class="item-desc">Manage AI endpoint and model</span></div></a>
+                <div class="dropdown-divider"></div>
+                <button id="changePasswordBtn" class="dropdown-item"><span class="item-icon">PWD</span><div class="item-content"><span class="item-text">Change Password</span><span class="item-desc">Jump back to the password flow</span></div></button>
+              </div>
             </div>
-        </header>
-
-        <div class="checker-container">
-            <!-- 妫€鏌ユ帶鍒堕潰鏉?-->
-            <div class="controls-section">
-                <div class="checker-header">
-                    <h2>馃攳 閾炬帴鍙闂€ф鏌?/h2>
-                </div>
-                <div class="safety-notice">
-                    馃洝锔?瀹夊叏妯″紡锛氬彧妫€鏌ヤ笉鍒犻櫎锛岄渶瑕佹墜鍔ㄧ‘璁ゅ垹闄?
-                </div>
-
-                <div class="controls-row">
-                    <div class="control-group">
-                        <input type="checkbox" id="smartCheck" checked />
-                        <label for="smartCheck">鏅鸿兘妫€鏌ワ紙鎻愰珮鍑嗙‘鎬э級</label>
-                    </div>
-                    <div class="control-group">
-                        <label for="retryCount">閲嶈瘯娆℃暟:</label>
-                        <select id="retryCount">
-                            <option value="1">1娆?/option>
-                            <option value="2" selected>2娆?/option>
-                            <option value="3">3娆?/option>
-                        </select>
-                    </div>
-                    <div class="control-group">
-                        <label for="checkDelay">妫€鏌ラ棿闅?</label>
-                        <select id="checkDelay">
-                            <option value="200">0.2绉?/option>
-                            <option value="500" selected>0.5绉?/option>
-                            <option value="1000">1绉?/option>
-                            <option value="2000">2绉?/option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="btn-group">
-                    <button id="startCheck" class="btn btn-primary">
-                        馃殌 寮€濮嬫鏌?
-                    </button>
-                    <button id="stopCheck" class="btn btn-secondary hidden">
-                        鈴癸笍 鍋滄妫€鏌?
-                    </button>
-                    <button id="viewHistory" class="btn btn-secondary">
-                        馃搵 鏌ョ湅鍘嗗彶
-                    </button>
-                    <button id="batchDelete" class="btn btn-secondary hidden">
-                        馃棏锔?鍒犻櫎鎵€鏈夋棤鏁堥摼鎺?
-                    </button>
-                </div>
-            </div>
-
-            <!-- 杩涘害鏄剧ず -->
-            <div id="progressSection" class="progress-section">
-                <div class="progress-header">
-                    <span id="progressText" class="progress-text">鍑嗗妫€鏌?..</span>
-                    <span id="progressPercent" class="progress-percent">0%</span>
-                </div>
-                <div class="progress-bar">
-                    <div id="progressFill" class="progress-fill"></div>
-                </div>
-                <div class="stats-grid">
-                    <div class="stat-item" data-filter="all">
-                        <span class="stat-value" id="totalBookmarks">0</span>
-                        <span class="stat-label">鎬昏</span>
-                    </div>
-                    <div class="stat-item" data-filter="checked">
-                        <span class="stat-value" id="checkedCount">0</span>
-                        <span class="stat-label">宸叉鏌?/span>
-                    </div>
-                    <div class="stat-item" data-filter="accessible">
-                        <span class="stat-value" id="accessibleCount">0</span>
-                        <span class="stat-label">鍙闂?/span>
-                    </div>
-                    <div class="stat-item" data-filter="inaccessible">
-                        <span class="stat-value" id="inaccessibleCount">0</span>
-                        <span class="stat-label">涓嶅彲璁块棶</span>
-                    </div>
-                    <div class="stat-item" data-filter="deleted">
-                        <span class="stat-value" id="deletedCount">0</span>
-                        <span class="stat-label">宸插垹闄?/span>
-                    </div>
-                    <div class="stat-item" data-filter="kept">
-                        <span class="stat-value" id="keptCount">0</span>
-                        <span class="stat-label">宸蹭繚鐣?/span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 妫€鏌ヨ鏄?-->
-            <div class="details-section">
-                <div class="details-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg);">
-                    <h3 style="margin: 0; font-size: var(--font-xl); font-weight: 700; color: var(--text-primary);">馃攳 妫€鏌ラ€昏緫璇存槑</h3>
-                    <button id="toggleExplanation" class="btn btn-secondary">
-                        馃摉 <span id="explanationToggleText">鏄剧ず璇︽儏</span>
-                    </button>
-                </div>
-
-                <div id="explanationContent" class="details-content hidden">
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--spacing-lg);">
-                        <div>
-                            <h4>鉁?璁や负鍙闂殑鎯呭喌</h4>
-                            <ul>
-                                <li>HTTP 2xx 鐘舵€佺爜锛堟垚鍔燂級</li>
-                                <li>HTTP 3xx 鐘舵€佺爜锛堥噸瀹氬悜锛?/li>
-                                <li>HTTP 401锛堥渶瑕佺櫥褰曪紝浣嗙綉绔欏瓨鍦級</li>
-                                <li>Cloudflare 403/503锛堥槻鎶ゆ満鍒讹紝缃戠珯姝ｅ父锛?/li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4>鈿狅笍 寤鸿淇濈暀鐨勬儏鍐?/h4>
-                            <ul>
-                                <li>Cloudflare闃叉姢椤甸潰</li>
-                                <li>璇锋眰瓒呮椂锛堝彲鑳芥槸缃戠粶闂锛?/li>
-                                <li>5xx鏈嶅姟鍣ㄩ敊璇紙鍙兘鏄复鏃剁淮鎶わ級</li>
-                                <li>429闄愭祦锛堣姹傝繃浜庨绻侊級</li>
-                                <li>缃戠粶杩炴帴闂</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4>馃棏锔?寤鸿鍒犻櫎鐨勬儏鍐?/h4>
-                            <ul>
-                                <li>404 椤甸潰涓嶅瓨鍦?/li>
-                                <li>410 椤甸潰宸叉案涔呭垹闄?/li>
-                                <li>鍩熷悕涓嶅瓨鍦紙ENOTFOUND锛?/li>
-                                <li>SSL璇佷功涓ラ噸闂</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4>馃洝锔?闃茶鏉€鏈哄埗</h4>
-                            <ul>
-                                <li>浣跨敤鐪熷疄娴忚鍣║ser-Agent</li>
-                                <li>鍏堝皾璇旽EAD璇锋眰锛屽け璐ュ悗灏濊瘯GET</li>
-                                <li>鐗规畩澶勭悊Cloudflare绛塁DN鏈嶅姟</li>
-                                <li>澶氭閲嶈瘯鍑忓皯缃戠粶娉㈠姩褰卞搷</li>
-                                <li>榛樿鍊惧悜浜庝繚鐣欙紙瀹夊叏浼樺厛锛?/li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 涔︾鍒楄〃 -->
-            <div id="bookmarksCard" class="bookmarks-section">
-                <div class="bookmarks-header">
-                    <h2>馃摎 涔︾鍒楄〃</h2>
-                    <div style="display: flex; align-items: center; gap: var(--spacing-md);">
-                        <span id="filterStatus" class="bookmarks-stats"></span>
-                        <button id="loadBookmarks" class="btn btn-secondary">
-                            馃攧 鍒锋柊鍒楄〃
-                        </button>
-                    </div>
-                </div>
-
-                <div id="bookmarksList">
-                    <div class="loading">鍔犺浇涔︾鍒楄〃...</div>
-                </div>
-            </div>
-
-                <!-- 鍒犻櫎鐨勪功绛惧垪琛?-->
-                <div id="deletedSection" class="hidden">
-                    <h3>馃棏锔?宸插垹闄ょ殑涔︾</h3>
-                    <div id="deletedList"></div>
-                </div>
-
-                <!-- 鏃犳晥閾炬帴鍒楄〃 -->
-                <div id="inaccessibleSection" class="hidden">
-                    <h3>鈿狅笍 鏃犳硶璁块棶鐨勯摼鎺?/h3>
-                    <table class="results-table">
-                        <thead>
-                            <tr>
-                                <th>鏍囬</th>
-                                <th>URL</th>
-                                <th>鐘舵€?/th>
-                                <th>閿欒淇℃伅</th>
-                                <th>鎿嶄綔</th>
-                            </tr>
-                        </thead>
-                        <tbody id="inaccessibleList">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- 妫€鏌ュ巻鍙?-->
-            <div id="historyCard" class="checker-card hidden">
-                <div class="checker-header">
-                    <h2>馃搵 妫€鏌ュ巻鍙?/h2>
-                    <button onclick="toggleHistory()" class="btn btn-outline">鍏抽棴</button>
-                </div>
-                <div id="historyList"></div>
-            </div>
+          </div>
         </div>
+      </header>
+
+      <main class="checker-container">
+        <section class="controls-section">
+          <div class="checker-header">
+            <h2>Check bookmark reachability</h2>
+          </div>
+          <p class="bookmarks-stats">
+            This page checks links only. It does not run database initialization automatically.
+          </p>
+          <div class="btn-group">
+            <button id="reloadBookmarksBtn" class="btn btn-secondary" type="button">Refresh list</button>
+            <button id="startCheckBtn" class="btn btn-primary" type="button">Run checks</button>
+            <button id="stopCheckBtn" class="btn btn-secondary hidden" type="button">Stop</button>
+          </div>
+        </section>
+
+        <section class="progress-section">
+          <div class="progress-header">
+            <span id="progressText" class="progress-text">Waiting to start</span>
+            <span id="progressPercent" class="progress-percent">0%</span>
+          </div>
+          <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+          <div class="stats-grid">
+            <div class="stat-item"><span class="stat-value" id="totalBookmarks">0</span><span class="stat-label">Total</span></div>
+            <div class="stat-item"><span class="stat-value" id="checkedCount">0</span><span class="stat-label">Checked</span></div>
+            <div class="stat-item"><span class="stat-value" id="accessibleCount">0</span><span class="stat-label">Reachable</span></div>
+            <div class="stat-item"><span class="stat-value" id="inaccessibleCount">0</span><span class="stat-label">Unreachable</span></div>
+            <div class="stat-item"><span class="stat-value" id="keptCount">0</span><span class="stat-label">Kept</span></div>
+            <div class="stat-item"><span class="stat-value" id="deletedCount">0</span><span class="stat-label">Deleted</span></div>
+          </div>
+        </section>
+
+        <section class="details-section">
+          <div class="details-content">
+            <h4>How this works</h4>
+            <ul>
+              <li>The page loads the current bookmark list from <code>/api/system/check-links-stream</code>.</li>
+              <li>Each link is checked one by one when you start a run.</li>
+              <li>You can keep an item, re-check a single item, or delete manually.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section id="bookmarksCard" class="bookmarks-section">
+          <div class="bookmarks-header">
+            <h2>Bookmark list</h2>
+            <span id="filterStatus" class="bookmarks-stats">Waiting to load</span>
+          </div>
+          <div id="bookmarksList"><div class="bookmarks-stats">Loading bookmarks...</div></div>
+        </section>
+
+        <section class="details-section">
+          <div class="details-content">
+            <h4>Recent runs</h4>
+            <div id="historyList">Loading history...</div>
+          </div>
+        </section>
+      </main>
     </div>
 
-    <script src="js/utils/api.js"></script>
+    <script src="/js/utils/storage.js"></script>
+    <script src="/js/utils/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/admin-common.js"></script>
     <script>
-        // 宸ュ叿鑿滃崟鍔熻兘
-        document.addEventListener('DOMContentLoaded', () => {
-            const toolsMenuToggle = document.getElementById('toolsMenuToggle');
-            const toolsDropdown = document.getElementById('toolsDropdown');
+      const state = { bookmarks: [], checking: false, stopRequested: false };
 
-            if (toolsMenuToggle && toolsDropdown) {
-                // 鍒囨崲涓嬫媺鑿滃崟
-                toolsMenuToggle.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    toolsDropdown.classList.toggle('show');
-                    toolsMenuToggle.classList.toggle('active');
-                });
+      function getBookmarkClass(bookmark) {
+        if (bookmark.deleted) return "deleted";
+        if (bookmark.status === "checking") return "checking";
+        if (bookmark.keepStatus === "keep") return "kept";
+        if (bookmark.status === "accessible") return "accessible";
+        if (bookmark.status === "inaccessible") return "inaccessible";
+        return "";
+      }
 
-                // 鐐瑰嚮鍏朵粬鍦版柟鍏抽棴鑿滃崟
-                document.addEventListener('click', (e) => {
-                    if (!toolsMenuToggle.contains(e.target) && !toolsDropdown.contains(e.target)) {
-                        toolsDropdown.classList.remove('show');
-                        toolsMenuToggle.classList.remove('active');
-                    }
-                });
+      function getStatusBadgeText(bookmarkClass) {
+        if (bookmarkClass === "accessible") return "OK";
+        if (bookmarkClass === "inaccessible") return "ERR";
+        if (bookmarkClass === "kept") return "KEEP";
+        if (bookmarkClass === "deleted") return "DEL";
+        if (bookmarkClass === "checking") return "...";
+        return "ID";
+      }
 
-                // 淇敼瀵嗙爜鎸夐挳浜嬩欢
-                const changePasswordBtn = document.getElementById('changePasswordBtn');
-                if (changePasswordBtn) {
-                    changePasswordBtn.addEventListener('click', () => {
-                        // 閲嶅畾鍚戝埌棣栭〉骞惰Е鍙戝瘑鐮佷慨鏀规ā鎬佹
-                        window.location.href = '/?action=change-password';
-                    });
-                }
-            }
-        });
+      function getResultText(bookmark) {
+        if (bookmark.deleted) return "Deleted";
+        if (bookmark.status === "checking") return "Checking...";
+        if (bookmark.status === "accessible") return `HTTP ${bookmark.statusCode || 200} reachable`;
+        if (bookmark.status === "inaccessible") return bookmark.error || `${bookmark.statusCode || 0} unreachable`;
+        if (bookmark.keepStatus === "keep") return "Marked as keep";
+        return "Pending";
+      }
 
-        let bookmarks = [];
-        let isChecking = false;
-        let checkingIndex = 0;
-        let currentFilter = 'all';
-        let stats = {
-            total: 0,
-            checked: 0,
-            accessible: 0,
-            inaccessible: 0,
-            deleted: 0,
-            kept: 0
-        };
+      function renderBookmarks() {
+        const list = document.getElementById("bookmarksList");
 
-        // 椤甸潰鍔犺浇鏃舵鏌ョ櫥褰曠姸鎬佸苟鍔犺浇涔︾
-        document.addEventListener('DOMContentLoaded', async () => {
-            const token = localStorage.getItem('auth_token');
-            if (!token) {
-                window.location.href = '/login.html';
-                return;
-            }
-
-            // 鍏堟墽琛屾暟鎹簱杩佺Щ
-            await performMigration();
-            // 鐒跺悗鍔犺浇涔︾
-            await loadBookmarks();
-        });
-
-        // 鎵ц鏁版嵁搴撹縼绉?
-        async function performMigration() {
-            try {
-                console.log('妫€鏌ユ暟鎹簱杩佺Щ...');
-                const response = await API.post('/api/system/migrate', {});
-                if (response.success) {
-                    console.log('鏁版嵁搴撹縼绉诲畬鎴?', response.message);
-                } else {
-                    console.warn('鏁版嵁搴撹縼绉诲け璐?', response.error);
-                }
-            } catch (error) {
-                console.warn('鏁版嵁搴撹縼绉绘鏌ュけ璐?', error.message);
-                // 杩佺Щ澶辫触涓嶅奖鍝嶉〉闈㈡甯镐娇鐢?
-            }
+        if (!state.bookmarks.length) {
+          list.innerHTML = '<div class="bookmarks-stats">There are no bookmarks to check.</div>';
+          document.getElementById("filterStatus").textContent = "No data";
+          updateStats();
+          return;
         }
 
-        // 缁戝畾浜嬩欢
-        document.getElementById('startCheck').addEventListener('click', startLinkCheck);
-        document.getElementById('stopCheck').addEventListener('click', stopLinkCheck);
-        document.getElementById('loadBookmarks').addEventListener('click', loadBookmarks);
-        document.getElementById('viewHistory').addEventListener('click', async () => {
-            await loadHistory();
-            toggleHistory();
-        });
-        document.getElementById('batchDelete').addEventListener('click', batchDeleteInaccessible);
-        document.getElementById('toggleExplanation').addEventListener('click', toggleExplanation);
+        document.getElementById("filterStatus").textContent = `${state.bookmarks.length} bookmarks loaded`;
+        list.innerHTML = state.bookmarks
+          .map((bookmark) => {
+            const bookmarkClass = getBookmarkClass(bookmark);
+            const keepAction =
+              bookmark.keepStatus === "keep"
+                ? `<button class="unkeep-btn" type="button" data-action="unkeep" data-id="${bookmark.id}">Clear keep</button>`
+                : `<button class="keep-btn" type="button" data-action="keep" data-id="${bookmark.id}">Keep</button>`;
 
-        // 缁戝畾缁熻椤圭瓫閫変簨浠?
-        document.querySelectorAll('.stat-item').forEach(item => {
-            item.addEventListener('click', function() {
-                const filter = this.dataset.filter;
-                currentFilter = filter;
-                filterBookmarksDisplay(filter);
-
-                // 鏇存柊娲昏穬鐘舵€?
-                document.querySelectorAll('.stat-item').forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-            });
-        });
-
-        // 缁戝畾绛涢€夋寜閽拰鍒犻櫎鎸夐挳浜嬩欢
-        document.addEventListener('click', (e) => {
-            // 绛涢€夋寜閽?
-            if (e.target.classList.contains('filter-btn') || e.target.closest('.filter-btn')) {
-                const filterBtn = e.target.classList.contains('filter-btn') ? e.target : e.target.closest('.filter-btn');
-                const filter = filterBtn.dataset.filter;
-                setFilter(filter);
-            }
-
-            // 鍒犻櫎鎸夐挳
-            if (e.target.classList.contains('delete-single-btn')) {
-                const bookmarkId = e.target.dataset.bookmarkId;
-                if (bookmarkId) {
-                    deleteBookmark(parseInt(bookmarkId));
-                }
-            }
-
-            // 淇濈暀鎸夐挳
-            if (e.target.classList.contains('keep-btn')) {
-                const bookmarkId = e.target.dataset.bookmarkId;
-                if (bookmarkId) {
-                    keepBookmark(parseInt(bookmarkId));
-                }
-            }
-
-            // 鍙栨秷淇濈暀鎸夐挳
-            if (e.target.classList.contains('unkeep-btn')) {
-                const bookmarkId = e.target.dataset.bookmarkId;
-                if (bookmarkId) {
-                    unkeepBookmark(parseInt(bookmarkId));
-                }
-            }
-        });
-
-        // 鍔犺浇涔︾鍒楄〃
-        async function loadBookmarks() {
-            try {
-                const response = await API.get('/api/system/check-links-stream');
-                if (response.success && response.data) {
-                    const newBookmarks = response.data;
-
-                    // 纭繚 newBookmarks 鏄暟缁?
-                    if (!Array.isArray(newBookmarks)) {
-                        throw new Error('鏈嶅姟鍣ㄨ繑鍥炵殑鏁版嵁鏍煎紡涓嶆纭?);
-                    }
-
-                    // 濡傛灉宸叉湁涔︾鏁版嵁锛屼繚鐣欐鏌ョ姸鎬?
-                    if (bookmarks && bookmarks.length > 0) {
-                        const checkedBookmarksMap = new Map();
-                        bookmarks.forEach(bookmark => {
-                            if (bookmark.checked) {
-                                checkedBookmarksMap.set(bookmark.id, {
-                                    checked: bookmark.checked,
-                                    checkedTime: bookmark.checkedTime,
-                                    accessible: bookmark.accessible,
-                                    status: bookmark.status,
-                                    statusCode: bookmark.statusCode,
-                                    statusText: bookmark.statusText,
-                                    error: bookmark.error,
-                                    keepStatus: bookmark.keepStatus,
-                                    deleted: bookmark.deleted
-                                });
-                            }
-                        });
-
-                        newBookmarks.forEach(bookmark => {
-                            const checkedData = checkedBookmarksMap.get(bookmark.id);
-                            if (checkedData) {
-                                Object.assign(bookmark, checkedData);
-                            }
-                        });
-                    }
-
-                    bookmarks = newBookmarks;
-                    stats.total = bookmarks.length;
-                    recalculateStats();
-                    displayBookmarks();
-                    updateStats();
-                } else {
-                    throw new Error(response.error || '鏈嶅姟鍣ㄥ搷搴斿紓甯?);
-                }
-            } catch (error) {
-                console.error('鍔犺浇涔︾澶辫触:', error);
-                document.getElementById('bookmarksList').innerHTML =
-                    '<div class="error">鍔犺浇澶辫触: ' + error.message + '</div>';
-                // 纭繚 bookmarks 浠嶇劧鏄暟缁?
-                if (!Array.isArray(bookmarks)) {
-                    bookmarks = [];
-                }
-            }
-        }
-
-        // 閲嶆柊璁＄畻缁熻鏁版嵁
-        function recalculateStats() {
-            stats.checked = 0;
-            stats.accessible = 0;
-            stats.inaccessible = 0;
-            stats.deleted = 0;
-
-            bookmarks.forEach(bookmark => {
-                if (bookmark.checked) {
-                    stats.checked++;
-                    if (bookmark.deleted) {
-                        stats.deleted++;
-                    } else if (bookmark.accessible) {
-                        stats.accessible++;
-                    } else {
-                        stats.inaccessible++;
-                    }
-                }
-            });
-        }
-
-        // 璁剧疆绛涢€夊櫒
-        function setFilter(filter) {
-            currentFilter = filter;
-
-            // 鏇存柊绛涢€夋寜閽姸鎬?
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
-
-            // 閲嶆柊鏄剧ず涔︾鍒楄〃
-            displayBookmarks();
-        }
-
-        // 绛涢€変功绛?
-        function filterBookmarks(bookmarks) {
-            if (currentFilter === 'all') {
-                return bookmarks;
-            }
-
-            return bookmarks.filter(bookmark => {
-                switch (currentFilter) {
-                    case 'checked':
-                        return bookmark.checked === true;
-                    case 'accessible':
-                        return bookmark.status === 'accessible';
-                    case 'inaccessible':
-                        return bookmark.status === 'inaccessible';
-                    case 'deleted':
-                        return bookmark.status === 'deleted';
-                    case 'kept':
-                        return bookmark.keepStatus === 'keep';
-                    default:
-                        return true;
-                }
-            });
-        }
-
-        // 涓烘樉绀烘帓搴忎功绛撅細妫€鏌ユ椂鍙樉绀哄凡妫€鏌ョ殑锛屾湭妫€鏌ユ椂鏄剧ず鍏ㄩ儴
-        function sortBookmarksForDisplay(bookmarks) {
-            // 濡傛灉姝ｅ湪妫€鏌ワ紝鍙樉绀哄凡妫€鏌ョ殑涔︾鍜屾鍦ㄦ鏌ョ殑涔︾
-            let filteredBookmarks = bookmarks;
-            if (isChecking) {
-                filteredBookmarks = bookmarks.filter(bookmark =>
-                    bookmark.checked || bookmark.status === 'checking'
-                );
-            }
-
-            return filteredBookmarks.sort((a, b) => {
-                // 濡傛灉涓嶅湪妫€鏌ヤ腑锛屾寜鍘熸潵鐨勯€昏緫锛氭湭妫€鏌ョ殑鍦ㄥ墠
-                if (!isChecking) {
-                    if (a.checked !== b.checked) {
-                        return a.checked ? 1 : -1; // false (鏈鏌? 鍦ㄥ墠锛宼rue (宸叉鏌? 鍦ㄥ悗
-                    }
-
-                    // 濡傛灉閮芥槸鏈鏌ョ殑锛屾寜鍘熷椤哄簭锛圛D锛夋帓搴?
-                    if (!a.checked && !b.checked) {
-                        return a.id - b.id;
-                    }
-
-                    // 濡傛灉閮芥槸宸叉鏌ョ殑锛屾寜鐘舵€佷紭鍏堢骇鎺掑簭
-                    if (a.checked && b.checked) {
-                        const statusPriority = {
-                            'accessible': 1,    // 鍙闂殑
-                            'inaccessible': 2,  // 涓嶅彲璁块棶鐨?
-                            'deleted': 3        // 宸插垹闄ょ殑鍦ㄦ渶鍚?
-                        };
-
-                        const aPriority = statusPriority[a.status] || 999;
-                        const bPriority = statusPriority[b.status] || 999;
-
-                        if (aPriority !== bPriority) {
-                            return aPriority - bPriority;
-                        }
-
-                        // 鍚岀姸鎬佹寜ID鎺掑簭
-                        return a.id - b.id;
-                    }
-                } else {
-                    // 妫€鏌ヤ腑鐨勬帓搴忛€昏緫锛氭鍦ㄦ鏌ョ殑鍦ㄦ渶鍓嶏紝鐒跺悗鎸夋鏌ュ畬鎴愮殑鏃堕棿鍊掑簭
-                    if (a.status === 'checking' && b.status !== 'checking') {
-                        return -1; // 姝ｅ湪妫€鏌ョ殑鍦ㄦ渶鍓?
-                    }
-                    if (b.status === 'checking' && a.status !== 'checking') {
-                        return 1;
-                    }
-
-                    // 濡傛灉閮芥槸宸叉鏌ュ畬鎴愮殑锛屾寜妫€鏌ュ畬鎴愭椂闂村€掑簭锛堟渶鏂版鏌ョ殑鍦ㄤ笂闈級
-                    if (a.checked && b.checked && a.status !== 'checking' && b.status !== 'checking') {
-                        // 浣跨敤妫€鏌ュ畬鎴愭椂闂存埑锛屽鏋滄病鏈夊垯浣跨敤ID鍊掑簭
-                        const aTime = a.checkedTime || (999999 - a.id);
-                        const bTime = b.checkedTime || (999999 - b.id);
-                        return bTime - aTime; // 鍊掑簭锛氭渶鏂扮殑鍦ㄤ笂闈?
-                    }
-                }
-
-                return 0;
-            });
-        }
-
-        // 鏄剧ず涔︾鍒楄〃
-        function displayBookmarks() {
-            const bookmarksList = document.getElementById('bookmarksList');
-            const filterStatus = document.getElementById('filterStatus');
-
-            // 纭繚 bookmarks 鏄暟缁?
-            if (!Array.isArray(bookmarks) || bookmarks.length === 0) {
-                bookmarksList.innerHTML = '<div class="empty-state">鏆傛棤涔︾</div>';
-                if (filterStatus) filterStatus.textContent = '';
-                return;
-            }
-
-            const filteredBookmarks = filterBookmarks(bookmarks);
-            updateFilterStatus(filteredBookmarks.length);
-
-            if (filteredBookmarks.length === 0) {
-                bookmarksList.innerHTML = `<div class="empty-state">娌℃湁绗﹀悎绛涢€夋潯浠剁殑涔︾</div>`;
-                return;
-            }
-
-            const sortedBookmarks = sortBookmarksForDisplay(filteredBookmarks);
-
-            bookmarksList.innerHTML = sortedBookmarks.map((bookmark, index) => {
-                const originalIndex = bookmarks.findIndex(b => b.id === bookmark.id);
-                const displayIndex = index + 1;
-
-                return `
-                <div class="bookmark-item ${bookmark.status || ''}" id="bookmark-${bookmark.id}" data-index="${originalIndex}">
-                    <div class="bookmark-status status-${bookmark.status || 'pending'}" id="status-${bookmark.id}">
-                        ${getStatusIcon(bookmark, displayIndex)}
-                    </div>
-                    <div class="bookmark-info">
-                        <div class="bookmark-title">
-                            ${bookmark.title || bookmark.name || '鏃犳爣棰?}
-                        </div>
-                        <div class="bookmark-url">
-                            <a href="${bookmark.url || '#'}" target="_blank" rel="noopener noreferrer" title="鐐瑰嚮鍦ㄦ柊鏍囩椤典腑鎵撳紑">
-                                ${bookmark.url || '鏃燯RL'}
-                            </a>
-                        </div>
-                    </div>
-                    <div class="bookmark-meta">
-                        <div class="bookmark-category" style="background-color: ${bookmark.categoryColor || '#6B7280'}">
-                            ${bookmark.category || '鏈垎绫?}
-                        </div>
-                        <div class="bookmark-result" id="result-${bookmark.id}">
-                            ${getResultText(bookmark)}
-                        </div>
-                    </div>
-                    <div class="bookmark-actions-container" id="actions-${bookmark.id}">
-                        ${getBookmarkActions(bookmark)}
-                    </div>
+            return `
+              <article class="bookmark-item ${bookmarkClass}">
+                <div class="bookmark-status">${getStatusBadgeText(bookmarkClass)}</div>
+                <div class="bookmark-info">
+                  <div class="bookmark-title">${AdminUI.escapeHtml(bookmark.title || "Untitled bookmark")}</div>
+                  <div class="bookmark-url">
+                    <a href="${AdminUI.escapeHtml(bookmark.url)}" target="_blank" rel="noreferrer">${AdminUI.escapeHtml(bookmark.url)}</a>
+                  </div>
                 </div>
-                `;
-            }).join('');
-
-            // 纭繚鎿嶄綔鎸夐挳瀵逛笉鍙闂殑涔︾鍙
-            setTimeout(() => {
-                ensureActionButtonsVisible();
-            }, 100);
-        }
-
-        // 鑾峰彇缁撴灉鏂囨湰
-        function getResultText(bookmark) {
-            if (!bookmark.checked) {
-                return '绛夊緟妫€鏌?;
-            }
-
-            switch (bookmark.status) {
-                case 'checking':
-                    return '妫€鏌ヤ腑...';
-                case 'accessible':
-                    return `${bookmark.statusCode} ${bookmark.statusText}`;
-                case 'inaccessible':
-                    return bookmark.error || `${bookmark.statusCode} ${bookmark.statusText}`;
-                case 'deleted':
-                    return '宸插垹闄?;
-                default:
-                    return '绛夊緟妫€鏌?;
-            }
-        }
-
-        // 鑾峰彇鐘舵€佸浘鏍?
-        function getStatusIcon(bookmark, displayIndex) {
-            switch (bookmark.status) {
-                case 'pending':
-                    return displayIndex; // 鏄剧ず搴忓彿
-                case 'checking':
-                    return '鈴?;
-                case 'accessible':
-                    return '鉁?;
-                case 'inaccessible':
-                    return '鉁?;
-                case 'deleted':
-                    return '馃棏锔?;
-                default:
-                    return displayIndex; // 榛樿鏄剧ず搴忓彿
-            }
-        }
-
-        // 纭繚鎿嶄綔鎸夐挳瀵逛笉鍙闂殑涔︾鍙
-        function ensureActionButtonsVisible() {
-            bookmarks.forEach(bookmark => {
-                if ((bookmark.status === 'inaccessible' || (bookmark.checked && !bookmark.accessible)) && !bookmark.deleted) {
-                    const actionsContainer = document.getElementById(`actions-${bookmark.id}`);
-                    if (actionsContainer && (!actionsContainer.innerHTML.trim() || !actionsContainer.querySelector('.bookmark-actions'))) {
-                        const actionsHtml = `
-                            <div class="bookmark-actions">
-                                <button class="keep-btn" data-bookmark-id="${bookmark.id}" title="鏍囪涓轰繚鐣欙紙涓嶅啀寤鸿鍒犻櫎锛?>
-                                    馃搶 淇濈暀
-                                </button>
-                                <button class="delete-single-btn" data-bookmark-id="${bookmark.id}" title="鍒犻櫎姝や功绛?>
-                                    馃棏锔?鍒犻櫎
-                                </button>
-                            </div>
-                        `;
-                        actionsContainer.innerHTML = actionsHtml;
-                    }
-                }
-            });
-        }
-
-        // 鎵嬪姩瑙﹀彂鎸夐挳鏄剧ず锛堢敤浜庢祴璇曪級
-        window.forceShowButtons = function() {
-            console.log('鎵嬪姩瑙﹀彂鎸夐挳鏄剧ず...');
-            ensureActionButtonsVisible();
-        };
-
-        // 鑾峰彇涔︾鎿嶄綔鎸夐挳
-        function getBookmarkActions(bookmark) {
-            // 濡傛灉宸插垹闄わ紝涓嶆樉绀轰换浣曟搷浣?
-            if (bookmark.deleted || bookmark.status === 'deleted') {
-                return '';
-            }
-
-            // 濡傛灉宸叉爣璁颁负淇濈暀
-            if (bookmark.keepStatus === 'keep') {
-                return `<div class="bookmark-actions">
-                    <span class="keep-status">馃搶 宸蹭繚鐣?/span>
-                    <button class="unkeep-btn" data-bookmark-id="${bookmark.id}" title="鍙栨秷淇濈暀鏍囪">
-                        鉂?鍙栨秷淇濈暀
-                    </button>
-                    ${bookmark.status === 'inaccessible' ?
-                        `<button class="delete-single-btn" data-bookmark-id="${bookmark.id}" title="鍒犻櫎姝や功绛?>
-                            馃棏锔?鍒犻櫎
-                        </button>` : ''
-                    }
-                </div>`;
-            }
-
-            // 濡傛灉鏄笉鍙闂殑涔︾ - 寮哄埗鏄剧ず鎸夐挳
-            if (bookmark.status === 'inaccessible' || (bookmark.checked && !bookmark.accessible)) {
-                return `<div class="bookmark-actions">
-                    <button class="keep-btn" data-bookmark-id="${bookmark.id}" title="鏍囪涓轰繚鐣欙紙涓嶅啀寤鸿鍒犻櫎锛?>
-                        馃搶 淇濈暀
-                    </button>
-                    <button class="delete-single-btn" data-bookmark-id="${bookmark.id}" title="鍒犻櫎姝や功绛?>
-                        馃棏锔?鍒犻櫎
-                    </button>
-                </div>`;
-            }
-
-            // 鍏朵粬鎯呭喌涓嶆樉绀烘搷浣滄寜閽?
-            return '';
-        }
-
-        // 鏇存柊绛涢€夌姸鎬佹樉绀?
-        function updateFilterStatus(filteredCount) {
-            const filterStatus = document.getElementById('filterStatus');
-
-            if (isChecking) {
-                // 妫€鏌ユ椂鏄剧ず鐗规畩淇℃伅
-                filterStatus.textContent = `妫€鏌ヤ腑锛氭樉绀哄凡妫€鏌ョ殑涔︾ (${filteredCount} 涓?`;
-            } else if (currentFilter === 'all') {
-                filterStatus.textContent = `鏄剧ず鍏ㄩ儴 ${filteredCount} 涓功绛綻;
-            } else {
-                const filterNames = {
-                    'checked': '宸叉鏌?,
-                    'accessible': '鍙闂?,
-                    'inaccessible': '涓嶅彲璁块棶',
-                    'deleted': '宸插垹闄?,
-                    'kept': '宸蹭繚鐣?
-                };
-                filterStatus.textContent = `绛涢€? ${filterNames[currentFilter]} (${filteredCount}/${bookmarks.length})`;
-            }
-        }
-
-        // 寮€濮嬫鏌?
-        async function startLinkCheck() {
-            if (isChecking) return;
-
-            const smartCheck = document.getElementById('smartCheck').checked;
-            const retryCount = parseInt(document.getElementById('retryCount').value);
-            const checkDelay = parseInt(document.getElementById('checkDelay').value);
-
-            if (bookmarks.length === 0) {
-                alert('娌℃湁涔︾闇€瑕佹鏌?);
-                return;
-            }
-
-            isChecking = true;
-            checkingIndex = 0;
-            stats = { total: bookmarks.length, checked: 0, accessible: 0, inaccessible: 0, deleted: 0 };
-
-            // 鏇存柊UI鐘舵€?
-            document.getElementById('startCheck').classList.add('hidden');
-            document.getElementById('stopCheck').classList.remove('hidden');
-            document.getElementById('progressSection').style.display = 'block';
-            document.getElementById('batchDelete').classList.add('hidden'); // 闅愯棌鎵归噺鍒犻櫎鎸夐挳
-
-            // 閲嶇疆鎵€鏈変功绛剧姸鎬?
-            bookmarks.forEach(bookmark => {
-                bookmark.status = 'pending';
-                bookmark.checked = false;
-                bookmark.retryCount = 0;
-                bookmark.deleted = false; // 閲嶇疆鍒犻櫎鐘舵€?
-                updateBookmarkDisplay(bookmark);
-            });
-
-            // 寮€濮嬫鏌ユ椂閲嶆柊鏄剧ず涔︾鍒楄〃锛堝彧鏄剧ず宸叉鏌ョ殑锛?
-            displayBookmarks();
-
-            // 寮€濮嬮€愪釜妫€鏌?
-            await checkNextBookmark(smartCheck, retryCount, checkDelay);
-        }
-
-        // 妫€鏌ヤ笅涓€涓功绛?
-        async function checkNextBookmark(smartCheck, retryCount, checkDelay) {
-            if (!isChecking || checkingIndex >= bookmarks.length) {
-                finishChecking();
-                return;
-            }
-
-            const bookmark = bookmarks[checkingIndex];
-
-            // 鏇存柊褰撳墠涔︾涓烘鏌ヤ腑鐘舵€?
-            bookmark.status = 'checking';
-            updateBookmarkDisplay(bookmark);
-            updateProgress();
-
-            try {
-                const result = await checkBookmarkWithRetry(bookmark, smartCheck, retryCount);
-
-                bookmark.checked = true;
-                bookmark.checkedTime = Date.now(); // 璁板綍妫€鏌ュ畬鎴愭椂闂?
-                bookmark.accessible = result.accessible;
-                bookmark.status = result.accessible ? 'accessible' : 'inaccessible';
-                bookmark.statusCode = result.status;
-                bookmark.statusText = result.statusText;
-                bookmark.error = result.error;
-                bookmark.deleted = false;
-
-                // 鏅鸿兘妫€鏌ラ€昏緫 - 娣诲姞璇︾粏寤鸿淇℃伅
-                if (!result.accessible && smartCheck) {
-                    const recommendation = getDeleteRecommendation(result);
-                    bookmark.error = `${result.error} (${recommendation.reason})`;
-                    bookmark.deleteRecommendation = recommendation;
-                } else if (!result.accessible) {
-                    bookmark.error = result.error;
-                }
-
-                // 鏇存柊缁熻
-                stats.checked++;
-                if (result.accessible) {
-                    stats.accessible++;
-                } else {
-                    stats.inaccessible++;
-                }
-
-                updateBookmarkDisplay(bookmark);
-                updateStats();
-
-            } catch (error) {
-                console.error(`妫€鏌ヤ功绛惧け璐?(${bookmark.title}):`, error);
-                bookmark.checked = true;
-                bookmark.checkedTime = Date.now(); // 璁板綍妫€鏌ュ畬鎴愭椂闂?
-                bookmark.accessible = false;
-                bookmark.status = 'inaccessible';
-                bookmark.error = error.message;
-                stats.checked++;
-                stats.inaccessible++;
-                updateBookmarkDisplay(bookmark);
-                updateStats();
-            }
-
-            checkingIndex++;
-
-            // 寤惰繜鍚庢鏌ヤ笅涓€涓?
-            if (isChecking) {
-                setTimeout(() => checkNextBookmark(smartCheck, retryCount, checkDelay), checkDelay);
-            }
-        }
-
-        // 甯﹂噸璇曠殑涔︾妫€鏌?
-        async function checkBookmarkWithRetry(bookmark, smartCheck, maxRetries) {
-            let lastResult = null;
-
-            for (let attempt = 1; attempt <= maxRetries; attempt++) {
-                try {
-                    const response = await API.post('/api/system/check-links-stream', {
-                        bookmarkId: bookmark.id,
-                        url: bookmark.url,
-                        attempt: attempt,
-                        maxRetries: maxRetries
-                    });
-
-                    if (response.success) {
-                        lastResult = response.data;
-
-                        // 濡傛灉鎴愬姛璁块棶锛岀洿鎺ヨ繑鍥?
-                        if (lastResult.accessible) {
-                            return lastResult;
-                        }
-
-                        // 濡傛灉鏄渶鍚庝竴娆″皾璇曪紝杩斿洖缁撴灉
-                        if (attempt === maxRetries) {
-                            return lastResult;
-                        }
-
-                        // 濡傛灉涓嶆槸鏈€鍚庝竴娆★紝绛夊緟涓€涓嬪啀閲嶈瘯
-                        if (attempt < maxRetries) {
-                            await new Promise(resolve => setTimeout(resolve, 1000));
-                        }
-                    } else {
-                        throw new Error(response.error);
-                    }
-                } catch (error) {
-                    lastResult = {
-                        accessible: false,
-                        status: 0,
-                        statusText: 'Network Error',
-                        error: error.message
-                    };
-
-                    if (attempt < maxRetries) {
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                    }
-                }
-            }
-
-            return lastResult;
-        }
-
-        // 鏅鸿兘鍒ゆ柇鏄惁搴旇鍒犻櫎涔︾ - 鏇存柊鐗堟湰锛屾洿濂藉湴澶勭悊Cloudflare绛夋儏鍐?
-        function shouldDeleteBookmark(result) {
-            // 濡傛灉缃戠珯鍙闂紝涓嶅垹闄?
-            if (result.accessible) {
-                return false;
-            }
-
-            // 鏄庣‘鐨勯敊璇被鍨嬶紝寤鸿鍒犻櫎
-            const deleteReasons = [
-                '鍩熷悕涓嶅瓨鍦?,        // 鍩熷悕纭疄涓嶅瓨鍦?
-                '杩炴帴琚嫆缁?,        // 鏈嶅姟鍣ㄦ嫆缁濊繛鎺?
-                'SSL璇佷功闂'        // 璇佷功闂
-            ];
-
-            // 鏄庣‘鐨凥TTP鐘舵€佺爜锛屽缓璁垹闄?
-            const deleteStatusCodes = [
-                404, // 椤甸潰涓嶅瓨鍦?
-                410  // 椤甸潰宸叉案涔呭垹闄?
-            ];
-
-            // 搴旇淇濈暀鐨勬儏鍐碉紙鍙兘鏄复鏃堕棶棰樻垨闃叉姢鏈哄埗锛?
-            const keepReasons = [
-                'Cloudflare闃叉姢',    // Cloudflare闃叉姢
-                '璇锋眰瓒呮椂',          // 鍙兘鏄綉缁滈棶棰?
-                '缃戠珯鍝嶅簲缂撴參',      // 鍝嶅簲鎱絾鍙兘姝ｅ父
-                '鏈嶅姟鍣ㄥ唴閮ㄩ敊璇?,    // 500閿欒鍙兘鏄复鏃剁殑
-                '缃戝叧閿欒',          // 502閿欒鍙兘鏄复鏃剁殑
-                '鏈嶅姟鏆傛椂涓嶅彲鐢?,    // 503鍙兘鏄淮鎶?
-                '缃戝叧瓒呮椂',          // 504鍙兘鏄复鏃剁殑
-                '璇锋眰杩囦簬棰戠箒',      // 429闄愭祦
-                '璁块棶琚姝?,        // 403鍙兘闇€瑕佺櫥褰?
-                '缃戠粶杩炴帴闂'       // 缃戠粶闂
-            ];
-
-            // 妫€鏌ユ槸鍚﹀簲璇ヤ繚鐣?
-            if (result.error) {
-                for (const reason of keepReasons) {
-                    if (result.error.includes(reason)) {
-                        return false; // 寤鸿淇濈暀
-                    }
-                }
-
-                // 妫€鏌ユ槸鍚﹀簲璇ュ垹闄?
-                for (const reason of deleteReasons) {
-                    if (result.error.includes(reason)) {
-                        return true; // 寤鸿鍒犻櫎
-                    }
-                }
-            }
-
-            // 妫€鏌ョ姸鎬佺爜
-            if (deleteStatusCodes.includes(result.status)) {
-                return true; // 寤鸿鍒犻櫎
-            }
-
-            // 榛樿鎯呭喌锛氬鏋滀笉纭畾锛屽缓璁繚鐣欙紙瀹夊叏浼樺厛锛?
-            return false;
-        }
-
-        // 鑾峰彇鍒犻櫎寤鸿鐨勮缁嗚鏄?
-        function getDeleteRecommendation(result) {
-            if (result.accessible) {
-                return { shouldDelete: false, reason: '缃戠珯鍙甯歌闂? };
-            }
-
-            const shouldDelete = shouldDeleteBookmark(result);
-
-            if (shouldDelete) {
-                if (result.status === 404) {
-                    return { shouldDelete: true, reason: '椤甸潰涓嶅瓨鍦紝寤鸿鍒犻櫎' };
-                }
-                if (result.status === 410) {
-                    return { shouldDelete: true, reason: '椤甸潰宸叉案涔呭垹闄わ紝寤鸿鍒犻櫎' };
-                }
-                if (result.error && result.error.includes('鍩熷悕涓嶅瓨鍦?)) {
-                    return { shouldDelete: true, reason: '鍩熷悕涓嶅瓨鍦紝寤鸿鍒犻櫎' };
-                }
-                return { shouldDelete: true, reason: '缃戠珯纭疄澶辨晥锛屽缓璁垹闄? };
-            } else {
-                if (result.error && result.error.includes('Cloudflare闃叉姢')) {
-                    return { shouldDelete: false, reason: 'Cloudflare闃叉姢锛岀綉绔欐甯革紝寤鸿淇濈暀' };
-                }
-                if (result.error && result.error.includes('瓒呮椂')) {
-                    return { shouldDelete: false, reason: '缃戠粶瓒呮椂锛屽彲鑳芥槸涓存椂闂锛屽缓璁繚鐣? };
-                }
-                if (result.status >= 500) {
-                    return { shouldDelete: false, reason: '鏈嶅姟鍣ㄩ敊璇紝鍙兘鏄复鏃堕棶棰橈紝寤鸿淇濈暀' };
-                }
-                return { shouldDelete: false, reason: '鍙兘鏄复鏃堕棶棰橈紝寤鸿淇濈暀' };
-            }
-        }
-
-        // 鍋滄妫€鏌?
-        function stopLinkCheck() {
-            isChecking = false;
-            finishChecking();
-        }
-
-        // 瀹屾垚妫€鏌?
-        function finishChecking() {
-            isChecking = false;
-            document.getElementById('startCheck').classList.remove('hidden');
-            document.getElementById('stopCheck').classList.add('hidden');
-
-            updateProgress();
-
-            // 鏄剧ず瀹屾垚娑堟伅
-            const message = `妫€鏌ュ畬鎴愶紒鎬昏: ${stats.total}, 鍙闂? ${stats.accessible}, 涓嶅彲璁块棶: ${stats.inaccessible}${stats.deleted > 0 ? `, 宸插垹闄? ${stats.deleted}` : ''}`;
-            document.getElementById('progressText').textContent = message;
-
-            // 妫€鏌ュ畬鎴愬悗閲嶆柊鏄剧ず鎵€鏈変功绛?
-            displayBookmarks();
-
-            // 濡傛灉鏈変笉鍙闂殑閾炬帴锛屾樉绀烘壒閲忓垹闄ゆ寜閽?
-            const inaccessibleCount = bookmarks.filter(b => b.status === 'inaccessible' && !b.deleted).length;
-            const batchDeleteBtn = document.getElementById('batchDelete');
-            if (inaccessibleCount > 0) {
-                batchDeleteBtn.classList.remove('hidden');
-                batchDeleteBtn.innerHTML = `<span class="btn-icon">馃棏锔?/span>鍒犻櫎鎵€鏈夋棤鏁堥摼鎺?(${inaccessibleCount})`;
-            } else {
-                batchDeleteBtn.classList.add('hidden');
-            }
-        }
-
-        // 鎵归噺鍒犻櫎涓嶅彲璁块棶鐨勪功绛?
-        async function batchDeleteInaccessible() {
-            const inaccessibleBookmarks = bookmarks.filter(b => b.status === 'inaccessible' && !b.deleted);
-
-            if (inaccessibleBookmarks.length === 0) {
-                showMessage('娌℃湁闇€瑕佸垹闄ょ殑鏃犳晥閾炬帴', 'info');
-                return;
-            }
-
-            const confirmMessage = `鈿狅笍 鎵归噺鍒犻櫎纭\n\n纭畾瑕佸垹闄ゆ墍鏈?${inaccessibleBookmarks.length} 涓棤鏁堥摼鎺ュ悧锛焅n\n灏嗗垹闄や互涓嬩功绛撅細\n${inaccessibleBookmarks.slice(0, 5).map(b => `鈥?${b.title}`).join('\n')}${inaccessibleBookmarks.length > 5 ? `\n... 杩樻湁 ${inaccessibleBookmarks.length - 5} 涓猔 : ''}\n\n鈿狅笍 閲嶈鎻愰啋锛歕n鈥?姝ゆ搷浣滀笉鍙挙閿€锛乗n鈥?寤鸿鍏堟墜鍔ㄦ鏌ュ嚑涓摼鎺ョ‘璁n鈥?鏌愪簺缃戠珯鍙兘涓存椂鏃犳硶璁块棶\n\n纭畾缁х画鍚楋紵`;
-
-            if (!confirm(confirmMessage)) {
-                return;
-            }
-
-            let deletedCount = 0;
-            let failedCount = 0;
-
-            for (const bookmark of inaccessibleBookmarks) {
-                try {
-                    // 鍑嗗鍒犻櫎璇锋眰锛屽寘鍚鏌ョ姸鎬佷俊鎭?
-                    const deleteData = {
-                        reason: 'batch_delete_inaccessible',
-                        checkStatus: bookmark.status,
-                        statusCode: bookmark.statusCode,
-                        statusText: bookmark.statusText,
-                        errorMessage: bookmark.error,
-                        keepStatus: bookmark.keepStatus
-                    };
-
-                    const response = await API.request(`/api/bookmarks/${bookmark.id}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(deleteData)
-                    });
-
-                    if (response.success) {
-                        bookmark.deleted = true;
-                        bookmark.status = 'deleted';
-                        deletedCount++;
-                    } else {
-                        failedCount++;
-                        console.error(`鍒犻櫎涔︾澶辫触: ${bookmark.title}`, response.error);
-                    }
-                } catch (error) {
-                    failedCount++;
-                    console.error(`鍒犻櫎涔︾澶辫触: ${bookmark.title}`, error);
-                }
-            }
-
-            // 鏇存柊缁熻
-            stats.deleted += deletedCount;
-            stats.inaccessible -= deletedCount;
-
-            // 鏇存柊鏄剧ず
-            updateStats();
-            displayBookmarks();
-
-            // 闅愯棌鎵归噺鍒犻櫎鎸夐挳
-            document.getElementById('batchDelete').classList.add('hidden');
-
-            // 鏄剧ず缁撴灉娑堟伅
-            if (failedCount === 0) {
-                showMessage(`鎴愬姛鍒犻櫎 ${deletedCount} 涓棤鏁堥摼鎺, 'success');
-            } else {
-                showMessage(`鍒犻櫎瀹屾垚锛氭垚鍔?${deletedCount} 涓紝澶辫触 ${failedCount} 涓猔, 'info');
-            }
-        }
-
-        // 鏇存柊涔︾鏄剧ず
-        function updateBookmarkDisplay(bookmark) {
-            const importantStatusChanges = ['checking', 'accessible', 'inaccessible', 'deleted'];
-            if (importantStatusChanges.includes(bookmark.status)) {
-                displayBookmarks();
-                setTimeout(() => {
-                    ensureActionButtonsVisible();
-                }, 50);
-                return;
-            }
-
-            // 瀵逛簬闈為噸瑕佺姸鎬佸彉鍖栵紝鍙洿鏂板崟涓厓绱?
-            const bookmarkElement = document.getElementById(`bookmark-${bookmark.id}`);
-            const statusElement = document.getElementById(`status-${bookmark.id}`);
-            const resultElement = document.getElementById(`result-${bookmark.id}`);
-
-            if (!bookmarkElement) {
-                // 濡傛灉褰撳墠绛涢€変笅鐪嬩笉鍒拌繖涓功绛撅紝閲嶆柊鏄剧ず鍒楄〃
-                displayBookmarks();
-                return;
-            }
-
-            // 鏇存柊涔︾椤规牱寮?
-            bookmarkElement.className = `bookmark-item ${bookmark.status}`;
-
-            // 鏇存柊鐘舵€佸浘鏍?
-            statusElement.className = `bookmark-status status-${bookmark.status}`;
-
-            let statusIcon = '';
-            let resultText = getResultText(bookmark);
-
-            switch (bookmark.status) {
-                case 'pending':
-                    statusIcon = bookmarkElement.dataset.index ? parseInt(bookmarkElement.dataset.index) + 1 : '?';
-                    break;
-                case 'checking':
-                    statusIcon = '鈴?;
-                    break;
-                case 'accessible':
-                    statusIcon = '鉁?;
-                    break;
-                case 'inaccessible':
-                    statusIcon = '鉁?;
-                    break;
-                case 'deleted':
-                    statusIcon = '馃棏锔?;
-                    break;
-            }
-
-            statusElement.textContent = statusIcon;
-            resultElement.textContent = resultText;
-        }
-
-        // 鏇存柊缁熻淇℃伅
-        function updateStats() {
-            // 閲嶆柊璁＄畻缁熻鏁版嵁
-            stats.total = bookmarks.length;
-            stats.checked = bookmarks.filter(b => b.checked).length;
-            stats.accessible = bookmarks.filter(b => b.status === 'accessible').length;
-            stats.inaccessible = bookmarks.filter(b => b.status === 'inaccessible' && !b.deleted).length;
-            stats.deleted = bookmarks.filter(b => b.deleted || b.status === 'deleted').length;
-            stats.kept = bookmarks.filter(b => b.keepStatus === 'keep').length;
-
-            // 鏇存柊鏄剧ず
-            document.getElementById('totalBookmarks').textContent = stats.total;
-            document.getElementById('checkedCount').textContent = stats.checked;
-            document.getElementById('accessibleCount').textContent = stats.accessible;
-            document.getElementById('inaccessibleCount').textContent = stats.inaccessible;
-            document.getElementById('deletedCount').textContent = stats.deleted;
-            document.getElementById('keptCount').textContent = stats.kept;
-        }
-
-        // 鏇存柊杩涘害
-        function updateProgress() {
-            const percentage = stats.total > 0 ? Math.round((stats.checked / stats.total) * 100) : 0;
-            document.getElementById('progressFill').style.width = percentage + '%';
-            document.getElementById('progressPercent').textContent = `${percentage}%`;
-
-            if (isChecking && checkingIndex < bookmarks.length) {
-                const currentBookmark = bookmarks[checkingIndex];
-                document.getElementById('progressText').textContent = `姝ｅ湪妫€鏌? ${currentBookmark.title}`;
-            }
-        }
-
-        // 鍒犻櫎鍗曚釜涔︾
-        async function deleteBookmark(bookmarkId) {
-            const bookmark = bookmarks.find(b => b.id == bookmarkId); // 浣跨敤 == 鑰屼笉鏄?=== 鏉ュ鐞嗙被鍨嬭浆鎹?
-            if (!bookmark) {
-                console.error('鏈壘鍒颁功绛撅紝ID:', bookmarkId);
-                return;
-            }
-
-            if (!confirm(`鈿狅笍 鍒犻櫎纭\n\n纭畾瑕佸垹闄や功绛?"${bookmark.title}" 鍚楋紵\n\nURL: ${bookmark.url}\n\n鈿狅笍 娉ㄦ剰锛歕n鈥?姝ゆ搷浣滀笉鍙挙閿€锛乗n鈥?寤鸿鍏堟墜鍔ㄨ闂‘璁ら摼鎺ョ‘瀹炴棤鏁圽n鈥?鏌愪簺缃戠珯鍙兘鍙槸涓存椂鏃犳硶璁块棶\n\n纭畾鍒犻櫎鍚楋紵`)) {
-                return;
-            }
-
-            try {
-                // 鍑嗗鍒犻櫎璇锋眰锛屽寘鍚鏌ョ姸鎬佷俊鎭?
-                const deleteData = {
-                    reason: bookmark.status === 'inaccessible' ? 'link_check_failed' : 'manual_delete',
-                    checkStatus: bookmark.status,
-                    statusCode: bookmark.statusCode,
-                    statusText: bookmark.statusText,
-                    errorMessage: bookmark.error,
-                    keepStatus: bookmark.keepStatus
-                };
-
-                const response = await API.request(`/api/bookmarks/${bookmarkId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(deleteData)
-                });
-
-                if (response.success) {
-                    // 鏇存柊涔︾鐘舵€佷负宸插垹闄?
-                    bookmark.deleted = true;
-                    bookmark.status = 'deleted';
-                    stats.deleted++;
-                    stats.inaccessible--;
-
-                    updateBookmarkDisplay(bookmark);
-                    updateStats();
-                    displayBookmarks(); // 閲嶆柊鏄剧ず浠ユ洿鏂板垹闄ゆ寜閽?
-
-                    // 鏄剧ず鎴愬姛娑堟伅
-                    showMessage(`涔︾ "${bookmark.title}" 宸插垹闄, 'success');
-                } else {
-                    showMessage('鍒犻櫎澶辫触: ' + response.error, 'error');
-                }
-            } catch (error) {
-                showMessage('鍒犻櫎澶辫触: ' + error.message, 'error');
-            }
-        }
-
-        // 鏄剧ず娑堟伅鎻愮ず
-        function showMessage(text, type = 'info') {
-            const message = document.createElement('div');
-            message.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 12px 20px;
-                border-radius: 6px;
-                color: white;
-                font-weight: 500;
-                z-index: 1001;
-                animation: slideIn 0.3s ease-out;
-                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+                <div class="bookmark-meta">
+                  <span class="bookmark-category" style="background:${AdminUI.escapeHtml(bookmark.categoryColor || "#6b7280")}">
+                    ${AdminUI.escapeHtml(bookmark.category || "Uncategorized")}
+                  </span>
+                  <span class="bookmark-result">${AdminUI.escapeHtml(getResultText(bookmark))}</span>
+                </div>
+                <div class="bookmark-actions-container">
+                  <div class="bookmark-actions">
+                    <button class="btn btn-outline" type="button" data-action="check" data-id="${bookmark.id}">Check</button>
+                    ${keepAction}
+                    <button class="delete-single-btn" type="button" data-action="delete" data-id="${bookmark.id}">Delete</button>
+                  </div>
+                </div>
+              </article>
             `;
-            message.textContent = text;
+          })
+          .join("");
 
-            // 娣诲姞鍔ㄧ敾鏍峰紡
-            if (!document.querySelector('#message-styles')) {
-                const style = document.createElement('style');
-                style.id = 'message-styles';
-                style.textContent = `
-                    @keyframes slideIn {
-                        from { transform: translateX(100%); opacity: 0; }
-                        to { transform: translateX(0); opacity: 1; }
-                    }
-                `;
-                document.head.appendChild(style);
-            }
+        updateStats();
+      }
 
-            document.body.appendChild(message);
+      function updateStats() {
+        const total = state.bookmarks.length;
+        const checked = state.bookmarks.filter((bookmark) => bookmark.status === "accessible" || bookmark.status === "inaccessible" || bookmark.deleted).length;
+        const accessible = state.bookmarks.filter((bookmark) => bookmark.status === "accessible").length;
+        const inaccessible = state.bookmarks.filter((bookmark) => bookmark.status === "inaccessible" && !bookmark.deleted).length;
+        const kept = state.bookmarks.filter((bookmark) => bookmark.keepStatus === "keep" && !bookmark.deleted).length;
+        const deleted = state.bookmarks.filter((bookmark) => bookmark.deleted).length;
+        const percent = total ? Math.round((checked / total) * 100) : 0;
 
-            // 鑷姩绉婚櫎
-            setTimeout(() => {
-                message.style.animation = 'slideIn 0.3s ease-out reverse';
-                setTimeout(() => message.remove(), 300);
-            }, 3000);
+        document.getElementById("totalBookmarks").textContent = total;
+        document.getElementById("checkedCount").textContent = checked;
+        document.getElementById("accessibleCount").textContent = accessible;
+        document.getElementById("inaccessibleCount").textContent = inaccessible;
+        document.getElementById("keptCount").textContent = kept;
+        document.getElementById("deletedCount").textContent = deleted;
+        document.getElementById("progressPercent").textContent = `${percent}%`;
+        document.getElementById("progressFill").style.width = `${percent}%`;
+      }
+
+      async function loadBookmarks() {
+        document.getElementById("bookmarksList").innerHTML = '<div class="bookmarks-stats">Loading bookmarks...</div>';
+
+        try {
+          const response = await API.get("/api/system/check-links-stream");
+          if (!response.success) throw new Error(response.error || "Failed to load bookmarks");
+
+          state.bookmarks = (response.data || []).map((bookmark) => ({
+            ...bookmark,
+            deleted: false,
+            status: "pending",
+            checked: false,
+            statusCode: null,
+            error: "",
+          }));
+
+          document.getElementById("progressText").textContent = "Bookmark list loaded";
+          renderBookmarks();
+        } catch (error) {
+          document.getElementById("bookmarksList").innerHTML = `<div class="bookmarks-stats">Load failed: ${AdminUI.escapeHtml(error.message)}</div>`;
+        }
+      }
+
+      async function checkBookmark(bookmarkId) {
+        const bookmark = state.bookmarks.find((item) => String(item.id) === String(bookmarkId));
+        if (!bookmark || bookmark.deleted) return;
+
+        bookmark.status = "checking";
+        bookmark.error = "";
+        renderBookmarks();
+        document.getElementById("progressText").textContent = `Checking: ${bookmark.title}`;
+
+        try {
+          const response = await API.post("/api/system/check-links-stream", {
+            bookmarkId: bookmark.id,
+            url: bookmark.url,
+            autoDelete: false,
+          });
+
+          if (!response.success) throw new Error(response.error || "Failed to check bookmark");
+
+          const result = response.data;
+          bookmark.checked = true;
+          bookmark.status = result.accessible ? "accessible" : "inaccessible";
+          bookmark.statusCode = result.status;
+          bookmark.error = result.error || "";
+        } catch (error) {
+          bookmark.checked = true;
+          bookmark.status = "inaccessible";
+          bookmark.error = error.message;
         }
 
-        // 鏍囪涔︾涓轰繚鐣?
-        async function keepBookmark(bookmarkId) {
-            const bookmark = bookmarks.find(b => b.id == bookmarkId);
-            if (!bookmark) {
-                console.error('鏈壘鍒颁功绛撅紝ID:', bookmarkId);
-                return;
-            }
+        renderBookmarks();
+      }
 
-            if (!confirm(`纭畾瑕佹爣璁颁功绛?"${bookmark.title}" 涓轰繚鐣欏悧锛焅n\n鏍囪涓轰繚鐣欏悗锛歕n鈥?鍗充娇妫€鏌ュけ璐ヤ篃涓嶄細寤鸿鍒犻櫎\n鈥?鍙互闅忔椂鍙栨秷淇濈暀鏍囪\n鈥?浠嶄細鍙備笌閾炬帴妫€鏌)) {
-                return;
-            }
+      async function startBatchCheck() {
+        if (state.checking) return;
+        state.checking = true;
+        state.stopRequested = false;
+        document.getElementById("startCheckBtn").classList.add("hidden");
+        document.getElementById("stopCheckBtn").classList.remove("hidden");
 
-            try {
-                const response = await API.post('/api/bookmarks/keep-status', {
-                    bookmarkId: bookmarkId,
-                    keepStatus: 'keep'
-                });
-
-                if (response.success) {
-                    // 鏇存柊涔︾鐘舵€?
-                    bookmark.keepStatus = 'keep';
-
-                    // 閲嶆柊鏄剧ず涔︾鍒楄〃
-                    displayBookmarks();
-
-                    // 鏄剧ず鎴愬姛娑堟伅
-                    showMessage(`涔︾ "${bookmark.title}" 宸叉爣璁颁负淇濈暀`, 'success');
-                } else {
-                    showMessage('鏍囪淇濈暀澶辫触: ' + response.error, 'error');
-                }
-            } catch (error) {
-                showMessage('鏍囪淇濈暀澶辫触: ' + error.message, 'error');
-            }
+        for (const bookmark of state.bookmarks) {
+          if (state.stopRequested) break;
+          await checkBookmark(bookmark.id);
         }
 
-        // 鍙栨秷涔︾淇濈暀鏍囪
-        async function unkeepBookmark(bookmarkId) {
-            const bookmark = bookmarks.find(b => b.id == bookmarkId);
-            if (!bookmark) {
-                console.error('鏈壘鍒颁功绛撅紝ID:', bookmarkId);
-                return;
-            }
+        state.checking = false;
+        state.stopRequested = false;
+        document.getElementById("startCheckBtn").classList.remove("hidden");
+        document.getElementById("stopCheckBtn").classList.add("hidden");
+        document.getElementById("progressText").textContent = "Checks completed";
+      }
 
-            if (!confirm(`纭畾瑕佸彇娑堜功绛?"${bookmark.title}" 鐨勪繚鐣欐爣璁板悧锛焅n\n鍙栨秷鍚庯細\n鈥?濡傛灉閾炬帴妫€鏌ュけ璐ワ紝浼氶噸鏂板缓璁垹闄n鈥?鍙互閲嶆柊鏍囪涓轰繚鐣檂)) {
-                return;
-            }
+      function stopBatchCheck() {
+        state.stopRequested = true;
+        document.getElementById("progressText").textContent = "Stopping checks...";
+      }
 
-            try {
-                const response = await API.post('/api/bookmarks/keep-status', {
-                    bookmarkId: bookmarkId,
-                    keepStatus: 'normal'
-                });
+      async function updateKeepStatus(bookmarkId, keepStatus) {
+        try {
+          const response = await API.post("/api/bookmarks/keep-status", {
+            bookmarkId,
+            keepStatus,
+          });
 
-                if (response.success) {
-                    // 鏇存柊涔︾鐘舵€?
-                    bookmark.keepStatus = 'normal';
+          if (!response.success) throw new Error(response.error || "Failed to update keep status");
 
-                    // 閲嶆柊鏄剧ず涔︾鍒楄〃
-                    displayBookmarks();
+          const bookmark = state.bookmarks.find((item) => String(item.id) === String(bookmarkId));
+          if (bookmark) bookmark.keepStatus = keepStatus;
 
-                    // 鏄剧ず鎴愬姛娑堟伅
-                    showMessage(`涔︾ "${bookmark.title}" 宸插彇娑堜繚鐣欐爣璁癭, 'success');
-                } else {
-                    showMessage('鍙栨秷淇濈暀澶辫触: ' + response.error, 'error');
-                }
-            } catch (error) {
-                showMessage('鍙栨秷淇濈暀澶辫触: ' + error.message, 'error');
-            }
+          renderBookmarks();
+          AdminUI.showToast(keepStatus === "keep" ? "Bookmark marked as keep" : "Keep mark cleared");
+        } catch (error) {
+          AdminUI.showToast(`Update failed: ${error.message}`, "error");
         }
+      }
 
-        async function loadHistory() {
-            try {
-                const response = await API.get('/api/system/check-links');
-                if (response.success) {
-                    displayHistory(response.data);
-                }
-            } catch (error) {
-                console.error('鍔犺浇鍘嗗彶澶辫触:', error);
-            }
+      async function deleteBookmark(bookmarkId) {
+        const bookmark = state.bookmarks.find((item) => String(item.id) === String(bookmarkId));
+        if (!bookmark) return;
+
+        const confirmed = window.confirm(`Delete bookmark "${bookmark.title}" now?`);
+        if (!confirmed) return;
+
+        try {
+          const response = await BookmarkAPI.deleteBookmark(bookmark.id, {
+            reason: bookmark.status === "inaccessible" ? "link_check_failed" : "manual_delete",
+            checkStatus: bookmark.status,
+            statusCode: bookmark.statusCode,
+            errorMessage: bookmark.error,
+            keepStatus: bookmark.keepStatus,
+          });
+
+          if (!response.success) throw new Error(response.error || "Failed to delete bookmark");
+
+          bookmark.deleted = true;
+          bookmark.status = "deleted";
+          renderBookmarks();
+          AdminUI.showToast(`Deleted: ${bookmark.title}`);
+        } catch (error) {
+          AdminUI.showToast(`Delete failed: ${error.message}`, "error");
         }
+      }
 
-        function displayHistory(history) {
-            const historyList = document.getElementById('historyList');
-            
-            if (history.length === 0) {
-                historyList.innerHTML = '<div class="empty-state">鏆傛棤妫€鏌ュ巻鍙?/div>';
-                return;
-            }
+      async function loadHistory() {
+        try {
+          const response = await API.get("/api/system/check-links");
+          if (!response.success) throw new Error(response.error || "Failed to load history");
 
-            historyList.innerHTML = history.map(record => `
-                <div class="history-item">
-                    <div class="history-header">
-                        <strong>${new Date(record.checkedAt).toLocaleString()}</strong>
-                        <div class="history-stats">
-                            <span>鎬昏: ${record.total}</span>
-                            <span style="color: #28a745;">鍙闂? ${record.accessible}</span>
-                            <span style="color: #dc3545;">涓嶅彲璁块棶: ${record.inaccessible}</span>
-                            ${record.autoDelete ? `<span style="color: #ffc107;">宸插垹闄? ${record.inaccessible}</span>` : ''}
-                        </div>
-                    </div>
-                    <div>
-                        ${record.autoDelete ? '鉁?鑷姩鍒犻櫎宸插惎鐢? : '鈿狅笍 浠呮鏌ワ紝鏈垹闄?}
-                    </div>
+          const history = response.data || [];
+          const historyList = document.getElementById("historyList");
+
+          if (!history.length) {
+            historyList.textContent = "There are no saved check runs yet.";
+            return;
+          }
+
+          historyList.innerHTML = history
+            .slice(0, 5)
+            .map(
+              (item) => `
+                <div class="bookmarks-stats" style="margin-bottom: 8px;">
+                  ${AdminUI.formatDate(item.checkedAt || item.createdAt)}: total ${item.total ?? 0}, reachable ${item.accessible ?? 0}, unreachable ${item.inaccessible ?? 0}
                 </div>
-            `).join('');
+              `,
+            )
+            .join("");
+        } catch (error) {
+          document.getElementById("historyList").textContent = `Load failed: ${error.message}`;
         }
+      }
 
-        function toggleHistory() {
-            const historyCard = document.getElementById('historyCard');
-            historyCard.classList.toggle('hidden');
-        }
+      document.addEventListener("DOMContentLoaded", async () => {
+        if (!(await AdminUI.requireAuth())) return;
 
-        // 鍒囨崲璇存槑闈㈡澘
-        function toggleExplanation() {
-            const content = document.getElementById('explanationContent');
-            const toggleText = document.getElementById('explanationToggleText');
+        AdminUI.initToolsMenu("/link-checker.html");
+        document.getElementById("reloadBookmarksBtn").addEventListener("click", loadBookmarks);
+        document.getElementById("startCheckBtn").addEventListener("click", startBatchCheck);
+        document.getElementById("stopCheckBtn").addEventListener("click", stopBatchCheck);
+        document.getElementById("bookmarksList").addEventListener("click", (event) => {
+          const button = event.target.closest("[data-action]");
+          if (!button) return;
 
-            if (content.classList.contains('hidden')) {
-                content.classList.remove('hidden');
-                toggleText.textContent = '闅愯棌璇︽儏';
-            } else {
-                content.classList.add('hidden');
-                toggleText.textContent = '鏄剧ず璇︽儏';
-            }
-        }
+          const { action, id } = button.dataset;
+          if (action === "check") checkBookmark(id);
+          else if (action === "keep") updateKeepStatus(id, "keep");
+          else if (action === "unkeep") updateKeepStatus(id, "normal");
+          else if (action === "delete") deleteBookmark(id);
+        });
 
-        // 绛涢€変功绛炬樉绀?
-        function filterBookmarksDisplay(filter) {
-            const bookmarkItems = document.querySelectorAll('.bookmark-item');
-            let visibleCount = 0;
-
-            bookmarkItems.forEach(item => {
-                let shouldShow = false;
-
-                switch (filter) {
-                    case 'all':
-                        shouldShow = true;
-                        break;
-                    case 'checked':
-                        shouldShow = item.classList.contains('accessible') ||
-                                   item.classList.contains('inaccessible') ||
-                                   item.classList.contains('kept') ||
-                                   item.classList.contains('deleted');
-                        break;
-                    case 'accessible':
-                        shouldShow = item.classList.contains('accessible');
-                        break;
-                    case 'inaccessible':
-                        shouldShow = item.classList.contains('inaccessible');
-                        break;
-                    case 'deleted':
-                        shouldShow = item.classList.contains('deleted');
-                        break;
-                    case 'kept':
-                        shouldShow = item.classList.contains('kept');
-                        break;
-                }
-
-                if (shouldShow) {
-                    item.style.display = 'flex';
-                    visibleCount++;
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-
-            // 鏇存柊绛涢€夌姸鎬佹樉绀?
-            const filterStatus = document.getElementById('filterStatus');
-            if (filterStatus) {
-                if (filter === 'all') {
-                    filterStatus.textContent = `鏄剧ず鍏ㄩ儴 (${visibleCount})`;
-                } else {
-                    const filterNames = {
-                        'checked': '宸叉鏌?,
-                        'accessible': '鍙闂?,
-                        'inaccessible': '涓嶅彲璁块棶',
-                        'deleted': '宸插垹闄?,
-                        'kept': '宸蹭繚鐣?
-                    };
-                    filterStatus.textContent = `绛涢€? ${filterNames[filter]} (${visibleCount})`;
-                }
-            }
-        }
+        await Promise.all([loadBookmarks(), loadHistory()]);
+      });
     </script>
-</body>
+  </body>
 </html>
-

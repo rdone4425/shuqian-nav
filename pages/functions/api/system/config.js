@@ -1,23 +1,20 @@
-// 绯荤粺閰嶇疆API
 import { authenticateRequest } from "../auth/verify.js";
 
 const CONFIG_DESCRIPTIONS = {
-  ai_api_endpoint: "AI 鎺ュ彛鍦板潃锛岃┍鍔ㄩ噸鍐?ENV 閰嶇疆",
-  ai_model: "AI 妯″潡鍚嶇О锛岃嫢涓虹┖鍒欐敮鎸乶NV 鍙傛暟",
+  ai_api_endpoint: "AI endpoint URL. Falls back to AI_API_ENDPOINT when empty.",
+  ai_model: "Default AI model. Falls back to AI_MODEL when empty.",
 };
 
-// 鑾峰彇绯荤粺閰嶇疆
 export async function onRequestGet(context) {
   const { request, env } = context;
 
   try {
-    // 楠岃瘉绠＄悊鍛樻潈闄?
     const auth = await authenticateRequest(request, env);
     if (!auth.authenticated) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: "闇€瑕佺鐞嗗憳鏉冮檺",
+          error: "Admin access is required",
         }),
         {
           status: 401,
@@ -26,9 +23,8 @@ export async function onRequestGet(context) {
       );
     }
 
-    // 鑾峰彇绯荤粺閰嶇疆
     const configs = await env.BOOKMARKS_DB.prepare(
-      "SELECT config_key, config_value, description FROM system_config ORDER BY config_key",
+      "SELECT config_key, config_value, description, created_at, updated_at FROM system_config ORDER BY config_key",
     ).all();
 
     return new Response(
@@ -42,11 +38,11 @@ export async function onRequestGet(context) {
       },
     );
   } catch (error) {
-    console.error("鑾峰彇绯荤粺閰嶇疆澶辫触:", error);
+    console.error("Failed to read system config:", error);
     return new Response(
       JSON.stringify({
         success: false,
-        error: "鑾峰彇绯荤粺閰嶇疆澶辫触",
+        error: "Failed to read system config",
         message: error.message,
       }),
       {
@@ -57,18 +53,16 @@ export async function onRequestGet(context) {
   }
 }
 
-// 鏇存柊绯荤粺閰嶇疆
 export async function onRequestPost(context) {
   const { request, env } = context;
 
   try {
-    // 楠岃瘉绠＄悊鍛樻潈闄?
     const auth = await authenticateRequest(request, env);
     if (!auth.authenticated) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: "闇€瑕佺鐞嗗憳鏉冮檺",
+          error: "Admin access is required",
         }),
         {
           status: 401,
@@ -78,12 +72,11 @@ export async function onRequestPost(context) {
     }
 
     const { config_key, config_value } = await request.json();
-
     if (!config_key) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: "閰嶇疆閿笉鑳戒负绌?",
+          error: "Missing config key",
         }),
         {
           status: 400,
@@ -110,13 +103,13 @@ export async function onRequestPost(context) {
 
     await env.BOOKMARKS_DB.prepare(
       `
-      INSERT INTO system_config (config_key, config_value, description, updated_at)
-      VALUES (?, ?, ?, CURRENT_TIMESTAMP)
-      ON CONFLICT(config_key) DO UPDATE SET
-        config_value = excluded.config_value,
-        description = excluded.description,
-        updated_at = CURRENT_TIMESTAMP
-    `,
+        INSERT INTO system_config (config_key, config_value, description, updated_at)
+        VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(config_key) DO UPDATE SET
+          config_value = excluded.config_value,
+          description = excluded.description,
+          updated_at = CURRENT_TIMESTAMP
+      `,
     )
       .bind(config_key, normalizedValue, description)
       .run();
@@ -124,7 +117,7 @@ export async function onRequestPost(context) {
     return new Response(
       JSON.stringify({
         success: true,
-        message: "閰嶇疆鏇存柊鎴愬姛",
+        message: "Config saved",
       }),
       {
         status: 200,
@@ -132,11 +125,11 @@ export async function onRequestPost(context) {
       },
     );
   } catch (error) {
-    console.error("鏇存柊绯荤粺閰嶇疆澶辫触:", error);
+    console.error("Failed to save system config:", error);
     return new Response(
       JSON.stringify({
         success: false,
-        error: "鏇存柊绯荤粺閰嶇疆澶辫触",
+        error: "Failed to save system config",
         message: error.message,
       }),
       {

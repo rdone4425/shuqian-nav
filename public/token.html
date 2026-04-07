@@ -1,406 +1,370 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API 令牌 - 书签导航</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/token-enhanced.css">
-</head>
-<body>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Tokens - Bookmark Navigator</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/token-enhanced.css" />
+  </head>
+  <body>
     <div class="container">
-        <header class="header">
-            <div class="header-content">
-                <div class="logo">
-                    <span class="logo-icon">API</span>
-                    <h1 class="logo-text">API 令牌</h1>
-                </div>
+      <header class="header">
+        <div class="header-content">
+          <div class="logo">
+            <span class="logo-icon">API</span>
+            <h1 class="logo-text">API Tokens</h1>
+          </div>
 
-                <div class="header-actions">
-                    <div class="action-group tools-menu">
-                        <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" title="工具菜单">
-                            <span class="btn-icon">...</span>
-                            <span class="dropdown-arrow">v</span>
-                        </button>
-                        <div id="toolsDropdown" class="dropdown-menu">
-                            <a href="/" class="dropdown-item">
-                                <span class="item-icon">H</span>
-                                <div class="item-content">
-                                    <span class="item-text">首页</span>
-                                    <span class="item-desc">返回书签首页</span>
-                                </div>
-                            </a>
-                            <a href="/link-checker.html" class="dropdown-item">
-                                <span class="item-icon">CHK</span>
-                                <div class="item-content">
-                                    <span class="item-text">链接检查</span>
-                                    <span class="item-desc">检查链接是否可访问</span>
-                                </div>
-                            </a>
-                            <a href="/deleted-bookmarks.html" class="dropdown-item">
-                                <span class="item-icon">DEL</span>
-                                <div class="item-content">
-                                    <span class="item-text">删除记录</span>
-                                    <span class="item-desc">查看和恢复已删除书签</span>
-                                </div>
-                            </a>
-                            <a href="/notifications.html" class="dropdown-item">
-                                <span class="item-icon">MSG</span>
-                                <div class="item-content">
-                                    <span class="item-text">通知中心</span>
-                                    <span class="item-desc">查看系统通知</span>
-                                </div>
-                            </a>
-                            <a href="/import.html" class="dropdown-item">
-                                <span class="item-icon">IMP</span>
-                                <div class="item-content">
-                                    <span class="item-text">导入书签</span>
-                                    <span class="item-desc">从文件导入书签数据</span>
-                                </div>
-                            </a>
-                            <a href="/ai-settings.html" class="dropdown-item">
-                                <span class="item-icon">AI</span>
-                                <div class="item-content">
-                                    <span class="item-text">AI 设置</span>
-                                    <span class="item-desc">管理 AI 接口与模型</span>
-                                </div>
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <button id="changePasswordBtn" class="dropdown-item">
-                                <span class="item-icon">PWD</span>
-                                <div class="item-content">
-                                    <span class="item-text">修改密码</span>
-                                    <span class="item-desc">回到首页后修改管理员密码</span>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+          <div class="header-actions">
+            <div class="action-group tools-menu">
+              <button
+                id="toolsMenuToggle"
+                class="action-btn-icon menu-toggle"
+                title="Tools menu"
+              >
+                <span class="btn-icon">...</span>
+                <span class="dropdown-arrow">v</span>
+              </button>
+              <div id="toolsDropdown" class="dropdown-menu">
+                <a href="/" class="dropdown-item">
+                  <span class="item-icon">H</span>
+                  <div class="item-content">
+                    <span class="item-text">Home</span>
+                    <span class="item-desc">Back to the main bookmark page</span>
+                  </div>
+                </a>
+                <a href="/link-checker.html" class="dropdown-item">
+                  <span class="item-icon">CHK</span>
+                  <div class="item-content">
+                    <span class="item-text">Link Checker</span>
+                    <span class="item-desc">Check whether bookmarks are reachable</span>
+                  </div>
+                </a>
+                <a href="/deleted-bookmarks.html" class="dropdown-item">
+                  <span class="item-icon">DEL</span>
+                  <div class="item-content">
+                    <span class="item-text">Deleted</span>
+                    <span class="item-desc">Review and restore deleted bookmarks</span>
+                  </div>
+                </a>
+                <a href="/notifications.html" class="dropdown-item">
+                  <span class="item-icon">MSG</span>
+                  <div class="item-content">
+                    <span class="item-text">Notifications</span>
+                    <span class="item-desc">View recent system notices</span>
+                  </div>
+                </a>
+                <a href="/import.html" class="dropdown-item">
+                  <span class="item-icon">IMP</span>
+                  <div class="item-content">
+                    <span class="item-text">Import</span>
+                    <span class="item-desc">Import bookmarks from a file</span>
+                  </div>
+                </a>
+                <a href="/ai-settings.html" class="dropdown-item">
+                  <span class="item-icon">AI</span>
+                  <div class="item-content">
+                    <span class="item-text">AI Settings</span>
+                    <span class="item-desc">Manage AI endpoint and model</span>
+                  </div>
+                </a>
+                <div class="dropdown-divider"></div>
+                <button id="changePasswordBtn" class="dropdown-item">
+                  <span class="item-icon">PWD</span>
+                  <div class="item-content">
+                    <span class="item-text">Change Password</span>
+                    <span class="item-desc">Jump back to the password update flow</span>
+                  </div>
+                </button>
+              </div>
             </div>
-        </header>
-
-        <div class="token-container">
-            <div class="token-card">
-                <div class="token-header">
-                    <h2>创建新的 API 令牌</h2>
-                </div>
-
-                <form id="tokenForm" class="token-form">
-                    <div class="form-group">
-                        <label class="form-label" for="tokenName">令牌名称 *</label>
-                        <input type="text" id="tokenName" class="form-input" placeholder="例如：Chrome 插件访问" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="tokenDescription">描述</label>
-                        <input type="text" id="tokenDescription" class="form-input" placeholder="令牌用途说明（可选）">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="tokenExpires">有效期</label>
-                        <select id="tokenExpires" class="form-select">
-                            <option value="7">7 天</option>
-                            <option value="30" selected>30 天</option>
-                            <option value="90">90 天</option>
-                            <option value="365">1 年</option>
-                        </select>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">
-                        <span class="btn-icon">API</span>
-                        生成令牌
-                    </button>
-                </form>
-
-                <div id="tokenResult" class="hidden">
-                    <h3>令牌已生成</h3>
-                    <div class="warning-box">
-                        <strong>注意：</strong>
-                        请立即复制并保存令牌。刷新页面后无法再次查看完整令牌内容。
-                    </div>
-                    <div class="token-display">
-                        <span id="generatedToken"></span>
-                        <button class="copy-btn" onclick="copyToken()">复制</button>
-                    </div>
-                    <div class="token-meta">
-                        <p><strong>名称：</strong><span id="resultName"></span></p>
-                        <p><strong>过期时间：</strong><span id="resultExpires"></span></p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="token-card">
-                <div class="token-header">
-                    <h2>现有令牌</h2>
-                    <button onclick="loadTokens()" class="btn btn-outline">刷新</button>
-                </div>
-
-                <div id="tokenList" class="token-list">
-                    <div class="loading">正在加载...</div>
-                </div>
-            </div>
-
-            <div class="token-card">
-                <h2>使用说明</h2>
-                <div class="info-content">
-                    <h3>典型流程</h3>
-                    <ol>
-                        <li>生成新的 API 令牌</li>
-                        <li>在客户端或脚本中保存令牌</li>
-                        <li>通过请求头传递令牌访问接口</li>
-                        <li>不再使用时及时删除</li>
-                    </ol>
-
-                    <h3>请求头示例</h3>
-                    <div class="token-display">
-                        X-API-Token: your-token-here
-                    </div>
-
-                    <h3>安全建议</h3>
-                    <ul>
-                        <li>令牌具备完整 API 访问能力，请妥善保管</li>
-                        <li>不要在公开环境中泄露令牌</li>
-                        <li>建议定期轮换和清理无用令牌</li>
-                        <li>如果怀疑泄露，请立即删除并重新生成</li>
-                    </ul>
-                </div>
-            </div>
+          </div>
         </div>
+      </header>
+
+      <main class="token-container">
+        <section class="token-card">
+          <div class="token-header">
+            <div>
+              <h2 class="token-title">Create a new token</h2>
+              <p class="token-subtitle">
+                Use a dedicated token for scripts, extensions, and automation.
+              </p>
+            </div>
+          </div>
+
+          <form id="tokenForm" class="token-form">
+            <div class="form-group">
+              <label class="form-label" for="tokenName">Token name</label>
+              <input
+                id="tokenName"
+                class="form-input"
+                type="text"
+                placeholder="Example: Chrome sync worker"
+                required
+              />
+              <div class="form-hint">Pick a clear label so it is easy to revoke later.</div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="tokenDescription">Description</label>
+              <input
+                id="tokenDescription"
+                class="form-input"
+                type="text"
+                placeholder="Optional note about where this token is used"
+              />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="tokenExpires">Expires in</label>
+                <select id="tokenExpires" class="form-select">
+                  <option value="7">7 days</option>
+                  <option value="30" selected>30 days</option>
+                  <option value="90">90 days</option>
+                  <option value="365">365 days</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="token-actions">
+              <button type="submit" id="createTokenBtn" class="btn btn-primary">
+                Create token
+              </button>
+            </div>
+          </form>
+
+          <section id="tokenResult" class="token-display hidden">
+            <div class="token-display-header">
+              <div class="token-display-title">New token</div>
+              <button id="copyTokenBtn" class="btn btn-outline" type="button">
+                Copy
+              </button>
+            </div>
+            <div id="generatedToken" class="token-value"></div>
+            <div class="form-hint">
+              The full value is shown only once. Copy it now and store it safely.
+            </div>
+          </section>
+        </section>
+
+        <section class="token-card">
+          <div class="token-header">
+            <div>
+              <h2 class="token-title">Existing tokens</h2>
+              <p class="token-subtitle">The list below shows saved token records.</p>
+            </div>
+            <button id="refreshTokensBtn" class="btn btn-outline" type="button">
+              Refresh
+            </button>
+          </div>
+
+          <div id="tokenList" class="tokens-list">
+            <div class="tokens-header">
+              <p class="token-subtitle">Loading token list...</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="api-docs">
+          <div class="api-docs-header">
+            <h2 class="api-docs-title">Usage notes</h2>
+            <p class="api-docs-subtitle">Send the token in an API request header.</p>
+          </div>
+
+          <div class="api-section">
+            <h3 class="api-section-title">Header</h3>
+            <div class="api-endpoint">
+              <code>X-API-Token: your-token-here</code>
+            </div>
+          </div>
+
+          <div class="api-section">
+            <h3 class="api-section-title">Safety tips</h3>
+            <ul>
+              <li>Use different tokens for different tools when possible.</li>
+              <li>Delete and recreate a token immediately if you suspect a leak.</li>
+              <li>Do not expose admin tokens in public frontend code.</li>
+            </ul>
+          </div>
+        </section>
+      </main>
     </div>
 
-    <script src="js/utils/api.js"></script>
+    <script src="/js/utils/storage.js"></script>
+    <script src="/js/utils/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/admin-common.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const toolsMenuToggle = document.getElementById('toolsMenuToggle');
-            const toolsDropdown = document.getElementById('toolsDropdown');
+      const state = {
+        latestToken: "",
+      };
 
-            if (toolsMenuToggle && toolsDropdown) {
-                toolsMenuToggle.addEventListener('click', (event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    toolsDropdown.classList.toggle('show');
-                    toolsMenuToggle.classList.toggle('active');
-                });
+      function renderTokens(tokens) {
+        const tokenList = document.getElementById("tokenList");
 
-                document.addEventListener('click', (event) => {
-                    if (!toolsMenuToggle.contains(event.target) && !toolsDropdown.contains(event.target)) {
-                        toolsDropdown.classList.remove('show');
-                        toolsMenuToggle.classList.remove('active');
-                    }
-                });
-
-                document.getElementById('changePasswordBtn')?.addEventListener('click', () => {
-                    window.location.href = '/?action=change-password';
-                });
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            const token = localStorage.getItem('auth_token');
-            if (!token) {
-                window.location.href = '/login.html';
-                return;
-            }
-
-            await loadTokens();
-        });
-
-        document.getElementById('tokenForm').addEventListener('submit', async (event) => {
-            event.preventDefault();
-
-            const name = document.getElementById('tokenName').value;
-            const description = document.getElementById('tokenDescription').value;
-            const expiresIn = Number.parseInt(document.getElementById('tokenExpires').value, 10);
-
-            try {
-                const response = await API.post('/api/auth/token', {
-                    name,
-                    description,
-                    expiresIn
-                });
-
-                if (!response.success) {
-                    throw new Error(response.error || '生成失败');
-                }
-
-                document.getElementById('generatedToken').textContent = response.data.token;
-                document.getElementById('resultName').textContent = response.data.name;
-                document.getElementById('resultExpires').textContent = response.data.expiresAt;
-                document.getElementById('tokenResult').classList.remove('hidden');
-                document.getElementById('tokenForm').reset();
-
-                await loadTokens();
-            } catch (error) {
-                alert(`生成令牌失败：${error.message}`);
-            }
-        });
-
-        async function loadTokens() {
-            try {
-                const response = await API.get('/api/auth/token');
-                const tokenList = document.getElementById('tokenList');
-
-                if (!response.success) {
-                    throw new Error(response.error || '加载失败');
-                }
-
-                if (!response.data.length) {
-                    tokenList.innerHTML = '<div class="empty-state">暂无 API 令牌</div>';
-                    return;
-                }
-
-                tokenList.innerHTML = response.data
-                    .map((token) => {
-                        const isExpired = new Date(token.expires) <= new Date();
-                        const safeName = token.name.replace(/"/g, '&quot;');
-
-                        return `
-                            <div class="token-item" data-token-id="${token.id}" data-token-name="${safeName}">
-                                <div class="token-info">
-                                    <h4>${token.name}</h4>
-                                    <div class="token-meta">
-                                        <div>描述：${token.description || '无'}</div>
-                                        <div>创建时间：${new Date(token.created).toLocaleString()}</div>
-                                        <div>过期时间：${new Date(token.expires).toLocaleString()}</div>
-                                    </div>
-                                </div>
-                                <div class="token-actions">
-                                    <span class="status-badge ${isExpired ? 'disconnected' : 'connected'}">
-                                        ${isExpired ? '已过期' : '有效'}
-                                    </span>
-                                    <button class="delete-btn" data-action="delete" title="删除令牌">
-                                        删除
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                    })
-                    .join('');
-
-                tokenList.removeEventListener('click', handleTokenAction);
-                tokenList.addEventListener('click', handleTokenAction);
-            } catch (error) {
-                document.getElementById('tokenList').innerHTML = `<div class="error">加载失败：${error.message}</div>`;
-            }
+        if (!tokens.length) {
+          tokenList.innerHTML = `
+            <div class="tokens-header">
+              <p class="token-subtitle">No API tokens have been created yet.</p>
+            </div>
+          `;
+          return;
         }
 
-        function handleTokenAction(event) {
-            const button = event.target.closest('.delete-btn');
-            if (!button) {
-                return;
-            }
+        tokenList.innerHTML = tokens
+          .map((token) => {
+            const isExpired = new Date(token.expires) <= new Date();
+            const safeName = AdminUI.escapeHtml(token.name || "Unnamed token");
+            const safeDescription = AdminUI.escapeHtml(token.description || "No description");
+            const safeId = AdminUI.escapeHtml(token.id);
 
-            const tokenItem = button.closest('.token-item');
-            deleteToken(tokenItem.dataset.tokenId, tokenItem.dataset.tokenName);
-        }
-
-        function showConfirmDialog(title, message, onConfirm) {
-            const dialog = document.createElement('div');
-            dialog.className = 'confirm-dialog';
-            dialog.innerHTML = `
-                <div class="confirm-content">
-                    <div class="confirm-title">${title}</div>
-                    <div class="confirm-message">${message}</div>
-                    <div class="confirm-actions">
-                        <button class="btn btn-secondary" id="cancelBtn">取消</button>
-                        <button class="btn btn-primary" style="background: var(--error-color);" id="confirmBtn">确认删除</button>
+            return `
+              <article class="token-item" data-token-id="${safeId}" data-token-name="${safeName}">
+                <div class="token-item-header">
+                  <div class="token-info">
+                    <h3 class="token-name">${safeName}</h3>
+                    <p class="token-description">${safeDescription}</p>
+                    <div class="token-meta">
+                      <span class="token-meta-item">Created: ${AdminUI.formatDate(token.created)}</span>
+                      <span class="token-meta-item">Expires: ${AdminUI.formatDate(token.expires)}</span>
                     </div>
+                  </div>
+                  <div class="token-item-actions">
+                    <span class="token-status ${isExpired ? "expired" : "active"}">
+                      ${isExpired ? "Expired" : "Active"}
+                    </span>
+                    <button class="btn btn-outline delete-token-btn" type="button">Delete</button>
+                  </div>
                 </div>
+              </article>
             `;
+          })
+          .join("");
+      }
 
-            dialog.querySelector('#cancelBtn').addEventListener('click', () => dialog.remove());
-            dialog.querySelector('#confirmBtn').addEventListener('click', () => {
-                dialog.remove();
-                onConfirm();
-            });
+      async function loadTokens() {
+        const tokenList = document.getElementById("tokenList");
+        tokenList.innerHTML = `
+          <div class="tokens-header">
+            <p class="token-subtitle">Loading token list...</p>
+          </div>
+        `;
 
-            document.body.appendChild(dialog);
+        try {
+          const response = await API.get("/api/auth/token");
+          if (!response.success) {
+            throw new Error(response.error || "Failed to load tokens");
+          }
+
+          renderTokens(response.data || []);
+        } catch (error) {
+          tokenList.innerHTML = `
+            <div class="tokens-header">
+              <p class="token-subtitle">Load failed: ${AdminUI.escapeHtml(error.message)}</p>
+            </div>
+          `;
+        }
+      }
+
+      async function createToken(event) {
+        event.preventDefault();
+
+        const createTokenBtn = document.getElementById("createTokenBtn");
+        const tokenName = document.getElementById("tokenName");
+        const tokenDescription = document.getElementById("tokenDescription");
+        const tokenExpires = document.getElementById("tokenExpires");
+
+        createTokenBtn.disabled = true;
+        createTokenBtn.textContent = "Creating...";
+
+        try {
+          const response = await API.post("/api/auth/token", {
+            name: tokenName.value.trim(),
+            description: tokenDescription.value.trim(),
+            expiresIn: Number.parseInt(tokenExpires.value, 10),
+          });
+
+          if (!response.success) {
+            throw new Error(response.error || "Failed to create token");
+          }
+
+          state.latestToken = response.data.token;
+          document.getElementById("generatedToken").textContent = state.latestToken;
+          document.getElementById("tokenResult").classList.remove("hidden");
+          document.getElementById("tokenForm").reset();
+          AdminUI.showToast("API token created");
+          await loadTokens();
+        } catch (error) {
+          AdminUI.showToast(`Create failed: ${error.message}`, "error");
+        } finally {
+          createTokenBtn.disabled = false;
+          createTokenBtn.textContent = "Create token";
+        }
+      }
+
+      async function deleteToken(tokenId, tokenName) {
+        const confirmed = window.confirm(
+          `Delete token "${tokenName}" now? It will stop working immediately.`,
+        );
+        if (!confirmed) {
+          return;
         }
 
-        function deleteToken(tokenId, tokenName) {
-            showConfirmDialog(
-                '删除 API 令牌',
-                `确定要删除令牌 "<strong>${tokenName}</strong>" 吗？删除后将立即失效。`,
-                () => performDeleteToken(tokenId, tokenName)
-            );
+        try {
+          const response = await API.post("/api/auth/token", {
+            action: "delete",
+            tokenId,
+          });
+
+          if (!response.success) {
+            throw new Error(response.error || "Failed to delete token");
+          }
+
+          AdminUI.showToast(`Deleted: ${tokenName}`);
+          await loadTokens();
+        } catch (error) {
+          AdminUI.showToast(`Delete failed: ${error.message}`, "error");
+        }
+      }
+
+      async function copyLatestToken() {
+        if (!state.latestToken) {
+          AdminUI.showToast("There is no token to copy", "error");
+          return;
         }
 
-        async function performDeleteToken(tokenId, tokenName) {
-            const tokenItem = document.querySelector(`[data-token-id="${tokenId}"]`);
-            const deleteBtn = tokenItem?.querySelector('.delete-btn');
+        await navigator.clipboard.writeText(state.latestToken);
+        AdminUI.showToast("Token copied");
+      }
 
-            if (deleteBtn) {
-                deleteBtn.disabled = true;
-                deleteBtn.textContent = '删除中...';
-            }
-
-            try {
-                const response = await API.post('/api/auth/token', {
-                    action: 'delete',
-                    tokenId
-                });
-
-                if (!response.success) {
-                    throw new Error(response.error || '删除失败');
-                }
-
-                showMessage(`令牌 "${tokenName}" 已删除`, 'success');
-                await loadTokens();
-            } catch (error) {
-                showMessage(`删除失败：${error.message}`, 'error');
-                if (deleteBtn) {
-                    deleteBtn.disabled = false;
-                    deleteBtn.textContent = '删除';
-                }
-            }
+      document.addEventListener("DOMContentLoaded", async () => {
+        if (!(await AdminUI.requireAuth())) {
+          return;
         }
 
-        function showMessage(text, type = 'info') {
-            const message = document.createElement('div');
-            message.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 12px 20px;
-                border-radius: 6px;
-                color: white;
-                font-weight: 500;
-                z-index: 1001;
-                animation: slideIn 0.3s ease-out;
-                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
-            `;
-            message.textContent = text;
+        AdminUI.initToolsMenu("/token.html");
+        document.getElementById("tokenForm").addEventListener("submit", createToken);
+        document
+          .getElementById("refreshTokensBtn")
+          .addEventListener("click", loadTokens);
+        document
+          .getElementById("copyTokenBtn")
+          .addEventListener("click", copyLatestToken);
+        document.getElementById("tokenList").addEventListener("click", (event) => {
+          const button = event.target.closest(".delete-token-btn");
+          if (!button) {
+            return;
+          }
 
-            if (!document.querySelector('#message-styles')) {
-                const style = document.createElement('style');
-                style.id = 'message-styles';
-                style.textContent = `
-                    @keyframes slideIn {
-                        from { transform: translateX(100%); opacity: 0; }
-                        to { transform: translateX(0); opacity: 1; }
-                    }
-                `;
-                document.head.appendChild(style);
-            }
+          const tokenItem = button.closest("[data-token-id]");
+          deleteToken(tokenItem.dataset.tokenId, tokenItem.dataset.tokenName);
+        });
 
-            document.body.appendChild(message);
-            setTimeout(() => {
-                message.style.animation = 'slideIn 0.3s ease-out reverse';
-                setTimeout(() => message.remove(), 300);
-            }, 3000);
-        }
-
-        function copyToken() {
-            const token = document.getElementById('generatedToken').textContent;
-            navigator.clipboard.writeText(token).then(() => {
-                const button = document.querySelector('.copy-btn');
-                const originalText = button.textContent;
-                button.textContent = '已复制';
-                setTimeout(() => {
-                    button.textContent = originalText;
-                }, 2000);
-            });
-        }
+        await loadTokens();
+      });
     </script>
-</body>
+  </body>
 </html>

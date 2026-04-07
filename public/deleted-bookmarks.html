@@ -1,175 +1,113 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>删除记录 - 书签导航</title>
-    <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/deleted-bookmarks-enhanced.css">
-    <link rel="icon" href="/favicon.ico">
-</head>
-<body>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Deleted Bookmarks - Bookmark Navigator</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/deleted-bookmarks-enhanced.css" />
+    <link rel="icon" href="/favicon.ico" />
+  </head>
+  <body>
     <div class="container">
-        <header class="header">
-            <div class="header-content">
-                <div class="logo">
-                    <span class="logo-icon">DEL</span>
-                    <h1 class="logo-text">删除记录</h1>
-                </div>
-
-                <div class="header-actions">
-                    <div class="action-group tools-menu">
-                        <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" title="工具菜单">
-                            <span class="btn-icon">...</span>
-                            <span class="dropdown-arrow">v</span>
-                        </button>
-                        <div id="toolsDropdown" class="dropdown-menu">
-                            <a href="/" class="dropdown-item">
-                                <span class="item-icon">H</span>
-                                <div class="item-content">
-                                    <span class="item-text">首页</span>
-                                    <span class="item-desc">返回书签首页</span>
-                                </div>
-                            </a>
-                            <a href="/token.html" class="dropdown-item">
-                                <span class="item-icon">API</span>
-                                <div class="item-content">
-                                    <span class="item-text">API 令牌</span>
-                                    <span class="item-desc">管理访问令牌</span>
-                                </div>
-                            </a>
-                            <a href="/link-checker.html" class="dropdown-item">
-                                <span class="item-icon">CHK</span>
-                                <div class="item-content">
-                                    <span class="item-text">链接检查</span>
-                                    <span class="item-desc">检查链接是否可访问</span>
-                                </div>
-                            </a>
-                            <a href="/deleted-bookmarks.html" class="dropdown-item">
-                                <span class="item-icon">DEL</span>
-                                <div class="item-content">
-                                    <span class="item-text">删除记录</span>
-                                    <span class="item-desc">查看和恢复已删除书签</span>
-                                </div>
-                            </a>
-                            <a href="/notifications.html" class="dropdown-item">
-                                <span class="item-icon">MSG</span>
-                                <div class="item-content">
-                                    <span class="item-text">通知中心</span>
-                                    <span class="item-desc">查看系统通知</span>
-                                </div>
-                            </a>
-                            <a href="/import.html" class="dropdown-item">
-                                <span class="item-icon">IMP</span>
-                                <div class="item-content">
-                                    <span class="item-text">导入书签</span>
-                                    <span class="item-desc">从文件导入书签数据</span>
-                                </div>
-                            </a>
-                            <a href="/ai-settings.html" class="dropdown-item">
-                                <span class="item-icon">AI</span>
-                                <div class="item-content">
-                                    <span class="item-text">AI 设置</span>
-                                    <span class="item-desc">管理 AI 接口与模型</span>
-                                </div>
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <button id="changePasswordBtn" class="dropdown-item">
-                                <span class="item-icon">PWD</span>
-                                <div class="item-content">
-                                    <span class="item-text">修改密码</span>
-                                    <span class="item-desc">更新管理员密码</span>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+      <header class="header">
+        <div class="header-content">
+          <div class="logo">
+            <span class="logo-icon">DEL</span>
+            <h1 class="logo-text">Deleted Bookmarks</h1>
+          </div>
+          <div class="header-actions">
+            <div class="action-group tools-menu">
+              <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" title="Tools menu">
+                <span class="btn-icon">...</span>
+                <span class="dropdown-arrow">v</span>
+              </button>
+              <div id="toolsDropdown" class="dropdown-menu">
+                <a href="/" class="dropdown-item"><span class="item-icon">H</span><div class="item-content"><span class="item-text">Home</span><span class="item-desc">Back to the main bookmark page</span></div></a>
+                <a href="/token.html" class="dropdown-item"><span class="item-icon">API</span><div class="item-content"><span class="item-text">API Tokens</span><span class="item-desc">Manage access tokens</span></div></a>
+                <a href="/link-checker.html" class="dropdown-item"><span class="item-icon">CHK</span><div class="item-content"><span class="item-text">Link Checker</span><span class="item-desc">Check bookmark reachability</span></div></a>
+                <a href="/notifications.html" class="dropdown-item"><span class="item-icon">MSG</span><div class="item-content"><span class="item-text">Notifications</span><span class="item-desc">View recent notices</span></div></a>
+                <a href="/import.html" class="dropdown-item"><span class="item-icon">IMP</span><div class="item-content"><span class="item-text">Import</span><span class="item-desc">Import from a file</span></div></a>
+                <a href="/ai-settings.html" class="dropdown-item"><span class="item-icon">AI</span><div class="item-content"><span class="item-text">AI Settings</span><span class="item-desc">Manage AI endpoint and model</span></div></a>
+                <div class="dropdown-divider"></div>
+                <button id="changePasswordBtn" class="dropdown-item"><span class="item-icon">PWD</span><div class="item-content"><span class="item-text">Change Password</span><span class="item-desc">Jump back to the password flow</span></div></button>
+              </div>
             </div>
-        </header>
+          </div>
+        </div>
+      </header>
 
-        <main class="main-content">
-            <div class="stats-section">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-value" id="totalDeleted">0</div>
-                        <div class="stat-label">总删除数</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="manualDeleted">0</div>
-                        <div class="stat-label">手动删除</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="autoDeleted">0</div>
-                        <div class="stat-label">自动删除</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="todayDeleted">0</div>
-                        <div class="stat-label">今日删除</div>
-                    </div>
-                </div>
-            </div>
+      <main class="main-content">
+        <section class="stats-section">
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-value" id="totalDeleted">0</div><div class="stat-label">Visible records</div></div>
+            <div class="stat-card"><div class="stat-value" id="manualDeleted">0</div><div class="stat-label">Manual delete</div></div>
+            <div class="stat-card"><div class="stat-value" id="autoDeleted">0</div><div class="stat-label">Failed link delete</div></div>
+            <div class="stat-card"><div class="stat-value" id="todayDeleted">0</div><div class="stat-label">Deleted today</div></div>
+          </div>
+        </section>
 
-            <div class="actions-section">
-                <div class="actions-left">
-                    <button id="refreshBtn" class="btn btn-primary">刷新列表</button>
-                    <button id="clearAllBtn" class="btn btn-danger">清空全部记录</button>
-                </div>
-                <div class="actions-right">
-                    <select id="filterSelect" class="filter-select">
-                        <option value="all">全部记录</option>
-                        <option value="manual_delete">手动删除</option>
-                        <option value="link_check_failed">链接检查失败</option>
-                        <option value="batch_delete_inaccessible">批量删除</option>
-                    </select>
-                    <input type="search" id="searchInput" placeholder="搜索标题或 URL" class="search-input">
-                </div>
-            </div>
+        <section class="actions-section">
+          <div class="actions-left">
+            <button id="refreshBtn" class="btn btn-primary">Refresh list</button>
+            <button id="clearAllBtn" class="btn btn-danger" type="button" disabled>Bulk clear not supported</button>
+          </div>
+          <div class="actions-right">
+            <select id="filterSelect" class="filter-select">
+              <option value="all">All records</option>
+              <option value="manual_delete">Manual delete</option>
+              <option value="link_check_failed">Link check failed</option>
+              <option value="batch_delete_inaccessible">Batch delete</option>
+            </select>
+            <input type="search" id="searchInput" placeholder="Search title or URL" class="search-input" />
+          </div>
+        </section>
 
-            <div class="records-section">
-                <div id="recordsList" class="records-list">
-                    <div class="loading">正在加载删除记录...</div>
-                </div>
-
-                <div id="pagination" class="pagination hidden">
-                    <button id="prevPage" class="btn btn-secondary">上一页</button>
-                    <span id="pageInfo" class="page-info">第 1 页，共 1 页</span>
-                    <button id="nextPage" class="btn btn-secondary">下一页</button>
-                </div>
-            </div>
-        </main>
+        <section class="records-section">
+          <div id="recordsList" class="records-list">
+            <div class="loading">Loading deleted bookmarks...</div>
+          </div>
+          <div id="pagination" class="pagination hidden">
+            <button id="prevPage" class="btn btn-secondary">Previous</button>
+            <span id="pageInfo" class="page-info">Page 1 of 1</span>
+            <button id="nextPage" class="btn btn-secondary">Next</button>
+          </div>
+        </section>
+      </main>
     </div>
 
     <div id="restoreModal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>恢复书签</h3>
-                <button id="closeRestoreModal" class="btn-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div id="restoreBookmarkInfo"></div>
-                <p>确认恢复这条书签吗？</p>
-                <div class="modal-actions">
-                    <button id="cancelRestore" class="btn btn-secondary">取消</button>
-                    <button id="confirmRestore" class="btn btn-primary">确认恢复</button>
-                </div>
-            </div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Restore bookmark</h3>
+          <button id="closeRestoreModal" class="btn-close">&times;</button>
         </div>
+        <div class="modal-body">
+          <div id="restoreBookmarkInfo"></div>
+          <p>Restore this bookmark now?</p>
+          <div class="modal-actions">
+            <button id="cancelRestore" class="btn btn-secondary">Cancel</button>
+            <button id="confirmRestore" class="btn btn-primary">Restore</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div id="detailModal" class="modal hidden">
-        <div class="modal-content modal-large">
-            <div class="modal-header">
-                <h3>删除详情</h3>
-                <button id="closeDetailModal" class="btn-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div id="bookmarkDetails"></div>
-            </div>
+      <div class="modal-content modal-large">
+        <div class="modal-header">
+          <h3>Delete details</h3>
+          <button id="closeDetailModal" class="btn-close">&times;</button>
         </div>
+        <div class="modal-body">
+          <div id="bookmarkDetails"></div>
+        </div>
+      </div>
     </div>
 
     <script src="/js/utils/api.js"></script>
     <script src="/js/auth.js"></script>
+    <script src="/js/admin-common.js"></script>
     <script src="/js/deleted-bookmarks.js"></script>
-</body>
+  </body>
 </html>

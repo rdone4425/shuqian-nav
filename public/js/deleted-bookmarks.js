@@ -1,4 +1,3 @@
-// 删除记录页面功能
 class DeletedBookmarksManager {
   constructor() {
     this.currentPage = 1;
@@ -7,214 +6,156 @@ class DeletedBookmarksManager {
     this.currentFilter = "all";
     this.searchQuery = "";
     this.deletedRecords = [];
-
-    this.init();
+    this.pendingRestoreId = null;
   }
 
   async init() {
-    try {
-      // 等待认证模块初始化
-      await new Promise((resolve, reject) => {
-        let attempts = 0;
-        const checkAuth = () => {
-          attempts++;
-          if (typeof Auth !== "undefined" && Auth.verifyToken !== undefined) {
-            resolve();
-          } else if (attempts > 50) {
-            // 5秒超时
-            reject(new Error("认证模块加载超时"));
-          } else {
-            setTimeout(checkAuth, 100);
-          }
-        };
-        checkAuth();
-      });
-
-      // 严格的认证检查
-      const token = localStorage.getItem("auth_token");
-      if (!token) {
-        console.log("没有找到认证token，重定向到登录页面");
-        window.location.href = "/login";
-        return;
-      }
-
-      // 验证token有效性
-      console.log("验证token有效性...");
-      const isValid = await Auth.verifyToken();
-      if (!isValid) {
-        console.log("Token验证失败，重定向到登录页面");
-        localStorage.removeItem("auth_token");
-        window.location.href = "/login";
-        return;
-      }
-
-      console.log("认证检查通过，初始化页面");
-      this.bindEvents();
-      await this.loadDeletedRecords();
-    } catch (error) {
-      console.error("初始化失败:", error);
-      alert("认证失败，请重新登录");
-      window.location.href = "/login";
+    if (!(await AdminUI.requireAuth())) {
+      return;
     }
+
+    AdminUI.initToolsMenu("/deleted-bookmarks.html");
+    this.bindEvents();
+    await this.loadDeletedRecords();
   }
 
   bindEvents() {
-    // 刷新按钮
     document.getElementById("refreshBtn").addEventListener("click", () => {
       this.loadDeletedRecords();
     });
 
-    // 清空所有记录
     document.getElementById("clearAllBtn").addEventListener("click", () => {
-      this.clearAllRecords();
+      AdminUI.showToast("Bulk clear is not implemented yet", "error");
     });
 
-    // 筛选器
-    document.getElementById("filterSelect").addEventListener("change", (e) => {
-      this.currentFilter = e.target.value;
-      this.currentPage = 1;
-      this.loadDeletedRecords();
-    });
+    document
+      .getElementById("filterSelect")
+      .addEventListener("change", (event) => {
+        this.currentFilter = event.target.value;
+        this.currentPage = 1;
+        this.loadDeletedRecords();
+      });
 
-    // 搜索
-    document.getElementById("searchInput").addEventListener("input", (e) => {
-      this.searchQuery = e.target.value.trim();
-      this.currentPage = 1;
-      this.loadDeletedRecords();
-    });
+    document
+      .getElementById("searchInput")
+      .addEventListener("input", (event) => {
+        this.searchQuery = event.target.value.trim();
+        this.currentPage = 1;
+        this.loadDeletedRecords();
+      });
 
-    // 分页
     document.getElementById("prevPage").addEventListener("click", () => {
       if (this.currentPage > 1) {
-        this.currentPage--;
+        this.currentPage -= 1;
         this.loadDeletedRecords();
       }
     });
 
     document.getElementById("nextPage").addEventListener("click", () => {
       if (this.currentPage < this.totalPages) {
-        this.currentPage++;
+        this.currentPage += 1;
         this.loadDeletedRecords();
       }
     });
 
-    // 模态框事件
-    this.bindModalEvents();
-
-    // 记录项点击事件
-    document.addEventListener("click", (e) => {
-      if (e.target.classList.contains("restore-btn")) {
-        const recordId = e.target.dataset.recordId;
-        this.showRestoreModal(recordId);
-      }
-
-      if (e.target.classList.contains("detail-btn")) {
-        const recordId = e.target.dataset.recordId;
-        this.showDetailModal(recordId);
-      }
-
-      if (e.target.classList.contains("delete-btn")) {
-        const recordId = e.target.dataset.recordId;
-        this.permanentDelete(recordId);
-      }
-    });
-  }
-
-  bindModalEvents() {
-    // 恢复模态框
     document
       .getElementById("closeRestoreModal")
       .addEventListener("click", () => {
         this.hideRestoreModal();
       });
-
     document.getElementById("cancelRestore").addEventListener("click", () => {
       this.hideRestoreModal();
     });
-
     document.getElementById("confirmRestore").addEventListener("click", () => {
       this.confirmRestore();
     });
-
-    // 详情模态框
     document
       .getElementById("closeDetailModal")
       .addEventListener("click", () => {
         this.hideDetailModal();
       });
 
-    // 点击背景关闭模态框
-    document.getElementById("restoreModal").addEventListener("click", (e) => {
-      if (e.target.id === "restoreModal") {
-        this.hideRestoreModal();
-      }
-    });
+    document
+      .getElementById("restoreModal")
+      .addEventListener("click", (event) => {
+        if (event.target.id === "restoreModal") {
+          this.hideRestoreModal();
+        }
+      });
+    document
+      .getElementById("detailModal")
+      .addEventListener("click", (event) => {
+        if (event.target.id === "detailModal") {
+          this.hideDetailModal();
+        }
+      });
 
-    document.getElementById("detailModal").addEventListener("click", (e) => {
-      if (e.target.id === "detailModal") {
-        this.hideDetailModal();
+    document.addEventListener("click", (event) => {
+      const restoreButton = event.target.closest(".restore-btn");
+      const detailButton = event.target.closest(".detail-btn");
+      const deleteButton = event.target.closest(".delete-btn");
+
+      if (restoreButton) {
+        this.showRestoreModal(restoreButton.dataset.recordId);
+        return;
+      }
+
+      if (detailButton) {
+        this.showDetailModal(detailButton.dataset.recordId);
+        return;
+      }
+
+      if (deleteButton) {
+        this.permanentDelete(deleteButton.dataset.recordId);
       }
     });
   }
 
   async loadDeletedRecords() {
-    try {
-      console.log("开始加载删除记录...");
+    const recordsList = document.getElementById("recordsList");
+    recordsList.innerHTML =
+      '<div class="loading">Loading deleted bookmarks...</div>';
 
+    try {
       const params = new URLSearchParams({
-        page: this.currentPage,
-        limit: this.pageSize,
+        page: String(this.currentPage),
+        limit: String(this.pageSize),
       });
 
       if (this.currentFilter !== "all") {
-        params.append("filter", this.currentFilter);
+        params.set("filter", this.currentFilter);
       }
 
       if (this.searchQuery) {
-        params.append("search", this.searchQuery);
+        params.set("search", this.searchQuery);
       }
 
-      const apiUrl = `/api/bookmarks/deleted?${params}`;
-      console.log("调用API:", apiUrl);
-
-      // 检查token
-      const token = localStorage.getItem("auth_token");
-      console.log("Token存在:", !!token);
-
-      const response = await API.get(apiUrl);
-      console.log("API响应:", response);
-      console.log("response.data:", response.data);
-      console.log("response.data.bookmarks:", response.data?.bookmarks);
-
-      if (response.success) {
-        this.deletedRecords = response.data?.bookmarks || [];
-        this.totalPages = response.data?.pagination?.totalPages || 1;
-
-        console.log("加载到删除记录数量:", this.deletedRecords.length);
-
-        this.displayRecords();
-        this.updatePagination();
-        this.updateStats();
-      } else {
-        throw new Error(response.error);
+      const response = await API.get(
+        `/api/bookmarks/deleted?${params.toString()}`,
+      );
+      if (!response.success) {
+        throw new Error(response.error || "Failed to load deleted bookmarks");
       }
-    } catch (error) {
-      console.error("加载删除记录失败:", error);
-      this.deletedRecords = [];
+
+      this.deletedRecords = response.data?.bookmarks || [];
+      this.totalPages = response.data?.pagination?.totalPages || 1;
+
       this.displayRecords();
-      this.showError("加载删除记录失败: " + error.message);
+      this.updatePagination();
+      this.updateStats();
+    } catch (error) {
+      this.deletedRecords = [];
+      recordsList.innerHTML = `<div class="empty-state">Load failed: ${AdminUI.escapeHtml(error.message)}</div>`;
+      this.updatePagination();
+      this.updateStats();
     }
   }
 
   displayRecords() {
     const recordsList = document.getElementById("recordsList");
-
-    if (
-      !this.deletedRecords ||
-      !Array.isArray(this.deletedRecords) ||
-      this.deletedRecords.length === 0
-    ) {
-      recordsList.innerHTML = '<div class="empty-state">暂无删除记录</div>';
+    if (!this.deletedRecords.length) {
+      recordsList.innerHTML =
+        '<div class="empty-state">There are no deleted bookmark records.</div>';
       return;
     }
 
@@ -224,52 +165,42 @@ class DeletedBookmarksManager {
   }
 
   renderRecord(record) {
-    const deletedTime = new Date(record.deleted_at).toLocaleString("zh-CN");
+    const deletedTime = AdminUI.formatDate(record.deleted_at);
     const reasonClass = this.getReasonClass(record.deleted_reason);
     const reasonText = this.getReasonText(record.deleted_reason);
+    const safeTitle = AdminUI.escapeHtml(record.title || "Untitled bookmark");
+    const safeUrl = AdminUI.escapeHtml(record.url || "");
 
     return `
-      <div class="record-item">
-        <img src="${record.favicon_url || "/favicon.ico"}" 
-             alt="favicon" 
-             class="record-favicon"
-             onerror="this.src='/favicon.ico'">
-        
+      <article class="record-item">
+        <img
+          src="${AdminUI.escapeHtml(record.favicon_url || "/favicon.ico")}"
+          alt="favicon"
+          class="record-favicon"
+          onerror="this.src='/favicon.ico'"
+        />
         <div class="record-info">
-          <div class="record-title">${this.escapeHtml(record.title)}</div>
+          <div class="record-title">${safeTitle}</div>
           <div class="record-url">
-            <a href="${this.escapeHtml(record.url)}"
-               target="_blank"
-               rel="noopener noreferrer"
-               title="在新标签页中打开链接">
-              ${this.escapeHtml(record.url)}
-            </a>
+            <a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeUrl}</a>
           </div>
         </div>
-        
         <div class="record-meta">
           <span class="record-reason ${reasonClass}">${reasonText}</span>
           <span class="record-time">${deletedTime}</span>
         </div>
-        
         <div class="record-actions">
-          <button class="btn btn-primary btn-sm restore-btn" 
-                  data-record-id="${record.id}" 
-                  title="恢复书签">
-            🔄 恢复
+          <button class="btn btn-primary btn-sm restore-btn" data-record-id="${record.id}">
+            Restore
           </button>
-          <button class="btn btn-secondary btn-sm detail-btn" 
-                  data-record-id="${record.id}" 
-                  title="查看详情">
-            📋 详情
+          <button class="btn btn-secondary btn-sm detail-btn" data-record-id="${record.id}">
+            Details
           </button>
-          <button class="btn btn-danger btn-sm delete-btn" 
-                  data-record-id="${record.id}" 
-                  title="永久删除">
-            🗑️ 删除
+          <button class="btn btn-danger btn-sm delete-btn" data-record-id="${record.id}">
+            Delete forever
           </button>
         </div>
-      </div>
+      </article>
     `;
   }
 
@@ -289,13 +220,13 @@ class DeletedBookmarksManager {
   getReasonText(reason) {
     switch (reason) {
       case "manual_delete":
-        return "手动删除";
+        return "Manual delete";
       case "link_check_failed":
-        return "链接失效";
+        return "Link check failed";
       case "batch_delete_inaccessible":
-        return "批量删除";
+        return "Batch delete";
       default:
-        return "其他";
+        return "Other";
     }
   }
 
@@ -307,121 +238,108 @@ class DeletedBookmarksManager {
 
     if (this.totalPages <= 1) {
       pagination.classList.add("hidden");
+      pageInfo.textContent = "Page 1 of 1";
       return;
     }
 
     pagination.classList.remove("hidden");
     prevBtn.disabled = this.currentPage <= 1;
     nextBtn.disabled = this.currentPage >= this.totalPages;
-    pageInfo.textContent = `第 ${this.currentPage} 页，共 ${this.totalPages} 页`;
+    pageInfo.textContent = `Page ${this.currentPage} of ${this.totalPages}`;
   }
 
-  async updateStats() {
-    try {
-      // 这里可以添加统计API调用
-      // 暂时使用当前数据计算
-      const records = Array.isArray(this.deletedRecords)
-        ? this.deletedRecords
-        : [];
-      const total = records.length;
-      const manual = records.filter(
-        (r) => r.deleted_reason === "manual_delete",
-      ).length;
-      const auto = records.filter(
-        (r) => r.deleted_reason === "link_check_failed",
-      ).length;
-      const today = records.filter((r) => {
-        try {
-          const deletedDate = new Date(r.deleted_at).toDateString();
-          const todayDate = new Date().toDateString();
-          return deletedDate === todayDate;
-        } catch (e) {
-          return false;
-        }
-      }).length;
+  updateStats() {
+    const total = this.deletedRecords.length;
+    const manual = this.deletedRecords.filter(
+      (record) => record.deleted_reason === "manual_delete",
+    ).length;
+    const auto = this.deletedRecords.filter(
+      (record) =>
+        record.deleted_reason === "link_check_failed" ||
+        record.deleted_reason === "batch_delete_inaccessible",
+    ).length;
+    const today = this.deletedRecords.filter((record) => {
+      const deletedDate = new Date(record.deleted_at);
+      if (Number.isNaN(deletedDate.getTime())) {
+        return false;
+      }
+      return deletedDate.toDateString() === new Date().toDateString();
+    }).length;
 
-      document.getElementById("totalDeleted").textContent = total;
-      document.getElementById("manualDeleted").textContent = manual;
-      document.getElementById("autoDeleted").textContent = auto;
-      document.getElementById("todayDeleted").textContent = today;
-    } catch (error) {
-      console.error("更新统计失败:", error);
-      // 设置默认值
-      document.getElementById("totalDeleted").textContent = "0";
-      document.getElementById("manualDeleted").textContent = "0";
-      document.getElementById("autoDeleted").textContent = "0";
-      document.getElementById("todayDeleted").textContent = "0";
-    }
+    document.getElementById("totalDeleted").textContent = total;
+    document.getElementById("manualDeleted").textContent = manual;
+    document.getElementById("autoDeleted").textContent = auto;
+    document.getElementById("todayDeleted").textContent = today;
   }
 
   showRestoreModal(recordId) {
-    const record = this.deletedRecords.find((r) => r.id == recordId);
-    if (!record) return;
+    const record = this.deletedRecords.find(
+      (item) => String(item.id) === String(recordId),
+    );
+    if (!record) {
+      return;
+    }
 
-    const modal = document.getElementById("restoreModal");
-    const info = document.getElementById("restoreBookmarkInfo");
-
-    info.innerHTML = `
+    this.pendingRestoreId = recordId;
+    document.getElementById("restoreBookmarkInfo").innerHTML = `
       <div style="margin-bottom: 1rem;">
-        <strong>标题:</strong> ${this.escapeHtml(record.title)}<br>
-        <strong>URL:</strong> ${this.escapeHtml(record.url)}<br>
-        <strong>删除时间:</strong> ${new Date(record.deleted_at).toLocaleString("zh-CN")}
+        <strong>Title:</strong> ${AdminUI.escapeHtml(record.title || "Untitled bookmark")}<br>
+        <strong>URL:</strong> ${AdminUI.escapeHtml(record.url || "")}<br>
+        <strong>Deleted at:</strong> ${AdminUI.formatDate(record.deleted_at)}
       </div>
     `;
-
-    modal.classList.remove("hidden");
-    modal.dataset.recordId = recordId;
+    document.getElementById("restoreModal").classList.remove("hidden");
   }
 
   hideRestoreModal() {
+    this.pendingRestoreId = null;
     document.getElementById("restoreModal").classList.add("hidden");
   }
 
   async confirmRestore() {
-    const modal = document.getElementById("restoreModal");
-    const recordId = modal.dataset.recordId;
+    if (!this.pendingRestoreId) {
+      return;
+    }
 
     try {
       const response = await API.post("/api/bookmarks/deleted", {
-        deletedId: recordId,
+        deletedId: this.pendingRestoreId,
       });
 
-      if (response.success) {
-        this.showSuccess("书签恢复成功！");
-        this.hideRestoreModal();
-        await this.loadDeletedRecords();
-      } else {
-        throw new Error(response.error);
+      if (!response.success) {
+        throw new Error(response.error || "Failed to restore bookmark");
       }
+
+      this.hideRestoreModal();
+      AdminUI.showToast("Bookmark restored");
+      await this.loadDeletedRecords();
     } catch (error) {
-      console.error("恢复书签失败:", error);
-      this.showError("恢复失败: " + error.message);
+      AdminUI.showToast(`Restore failed: ${error.message}`, "error");
     }
   }
 
   showDetailModal(recordId) {
-    const record = this.deletedRecords.find((r) => r.id == recordId);
-    if (!record) return;
+    const record = this.deletedRecords.find(
+      (item) => String(item.id) === String(recordId),
+    );
+    if (!record) {
+      return;
+    }
 
-    const modal = document.getElementById("detailModal");
-    const details = document.getElementById("bookmarkDetails");
-
-    details.innerHTML = `
+    document.getElementById("bookmarkDetails").innerHTML = `
       <div class="detail-grid">
-        <div><strong>标题:</strong> ${this.escapeHtml(record.title)}</div>
-        <div><strong>URL:</strong> <a href="${record.url}" target="_blank">${this.escapeHtml(record.url)}</a></div>
-        <div><strong>分类:</strong> ${record.category || "无"}</div>
-        <div><strong>描述:</strong> ${record.description || "无"}</div>
-        <div><strong>删除原因:</strong> ${this.getReasonText(record.deleted_reason)}</div>
-        <div><strong>删除时间:</strong> ${new Date(record.deleted_at).toLocaleString("zh-CN")}</div>
-        <div><strong>创建时间:</strong> ${new Date(record.created_at).toLocaleString("zh-CN")}</div>
-        ${record.check_status ? `<div><strong>检查状态:</strong> ${record.check_status}</div>` : ""}
-        ${record.status_code ? `<div><strong>状态码:</strong> ${record.status_code}</div>` : ""}
-        ${record.error_message ? `<div><strong>错误信息:</strong> ${record.error_message}</div>` : ""}
+        <div><strong>Title:</strong> ${AdminUI.escapeHtml(record.title || "Untitled bookmark")}</div>
+        <div><strong>URL:</strong> <a href="${AdminUI.escapeHtml(record.url || "")}" target="_blank" rel="noopener noreferrer">${AdminUI.escapeHtml(record.url || "")}</a></div>
+        <div><strong>Category:</strong> ${AdminUI.escapeHtml(record.category || "Uncategorized")}</div>
+        <div><strong>Description:</strong> ${AdminUI.escapeHtml(record.description || "None")}</div>
+        <div><strong>Delete reason:</strong> ${this.getReasonText(record.deleted_reason)}</div>
+        <div><strong>Deleted at:</strong> ${AdminUI.formatDate(record.deleted_at)}</div>
+        <div><strong>Check status:</strong> ${AdminUI.escapeHtml(record.check_status || "-")}</div>
+        <div><strong>Status code:</strong> ${AdminUI.escapeHtml(record.status_code || "-")}</div>
+        <div><strong>Error message:</strong> ${AdminUI.escapeHtml(record.error_message || "-")}</div>
       </div>
     `;
-
-    modal.classList.remove("hidden");
+    document.getElementById("detailModal").classList.remove("hidden");
   }
 
   hideDetailModal() {
@@ -429,12 +347,17 @@ class DeletedBookmarksManager {
   }
 
   async permanentDelete(recordId) {
-    const record = this.deletedRecords.find((r) => r.id == recordId);
-    if (!record) return;
+    const record = this.deletedRecords.find(
+      (item) => String(item.id) === String(recordId),
+    );
+    if (!record) {
+      return;
+    }
 
-    if (
-      !confirm(`确定要永久删除记录 "${record.title}" 吗？\n\n此操作不可撤销！`)
-    ) {
+    const confirmed = window.confirm(
+      `Delete the record "${record.title || "Untitled bookmark"}" forever? This cannot be undone.`,
+    );
+    if (!confirmed) {
       return;
     }
 
@@ -442,87 +365,19 @@ class DeletedBookmarksManager {
       const response = await API.delete(
         `/api/bookmarks/deleted?id=${recordId}`,
       );
-
-      if (response.success) {
-        this.showSuccess("记录已永久删除");
-        await this.loadDeletedRecords();
-      } else {
-        throw new Error(response.error);
+      if (!response.success) {
+        throw new Error(response.error || "Failed to delete record forever");
       }
-    } catch (error) {
-      console.error("永久删除失败:", error);
-      this.showError("删除失败: " + error.message);
-    }
-  }
 
-  async clearAllRecords() {
-    if (!confirm("确定要清空所有删除记录吗？\n\n此操作不可撤销！")) {
-      return;
-    }
-
-    try {
-      // 这里需要添加清空所有记录的API
-      this.showSuccess("所有记录已清空");
+      AdminUI.showToast("Record deleted forever");
       await this.loadDeletedRecords();
     } catch (error) {
-      console.error("清空记录失败:", error);
-      this.showError("清空失败: " + error.message);
+      AdminUI.showToast(`Delete failed: ${error.message}`, "error");
     }
-  }
-
-  escapeHtml(text) {
-    const div = document.createElement("div");
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
-  showSuccess(message) {
-    // 简单的成功提示，可以后续改进
-    alert("✅ " + message);
-  }
-
-  showError(message) {
-    // 简单的错误提示，可以后续改进
-    alert("❌ " + message);
   }
 }
 
-// 页面加载完成后初始化
-document.addEventListener("DOMContentLoaded", () => {
-  // 初始化工具菜单功能
-  const toolsMenuToggle = document.getElementById("toolsMenuToggle");
-  const toolsDropdown = document.getElementById("toolsDropdown");
-
-  if (toolsMenuToggle && toolsDropdown) {
-    // 切换下拉菜单
-    toolsMenuToggle.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      toolsDropdown.classList.toggle("show");
-      toolsMenuToggle.classList.toggle("active");
-    });
-
-    // 点击其他地方关闭菜单
-    document.addEventListener("click", (e) => {
-      if (
-        !toolsMenuToggle.contains(e.target) &&
-        !toolsDropdown.contains(e.target)
-      ) {
-        toolsDropdown.classList.remove("show");
-        toolsMenuToggle.classList.remove("active");
-      }
-    });
-
-    // 修改密码按钮事件
-    const changePasswordBtn = document.getElementById("changePasswordBtn");
-    if (changePasswordBtn) {
-      changePasswordBtn.addEventListener("click", () => {
-        // 重定向到首页并触发密码修改模态框
-        window.location.href = "/?action=change-password";
-      });
-    }
-  }
-
-  // 初始化删除记录管理器
-  new DeletedBookmarksManager();
+document.addEventListener("DOMContentLoaded", async () => {
+  const manager = new DeletedBookmarksManager();
+  await manager.init();
 });
