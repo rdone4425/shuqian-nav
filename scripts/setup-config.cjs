@@ -78,7 +78,8 @@ async function main() {
   console.log('- Run: npm --prefix pages install');
   console.log('- Run: npm run db:init:local');
   console.log('- Run: npm run dev');
-  console.log('- For CI deploys, store the final Pages config in the PAGE_TOML secret');
+  console.log('- For GitHub Actions deploys, add CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN secrets');
+  console.log('- CI will auto-create or reuse the Pages project and D1 database');
 
   rl.close();
 }

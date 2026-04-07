@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "wrangler pages dev",
     "dev:local": "wrangler pages dev --local",
-    "deploy": "wrangler pages deploy --branch production"
+    "deploy": "wrangler pages deploy ../public --branch main"
   },
   "devDependencies": {
     "wrangler": "^4.72.0"

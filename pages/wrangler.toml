@@ -5,8 +5,9 @@ compatibility_date = "2026-04-07"
 [vars]
 ENVIRONMENT = "development"
 
-# Production deploys should replace this file with a secret-backed version.
-# Example:
+# Local development config only. GitHub Actions now configures the production
+# Pages project and D1 binding through the Cloudflare API.
+# Optional local D1 example:
 # [[d1_databases]]
 # binding = "BOOKMARKS_DB"
 # database_name = "bookmark-navigator"

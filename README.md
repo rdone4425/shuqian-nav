@@ -2,34 +2,34 @@
 
 一个基于 Cloudflare Pages、Pages Functions 和 D1 的书签管理项目。
 
-当前仓库的部署结构已经重构为参考 `cloudflare_temp_email` 的分层模式：
+当前仓库的部署方式已经重构为“仓库内保留本地开发配置，GitHub Actions 自动准备云端资源”的模式，目标是尽量做到和 `cloudflare_temp_email` / `grok2api` 类似的低维护部署体验：
 
-- `public/` 负责静态页面资源
-- `pages/` 负责 Cloudflare Pages 部署入口
-- `pages/functions/` 负责 Pages Functions
-- `db/schema.sql` 负责 D1 初始化 schema
-- `.github/workflows/frontend_pagefunction_deploy.yml` 负责 CI 部署
+- 不再依赖 `PAGE_TOML` secret
+- CI 会自动创建或复用 Cloudflare Pages 项目
+- CI 会自动创建或复用 D1 数据库
+- CI 会自动执行 `db/schema.sql`
+- 生产部署只需要 2 个 GitHub Secrets
 
 ## 项目结构
 
 ```text
 .tmp-shuqian-nav/
-├── .github/
-│   └── workflows/
-│       └── frontend_pagefunction_deploy.yml
-├── chrome/
-├── db/
-│   └── schema.sql
-├── pages/
-│   ├── functions/
-│   ├── package.json
-│   └── wrangler.toml
-├── public/
-├── scripts/
-│   ├── reset.cjs
-│   └── setup-config.cjs
-├── package.json
-└── README.md
+├─ .github/
+│  └─ workflows/
+│     └─ frontend_pagefunction_deploy.yml
+├─ chrome/
+├─ db/
+│  └─ schema.sql
+├─ pages/
+│  ├─ functions/
+│  ├─ package.json
+│  └─ wrangler.toml
+├─ public/
+├─ scripts/
+│  ├─ reset.cjs
+│  └─ setup-config.cjs
+├─ package.json
+└─ README.md
 ```
 
 ## 技术栈
@@ -37,14 +37,12 @@
 - Cloudflare Pages
 - Cloudflare Pages Functions
 - Cloudflare D1
-- 原生 HTML、CSS、JavaScript
+- 原生 HTML / CSS / JavaScript
 - Chrome Extension 同步支持
 
-## 快速开始
+## 本地开发
 
 ### 1. 安装依赖
-
-根目录负责项目脚本和基础检查，`pages/` 目录负责 Pages 部署依赖。
 
 ```bash
 npm install
@@ -52,8 +50,6 @@ npm --prefix pages install
 ```
 
 ### 2. 生成本地配置
-
-执行：
 
 ```bash
 npm run config
@@ -66,8 +62,8 @@ npm run config
 
 其中：
 
-- `.dev.vars` 用于本地开发时的 `ADMIN_PASSWORD`、`JWT_SECRET`
-- `pages/wrangler.toml` 用于本地 Pages 配置
+- `pages/wrangler.toml` 只用于本地开发
+- `.dev.vars` 用于本地开发时的 `ADMIN_PASSWORD`、`JWT_SECRET` 等变量
 
 ### 3. 初始化本地 D1
 
@@ -81,172 +77,109 @@ npm run db:init:local
 npm run reset
 ```
 
-`reset` 现在只做一件事：
-
-- 把 `db/schema.sql` 应用到本地 D1
-
-### 4. 启动本地开发
+### 4. 启动本地开发环境
 
 ```bash
 npm run dev
 ```
 
-如果想强制本地模式：
+如果想强制使用本地模拟模式：
 
 ```bash
 npm run dev:local
 ```
 
-## 常用脚本
+## 常用命令
 
 | 命令 | 作用 |
 | --- | --- |
 | `npm run config` | 生成本地 `pages/wrangler.toml` 和 `.dev.vars` |
 | `npm run reset` | 将 `db/schema.sql` 应用到本地 D1 |
-| `npm run db:init:local` | 直接执行本地 D1 schema 初始化 |
-| `npm run db:init:remote` | 直接执行远程 D1 schema 初始化 |
-| `npm run dev` | 启动 Pages 本地开发环境 |
-| `npm run dev:local` | 以 `--local` 模式启动 Pages |
-| `npm run deploy` | 使用 `pages/` 下的 wrangler 执行部署 |
+| `npm run db:init:local` | 初始化本地 D1 |
+| `npm run db:init:remote` | 初始化远程 D1 |
+| `npm run dev` | 启动 Pages 本地开发 |
+| `npm run dev:local` | 使用 `--local` 启动 Pages |
+| `npm run deploy` | 手动部署到 Pages |
 | `npm run lint` | 检查 `public/js/` 和 `pages/functions/` |
 | `npm run format:check` | 检查格式 |
 | `npm run test` | 运行 `lint + format:check` |
 
-## 部署说明
+## GitHub Actions 一键部署
 
-### 本地部署入口
+工作流文件：
 
-项目的部署入口已经从“根目录直接跑 Pages”改成“`pages/` 单独负责部署”。
+- [frontend_pagefunction_deploy.yml](/E:/app/.tmp-shuqian-nav/.github/workflows/frontend_pagefunction_deploy.yml)
 
-实际执行入口是：
+触发方式：
 
-```bash
-npm run deploy
-```
+- push 到 `main`
+- 手动执行 `workflow_dispatch`
 
-它等价于：
+CI 流程如下：
 
-```bash
-npm --prefix pages run deploy
-```
+1. 安装 `pages/` 下的部署依赖
+2. 调用 Cloudflare API，自动创建或复用 Pages 项目
+3. 调用 Cloudflare API，自动创建或复用 D1 数据库
+4. 把 `BOOKMARKS_DB` 绑定写入 Pages 项目配置
+5. 执行 `db/schema.sql`
+6. 把 `public/` 和 `pages/functions/` 部署到 Cloudflare Pages
 
-### `pages/wrangler.toml`
+### 只需要这 2 个 GitHub Secrets
 
-仓库中的 [pages/wrangler.toml](/E:/app/.tmp-shuqian-nav/pages/wrangler.toml) 默认只保留安全的本地占位配置：
-
-- `name`
-- `pages_build_output_dir`
-- `compatibility_date`
-- `ENVIRONMENT=development`
-
-默认不把生产 D1 绑定直接写死在仓库里。
-
-### 生产配置推荐方式
-
-参考 `cloudflare_temp_email`，推荐通过 GitHub Actions secret 注入生产配置，而不是把正式 `wrangler.toml` 直接提交到仓库。
-
-需要的 GitHub Secrets：
+在 GitHub 仓库里配置：
 
 - `CLOUDFLARE_ACCOUNT_ID`
 - `CLOUDFLARE_API_TOKEN`
+
+不再需要：
+
 - `PAGE_TOML`
 
-### `CLOUDFLARE_API_TOKEN` 权限
+### 默认的云端资源名称
 
-当前仓库中的 CI 工作流只执行 Pages 部署：
+当前 workflow 默认使用下面这组名字：
 
-```bash
-npm --prefix pages run deploy
-```
+- Pages 项目名：`bookmark-navigator-pages`
+- D1 数据库名：`bookmark-navigator`
+- D1 绑定名：`BOOKMARKS_DB`
+- 生产分支：`main`
 
-因此推荐的最小权限是：
+如果你想改名字，直接修改工作流顶部的 `env` 即可。
+
+### `CLOUDFLARE_API_TOKEN` 需要什么权限
+
+最小建议权限：
 
 - `Account -> Cloudflare Pages: Edit`
+- `Account -> D1: Edit`
 
 资源范围建议：
 
 - 只选择当前项目所在的 Cloudflare Account
 
-如果后续要在 CI 中加入 D1 相关命令，例如：
-
-- `wrangler d1 create`
-- `wrangler d1 execute`
-- `npm run db:init:remote`
-
-则需要额外增加：
-
-- `Account -> D1: Edit`
-
 不建议使用：
 
 - Global API Key
 - 超出当前部署需要的高权限 Token
-- 与当前 Pages 发布流程无关的额外权限
 
-按当前 [frontend_pagefunction_deploy.yml](/E:/app/.tmp-shuqian-nav/.github/workflows/frontend_pagefunction_deploy.yml) 的实现，如果只是部署 Pages，通常 `Cloudflare Pages: Edit` 就足够。
+### 为什么需要这两个权限
 
-### `PAGE_TOML` 示例
+- `Cloudflare Pages: Edit`
+  用于创建或更新 Pages 项目，以及执行 Pages 部署
+- `D1: Edit`
+  用于创建或复用 D1 数据库，并执行 `db/schema.sql`
 
-```toml
-name = "bookmark-navigator-pages"
-pages_build_output_dir = "../public"
-compatibility_date = "2026-04-07"
+## 手动部署
 
-[vars]
-ENVIRONMENT = "production"
+如果你不想走 GitHub Actions，也可以手动部署。
 
-[[d1_databases]]
-binding = "BOOKMARKS_DB"
-database_name = "bookmark-navigator"
-database_id = "YOUR_D1_DATABASE_ID"
+### 1. 先准备本地 Pages 配置
+
+```bash
+npm run config
 ```
 
-## GitHub Actions
-
-当前工作流文件：
-
-- [frontend_pagefunction_deploy.yml](/E:/app/.tmp-shuqian-nav/.github/workflows/frontend_pagefunction_deploy.yml)
-
-它的流程是：
-
-1. 检查 `PAGE_TOML` secret 是否存在
-2. 安装 `pages/` 下的部署依赖
-3. 用 `PAGE_TOML` 覆盖生成生产用 `pages/wrangler.toml`
-4. 调用 `npm --prefix pages run deploy`
-
-如果没有配置 `PAGE_TOML`，工作流会跳过部署步骤。
-
-## D1 数据库
-
-统一 schema 文件：
-
-```text
-db/schema.sql
-```
-
-这样做的目的是把数据库初始化来源收敛为一个入口，避免出现：
-
-- 一个 API 里维护一份 schema
-- 一个脚本里维护一份 schema
-- 另一个 SQL 文件里再维护一份 schema
-
-目前仓库里仍然保留部分旧初始化逻辑，但部署主入口已经切到 `db/schema.sql`。
-
-## 本地开发需要的文件
-
-### `.dev.vars`
-
-本地开发通常至少需要这些变量：
-
-```env
-ADMIN_PASSWORD=change-me-now
-JWT_SECRET=your-random-secret
-ENVIRONMENT=development
-```
-
-### `pages/wrangler.toml`
-
-本地版本至少要包含：
+如果要手动部署到远程环境，请确保本地 `pages/wrangler.toml` 里已经包含远程 D1 绑定，例如：
 
 ```toml
 name = "bookmark-navigator-pages"
@@ -255,32 +188,75 @@ compatibility_date = "2026-04-07"
 
 [vars]
 ENVIRONMENT = "development"
-```
 
-如果要直接绑定 D1，也可以补上：
-
-```toml
 [[d1_databases]]
 binding = "BOOKMARKS_DB"
 database_name = "bookmark-navigator"
 database_id = "YOUR_D1_DATABASE_ID"
 ```
 
-## 与旧结构的区别
+### 2. 执行远程 schema 初始化
+
+```bash
+npm run db:init:remote
+```
+
+### 3. 部署到 Pages
+
+```bash
+npm run deploy
+```
+
+当前 `pages/package.json` 默认会按 `main` 分支部署：
+
+```bash
+wrangler pages deploy ../public --branch main
+```
+
+## 本地配置文件说明
+
+### `pages/wrangler.toml`
+
+这个文件现在默认只承担本地开发配置职责，仓库里保留的是安全占位版本。
+
+生产环境不再依赖仓库内提交的 `wrangler.toml`，而是由 GitHub Actions 通过 Cloudflare API 直接写入 Pages 项目配置。
+
+### `.dev.vars`
+
+本地开发建议至少包含：
+
+```env
+ADMIN_PASSWORD=change-me-now
+JWT_SECRET=your-random-secret
+ENVIRONMENT=development
+```
+
+## D1 结构入口
+
+统一 schema 文件：
+
+```text
+db/schema.sql
+```
+
+现在默认把数据库初始化入口收敛到这里，避免 schema 分散在多个脚本和 API 文件里。
+
+## 与旧部署方式的区别
 
 这次重构后，和旧版本相比主要有这些变化：
 
 1. `functions/` 已迁移到 `pages/functions/`
-2. 部署入口从根目录移到 `pages/`
-3. D1 schema 主入口统一为 `db/schema.sql`
-4. `scripts/reset.js`、`scripts/setup-config.js` 已改成 `.cjs`
-5. GitHub Actions 改为通过 `PAGE_TOML` secret 注入部署配置
+2. 部署入口收口到 `pages/`
+3. D1 schema 统一到 `db/schema.sql`
+4. `scripts/reset.js`、`scripts/setup-config.js` 已改为 `.cjs`
+5. GitHub Actions 不再依赖 `PAGE_TOML`
+6. GitHub Actions 会自动准备 Pages 项目和 D1 数据库
 
 ## 故障排查
 
 ### `eslint` 找不到
 
-如果执行 `npm run test` 时看到：
+如果执行 `npm run test` 时看到类似报错：
 
 ```text
 'eslint' is not recognized as an internal or external command
@@ -300,35 +276,32 @@ npm install
 npm --prefix pages install
 ```
 
+### GitHub Actions 部署失败
+
+优先检查：
+
+- `CLOUDFLARE_ACCOUNT_ID` 是否正确
+- `CLOUDFLARE_API_TOKEN` 是否存在
+- Token 是否同时包含 `Cloudflare Pages: Edit` 和 `D1: Edit`
+- 当前 Cloudflare Account 下是否允许创建 Pages / D1 资源
+
 ### 本地 D1 初始化失败
 
-先检查：
+优先检查：
 
 - `db/schema.sql` 是否存在
-- `wrangler` 是否已安装
 - 当前目录是否在项目根目录
+- `pages/` 依赖是否已经安装
 
-再执行：
+然后再执行：
 
 ```bash
 npm run db:init:local
 ```
 
-### 开发环境启动但没有 D1 绑定
-
-先执行：
-
-```bash
-npm run config
-```
-
-如果是生产环境，请确认 `PAGE_TOML` 里已经包含 `[[d1_databases]]`。
-
 ## 后续建议
 
-当前 README 已经和新的部署结构保持一致，但项目本身还有两类事情建议后续继续做：
+部署链路已经简化，但项目本身仍建议继续处理两类问题：
 
-- 继续把旧的数据库初始化逻辑收敛到 `db/schema.sql`
-- 继续修复认证和默认密码相关的安全问题
-
-如果后面继续迭代部署结构，这份 README 也应该优先同步更新。
+- 继续清理旧的数据库初始化逻辑，避免和 `db/schema.sql` 重复
+- 继续修复认证、默认口令和鉴权边界相关的安全问题
