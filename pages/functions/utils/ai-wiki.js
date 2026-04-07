@@ -1,12 +1,8 @@
-import { AIClient } from './ai-client.js';
+import { AIClient } from "./ai-client.js";
 
 function normalizeText(value) {
-  if (!value) return '';
-  return value
-    .toString()
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, ' ');
+  if (!value) return "";
+  return value.toString().trim().toLowerCase().replace(/\s+/g, " ");
 }
 
 export class AIWikiGenerator {
@@ -18,9 +14,9 @@ export class AIWikiGenerator {
     for (const bookmark of bookmarks) {
       if (!bookmark?.url) continue;
       const url = bookmark.url.trim();
-      let hostname = '';
+      let hostname = "";
       try {
-        hostname = new URL(url).hostname.replace(/^www\./, '');
+        hostname = new URL(url).hostname.replace(/^www\./, "");
       } catch {
         hostname = url;
       }
@@ -29,7 +25,10 @@ export class AIWikiGenerator {
 
       if (seen.has(key)) {
         const existing = seen.get(key);
-        duplicateMap.set(existing.id, [...(duplicateMap.get(existing.id) || []), bookmark]);
+        duplicateMap.set(existing.id, [
+          ...(duplicateMap.get(existing.id) || []),
+          bookmark,
+        ]);
       } else {
         seen.set(key, bookmark);
         unique.push(bookmark);
@@ -38,8 +37,11 @@ export class AIWikiGenerator {
 
     const categories = {};
     unique.forEach((bookmark) => {
-      const key = bookmark.category_name || '未分类';
-      categories[key] = categories[key] || { color: bookmark.category_color, items: [] };
+      const key = bookmark.category_name || "未分类";
+      categories[key] = categories[key] || {
+        color: bookmark.category_color,
+        items: [],
+      };
       categories[key].items.push(bookmark);
     });
 
@@ -50,8 +52,8 @@ export class AIWikiGenerator {
       stats: {
         total: bookmarks.length,
         unique: unique.length,
-        duplicateGroups: duplicateMap.size
-      }
+        duplicateGroups: duplicateMap.size,
+      },
     };
   }
 
@@ -59,8 +61,8 @@ export class AIWikiGenerator {
     const condensed = dataset.unique.slice(0, 200).map((bookmark) => ({
       title: bookmark.title,
       url: bookmark.url,
-      description: bookmark.description || '',
-      category: bookmark.category_name || '未分类'
+      description: bookmark.description || "",
+      category: bookmark.category_name || "未分类",
     }));
 
     const instruction = `
@@ -76,20 +78,20 @@ export class AIWikiGenerator {
 
     return [
       {
-        role: 'system',
-        content: '你是一位信息架构师，擅长把混乱的书签整理成结构化内容。'
+        role: "system",
+        content: "你是一位信息架构师，擅长把混乱的书签整理成结构化内容。",
       },
       {
-        role: 'user',
+        role: "user",
         content: [
           instruction,
-          '书签数据(JSON):',
+          "书签数据(JSON):",
           JSON.stringify({
             stats: dataset.stats,
-            bookmarks: condensed
-          })
-        ].join('\n')
-      }
+            bookmarks: condensed,
+          }),
+        ].join("\n"),
+      },
     ];
   }
 
@@ -104,55 +106,55 @@ export class AIWikiGenerator {
         env,
         messages: this.buildMessages(dataset),
         response_format: {
-          type: 'json_schema',
+          type: "json_schema",
           json_schema: {
-            name: 'wiki_sections',
+            name: "wiki_sections",
             schema: {
-              type: 'object',
+              type: "object",
               properties: {
                 sections: {
-                  type: 'array',
+                  type: "array",
                   items: {
-                    type: 'object',
+                    type: "object",
                     properties: {
-                      title: { type: 'string' },
-                      description: { type: 'string' },
+                      title: { type: "string" },
+                      description: { type: "string" },
                       tags: {
-                        type: 'array',
-                        items: { type: 'string' }
+                        type: "array",
+                        items: { type: "string" },
                       },
                       bookmarks: {
-                        type: 'array',
+                        type: "array",
                         items: {
-                          type: 'object',
+                          type: "object",
                           properties: {
-                            title: { type: 'string' },
-                            url: { type: 'string' },
-                            summary: { type: 'string' },
-                            category: { type: 'string' },
+                            title: { type: "string" },
+                            url: { type: "string" },
+                            summary: { type: "string" },
+                            category: { type: "string" },
                             duplicates: {
-                              type: 'array',
-                              items: { type: 'string' }
-                            }
+                              type: "array",
+                              items: { type: "string" },
+                            },
                           },
-                          required: ['title', 'url']
-                        }
-                      }
+                          required: ["title", "url"],
+                        },
+                      },
                     },
-                    required: ['title', 'bookmarks']
-                  }
-                }
+                    required: ["title", "bookmarks"],
+                  },
+                },
               },
-              required: ['sections']
-            }
-          }
-        }
+              required: ["sections"],
+            },
+          },
+        },
       });
 
       const parsed = JSON.parse(response);
       return this.composeSnapshot(parsed.sections || [], dataset);
     } catch (error) {
-      console.error('AI wiki 生成失败，使用备用方案:', error);
+      console.error("AI wiki 生成失败，使用备用方案:", error);
       return this.buildFallback(dataset);
     }
   }
@@ -161,43 +163,47 @@ export class AIWikiGenerator {
     const normalizedSections = sections.map((section, idx) => ({
       id: `ai-section-${idx + 1}`,
       title: section.title || `AI 分组 ${idx + 1}`,
-      description: section.description || '',
+      description: section.description || "",
       tags: section.tags || [],
       bookmarks: (section.bookmarks || []).map((bookmark) => ({
         title: bookmark.title,
         url: bookmark.url,
-        summary: bookmark.summary || '',
-        category: bookmark.category || '',
-        duplicates: bookmark.duplicates || []
-      }))
+        summary: bookmark.summary || "",
+        category: bookmark.category || "",
+        duplicates: bookmark.duplicates || [],
+      })),
     }));
 
     return {
       generated_at: new Date().toISOString(),
       stats: dataset.stats,
-      sections: normalizedSections
+      sections: normalizedSections,
     };
   }
 
   static buildFallback(dataset) {
-    const sections = Object.entries(dataset.categories).map(([name, group], idx) => ({
-      id: `fallback-${idx + 1}`,
-      title: name,
-      description: `该分组包含 ${group.items.length} 个书签，由 AI 备用逻辑生成。`,
-      tags: [],
-      bookmarks: group.items.map((bookmark) => ({
-        title: bookmark.title,
-        url: bookmark.url,
-        summary: bookmark.description || bookmark.url,
-        category: name,
-        duplicates: (dataset.duplicates.get(bookmark.id) || []).map((item) => item.url)
-      }))
-    }));
+    const sections = Object.entries(dataset.categories).map(
+      ([name, group], idx) => ({
+        id: `fallback-${idx + 1}`,
+        title: name,
+        description: `该分组包含 ${group.items.length} 个书签，由 AI 备用逻辑生成。`,
+        tags: [],
+        bookmarks: group.items.map((bookmark) => ({
+          title: bookmark.title,
+          url: bookmark.url,
+          summary: bookmark.description || bookmark.url,
+          category: name,
+          duplicates: (dataset.duplicates.get(bookmark.id) || []).map(
+            (item) => item.url,
+          ),
+        })),
+      }),
+    );
 
     return {
       generated_at: new Date().toISOString(),
       stats: dataset.stats,
-      sections
+      sections,
     };
   }
 }

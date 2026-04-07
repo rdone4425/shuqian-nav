@@ -1,92 +1,91 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>链接检查器 - 书签导航</title>
+    <title>閾炬帴妫€鏌ュ櫒 - 涔︾瀵艰埅</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/link-checker-enhanced.css">
     <style>
-        /* 仅保留必要的工具样式 */
+        /* 浠呬繚鐣欏繀瑕佺殑宸ュ叿鏍峰紡 */
         .hidden {
             display: none;
         }
-    </style>
 </head>
 <body>
     <div class="container">
-        <!-- 统一的头部导航 -->
+        <!-- 缁熶竴鐨勫ご閮ㄥ鑸?-->
         <header class="header">
             <div class="header-content">
                 <div class="logo">
-                    <span class="logo-icon">🔗</span>
-                    <h1 class="logo-text">链接检查器</h1>
+                    <span class="logo-icon">馃敆</span>
+                    <h1 class="logo-text">閾炬帴妫€鏌ュ櫒</h1>
                 </div>
 
-                <!-- 统一的功能按钮组 -->
+                <!-- 缁熶竴鐨勫姛鑳芥寜閽粍 -->
                 <div class="header-actions">
-                    <!-- 工具菜单 -->
+                    <!-- 宸ュ叿鑿滃崟 -->
                     <div class="action-group tools-menu">
-                        <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" title="工具菜单">
-                            <span class="btn-icon">🛠️</span>
-                            <span class="dropdown-arrow">▼</span>
+                        <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" title="宸ュ叿鑿滃崟">
+                            <span class="btn-icon">馃洜锔?/span>
+                            <span class="dropdown-arrow">鈻?/span>
                         </button>
                         <div id="toolsDropdown" class="dropdown-menu">
                             <a href="/" class="dropdown-item">
-                                <span class="item-icon">🏠</span>
+                                <span class="item-icon">馃彔</span>
                                 <div class="item-content">
-                                    <span class="item-text">首页</span>
-                                    <span class="item-desc">返回书签首页</span>
+                                    <span class="item-text">棣栭〉</span>
+                                    <span class="item-desc">杩斿洖涔︾棣栭〉</span>
                                 </div>
                             </a>
                             <a href="/token.html" class="dropdown-item">
-                                <span class="item-icon">🔑</span>
+                                <span class="item-icon">馃攽</span>
                                 <div class="item-content">
-                                    <span class="item-text">API令牌</span>
-                                    <span class="item-desc">管理访问令牌</span>
+                                    <span class="item-text">API浠ょ墝</span>
+                                    <span class="item-desc">绠＄悊璁块棶浠ょ墝</span>
                                 </div>
                             </a>
                             <a href="/link-checker.html" class="dropdown-item">
-                                <span class="item-icon">🔗</span>
+                                <span class="item-icon">馃敆</span>
                                 <div class="item-content">
-                                    <span class="item-text">链接检查</span>
-                                    <span class="item-desc">检查链接有效性</span>
+                                    <span class="item-text">閾炬帴妫€鏌?/span>
+                                    <span class="item-desc">妫€鏌ラ摼鎺ユ湁鏁堟€?/span>
                                 </div>
                             </a>
                             <a href="/deleted-bookmarks.html" class="dropdown-item">
-                                <span class="item-icon">🗑️</span>
+                                <span class="item-icon">馃棏锔?/span>
                                 <div class="item-content">
-                                    <span class="item-text">删除记录</span>
-                                    <span class="item-desc">查看和恢复删除的书签</span>
+                                    <span class="item-text">鍒犻櫎璁板綍</span>
+                                    <span class="item-desc">鏌ョ湅鍜屾仮澶嶅垹闄ょ殑涔︾</span>
                                 </div>
                             </a>
                             <a href="/notifications.html" class="dropdown-item">
-                                <span class="item-icon">🔔</span>
+                                <span class="item-icon">馃敂</span>
                                 <div class="item-content">
-                                    <span class="item-text">通知中心</span>
-                                    <span class="item-desc">查看系统通知</span>
+                                    <span class="item-text">閫氱煡涓績</span>
+                                    <span class="item-desc">鏌ョ湅绯荤粺閫氱煡</span>
                                 </div>
                             </a>
                             <a href="/import.html" class="dropdown-item">
-                                <span class="item-icon">📥</span>
+                                <span class="item-icon">馃摜</span>
                                 <div class="item-content">
-                                    <span class="item-text">导入书签</span>
-                                    <span class="item-desc">从文件导入书签</span>
+                                    <span class="item-text">瀵煎叆涔︾</span>
+                                    <span class="item-desc">浠庢枃浠跺鍏ヤ功绛?/span>
                                 </div>
                             </a>
-                            <a href="/ai-settings.html" class="dropdown-item">
-                                <span class="item-icon">🤖</span>
-                                <div class="item-content">
-                                    <span class="item-text">AI 閰嶇疆</span>
-                                    <span class="item-desc">绠＄悊 AI 鎺ュ彛鍜屾ā鍨?span>
-                                </div>
-                            </a>
+                            <a href="/ai-settings.html" class="dropdown-item">
+    <span class="item-icon">AI</span>
+    <div class="item-content">
+        <span class="item-text">AI Settings</span>
+        <span class="item-desc">Manage AI endpoint and model</span>
+    </div>
+</a>
                             <div class="dropdown-divider"></div>
                             <button id="changePasswordBtn" class="dropdown-item">
-                                <span class="item-icon">🔐</span>
+                                <span class="item-icon">馃攼</span>
                                 <div class="item-content">
-                                    <span class="item-text">修改密码</span>
-                                    <span class="item-desc">更改管理员密码</span>
+                                    <span class="item-text">淇敼瀵嗙爜</span>
+                                    <span class="item-desc">鏇存敼绠＄悊鍛樺瘑鐮?/span>
                                 </div>
                             </button>
                         </div>
@@ -96,59 +95,59 @@
         </header>
 
         <div class="checker-container">
-            <!-- 检查控制面板 -->
+            <!-- 妫€鏌ユ帶鍒堕潰鏉?-->
             <div class="controls-section">
                 <div class="checker-header">
-                    <h2>🔍 链接可访问性检查</h2>
+                    <h2>馃攳 閾炬帴鍙闂€ф鏌?/h2>
                 </div>
                 <div class="safety-notice">
-                    🛡️ 安全模式：只检查不删除，需要手动确认删除
+                    馃洝锔?瀹夊叏妯″紡锛氬彧妫€鏌ヤ笉鍒犻櫎锛岄渶瑕佹墜鍔ㄧ‘璁ゅ垹闄?
                 </div>
 
                 <div class="controls-row">
                     <div class="control-group">
                         <input type="checkbox" id="smartCheck" checked />
-                        <label for="smartCheck">智能检查（提高准确性）</label>
+                        <label for="smartCheck">鏅鸿兘妫€鏌ワ紙鎻愰珮鍑嗙‘鎬э級</label>
                     </div>
                     <div class="control-group">
-                        <label for="retryCount">重试次数:</label>
+                        <label for="retryCount">閲嶈瘯娆℃暟:</label>
                         <select id="retryCount">
-                            <option value="1">1次</option>
-                            <option value="2" selected>2次</option>
-                            <option value="3">3次</option>
+                            <option value="1">1娆?/option>
+                            <option value="2" selected>2娆?/option>
+                            <option value="3">3娆?/option>
                         </select>
                     </div>
                     <div class="control-group">
-                        <label for="checkDelay">检查间隔:</label>
+                        <label for="checkDelay">妫€鏌ラ棿闅?</label>
                         <select id="checkDelay">
-                            <option value="200">0.2秒</option>
-                            <option value="500" selected>0.5秒</option>
-                            <option value="1000">1秒</option>
-                            <option value="2000">2秒</option>
+                            <option value="200">0.2绉?/option>
+                            <option value="500" selected>0.5绉?/option>
+                            <option value="1000">1绉?/option>
+                            <option value="2000">2绉?/option>
                         </select>
                     </div>
                 </div>
 
                 <div class="btn-group">
                     <button id="startCheck" class="btn btn-primary">
-                        🚀 开始检查
+                        馃殌 寮€濮嬫鏌?
                     </button>
                     <button id="stopCheck" class="btn btn-secondary hidden">
-                        ⏹️ 停止检查
+                        鈴癸笍 鍋滄妫€鏌?
                     </button>
                     <button id="viewHistory" class="btn btn-secondary">
-                        📋 查看历史
+                        馃搵 鏌ョ湅鍘嗗彶
                     </button>
                     <button id="batchDelete" class="btn btn-secondary hidden">
-                        🗑️ 删除所有无效链接
+                        馃棏锔?鍒犻櫎鎵€鏈夋棤鏁堥摼鎺?
                     </button>
                 </div>
             </div>
 
-            <!-- 进度显示 -->
+            <!-- 杩涘害鏄剧ず -->
             <div id="progressSection" class="progress-section">
                 <div class="progress-header">
-                    <span id="progressText" class="progress-text">准备检查...</span>
+                    <span id="progressText" class="progress-text">鍑嗗妫€鏌?..</span>
                     <span id="progressPercent" class="progress-percent">0%</span>
                 </div>
                 <div class="progress-bar">
@@ -157,121 +156,121 @@
                 <div class="stats-grid">
                     <div class="stat-item" data-filter="all">
                         <span class="stat-value" id="totalBookmarks">0</span>
-                        <span class="stat-label">总计</span>
+                        <span class="stat-label">鎬昏</span>
                     </div>
                     <div class="stat-item" data-filter="checked">
                         <span class="stat-value" id="checkedCount">0</span>
-                        <span class="stat-label">已检查</span>
+                        <span class="stat-label">宸叉鏌?/span>
                     </div>
                     <div class="stat-item" data-filter="accessible">
                         <span class="stat-value" id="accessibleCount">0</span>
-                        <span class="stat-label">可访问</span>
+                        <span class="stat-label">鍙闂?/span>
                     </div>
                     <div class="stat-item" data-filter="inaccessible">
                         <span class="stat-value" id="inaccessibleCount">0</span>
-                        <span class="stat-label">不可访问</span>
+                        <span class="stat-label">涓嶅彲璁块棶</span>
                     </div>
                     <div class="stat-item" data-filter="deleted">
                         <span class="stat-value" id="deletedCount">0</span>
-                        <span class="stat-label">已删除</span>
+                        <span class="stat-label">宸插垹闄?/span>
                     </div>
                     <div class="stat-item" data-filter="kept">
                         <span class="stat-value" id="keptCount">0</span>
-                        <span class="stat-label">已保留</span>
+                        <span class="stat-label">宸蹭繚鐣?/span>
                     </div>
                 </div>
             </div>
 
-            <!-- 检查说明 -->
+            <!-- 妫€鏌ヨ鏄?-->
             <div class="details-section">
                 <div class="details-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-lg);">
-                    <h3 style="margin: 0; font-size: var(--font-xl); font-weight: 700; color: var(--text-primary);">🔍 检查逻辑说明</h3>
+                    <h3 style="margin: 0; font-size: var(--font-xl); font-weight: 700; color: var(--text-primary);">馃攳 妫€鏌ラ€昏緫璇存槑</h3>
                     <button id="toggleExplanation" class="btn btn-secondary">
-                        📖 <span id="explanationToggleText">显示详情</span>
+                        馃摉 <span id="explanationToggleText">鏄剧ず璇︽儏</span>
                     </button>
                 </div>
 
                 <div id="explanationContent" class="details-content hidden">
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--spacing-lg);">
                         <div>
-                            <h4>✅ 认为可访问的情况</h4>
+                            <h4>鉁?璁や负鍙闂殑鎯呭喌</h4>
                             <ul>
-                                <li>HTTP 2xx 状态码（成功）</li>
-                                <li>HTTP 3xx 状态码（重定向）</li>
-                                <li>HTTP 401（需要登录，但网站存在）</li>
-                                <li>Cloudflare 403/503（防护机制，网站正常）</li>
+                                <li>HTTP 2xx 鐘舵€佺爜锛堟垚鍔燂級</li>
+                                <li>HTTP 3xx 鐘舵€佺爜锛堥噸瀹氬悜锛?/li>
+                                <li>HTTP 401锛堥渶瑕佺櫥褰曪紝浣嗙綉绔欏瓨鍦級</li>
+                                <li>Cloudflare 403/503锛堥槻鎶ゆ満鍒讹紝缃戠珯姝ｅ父锛?/li>
                             </ul>
                         </div>
 
                         <div>
-                            <h4>⚠️ 建议保留的情况</h4>
+                            <h4>鈿狅笍 寤鸿淇濈暀鐨勬儏鍐?/h4>
                             <ul>
-                                <li>Cloudflare防护页面</li>
-                                <li>请求超时（可能是网络问题）</li>
-                                <li>5xx服务器错误（可能是临时维护）</li>
-                                <li>429限流（请求过于频繁）</li>
-                                <li>网络连接问题</li>
+                                <li>Cloudflare闃叉姢椤甸潰</li>
+                                <li>璇锋眰瓒呮椂锛堝彲鑳芥槸缃戠粶闂锛?/li>
+                                <li>5xx鏈嶅姟鍣ㄩ敊璇紙鍙兘鏄复鏃剁淮鎶わ級</li>
+                                <li>429闄愭祦锛堣姹傝繃浜庨绻侊級</li>
+                                <li>缃戠粶杩炴帴闂</li>
                             </ul>
                         </div>
 
                         <div>
-                            <h4>🗑️ 建议删除的情况</h4>
+                            <h4>馃棏锔?寤鸿鍒犻櫎鐨勬儏鍐?/h4>
                             <ul>
-                                <li>404 页面不存在</li>
-                                <li>410 页面已永久删除</li>
-                                <li>域名不存在（ENOTFOUND）</li>
-                                <li>SSL证书严重问题</li>
+                                <li>404 椤甸潰涓嶅瓨鍦?/li>
+                                <li>410 椤甸潰宸叉案涔呭垹闄?/li>
+                                <li>鍩熷悕涓嶅瓨鍦紙ENOTFOUND锛?/li>
+                                <li>SSL璇佷功涓ラ噸闂</li>
                             </ul>
                         </div>
 
                         <div>
-                            <h4>🛡️ 防误杀机制</h4>
+                            <h4>馃洝锔?闃茶鏉€鏈哄埗</h4>
                             <ul>
-                                <li>使用真实浏览器User-Agent</li>
-                                <li>先尝试HEAD请求，失败后尝试GET</li>
-                                <li>特殊处理Cloudflare等CDN服务</li>
-                                <li>多次重试减少网络波动影响</li>
-                                <li>默认倾向于保留（安全优先）</li>
+                                <li>浣跨敤鐪熷疄娴忚鍣║ser-Agent</li>
+                                <li>鍏堝皾璇旽EAD璇锋眰锛屽け璐ュ悗灏濊瘯GET</li>
+                                <li>鐗规畩澶勭悊Cloudflare绛塁DN鏈嶅姟</li>
+                                <li>澶氭閲嶈瘯鍑忓皯缃戠粶娉㈠姩褰卞搷</li>
+                                <li>榛樿鍊惧悜浜庝繚鐣欙紙瀹夊叏浼樺厛锛?/li>
                             </ul>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 书签列表 -->
+            <!-- 涔︾鍒楄〃 -->
             <div id="bookmarksCard" class="bookmarks-section">
                 <div class="bookmarks-header">
-                    <h2>📚 书签列表</h2>
+                    <h2>馃摎 涔︾鍒楄〃</h2>
                     <div style="display: flex; align-items: center; gap: var(--spacing-md);">
                         <span id="filterStatus" class="bookmarks-stats"></span>
                         <button id="loadBookmarks" class="btn btn-secondary">
-                            🔄 刷新列表
+                            馃攧 鍒锋柊鍒楄〃
                         </button>
                     </div>
                 </div>
 
                 <div id="bookmarksList">
-                    <div class="loading">加载书签列表...</div>
+                    <div class="loading">鍔犺浇涔︾鍒楄〃...</div>
                 </div>
             </div>
 
-                <!-- 删除的书签列表 -->
+                <!-- 鍒犻櫎鐨勪功绛惧垪琛?-->
                 <div id="deletedSection" class="hidden">
-                    <h3>🗑️ 已删除的书签</h3>
+                    <h3>馃棏锔?宸插垹闄ょ殑涔︾</h3>
                     <div id="deletedList"></div>
                 </div>
 
-                <!-- 无效链接列表 -->
+                <!-- 鏃犳晥閾炬帴鍒楄〃 -->
                 <div id="inaccessibleSection" class="hidden">
-                    <h3>⚠️ 无法访问的链接</h3>
+                    <h3>鈿狅笍 鏃犳硶璁块棶鐨勯摼鎺?/h3>
                     <table class="results-table">
                         <thead>
                             <tr>
-                                <th>标题</th>
+                                <th>鏍囬</th>
                                 <th>URL</th>
-                                <th>状态</th>
-                                <th>错误信息</th>
-                                <th>操作</th>
+                                <th>鐘舵€?/th>
+                                <th>閿欒淇℃伅</th>
+                                <th>鎿嶄綔</th>
                             </tr>
                         </thead>
                         <tbody id="inaccessibleList">
@@ -280,11 +279,11 @@
                 </div>
             </div>
 
-            <!-- 检查历史 -->
+            <!-- 妫€鏌ュ巻鍙?-->
             <div id="historyCard" class="checker-card hidden">
                 <div class="checker-header">
-                    <h2>📋 检查历史</h2>
-                    <button onclick="toggleHistory()" class="btn btn-outline">关闭</button>
+                    <h2>馃搵 妫€鏌ュ巻鍙?/h2>
+                    <button onclick="toggleHistory()" class="btn btn-outline">鍏抽棴</button>
                 </div>
                 <div id="historyList"></div>
             </div>
@@ -293,13 +292,13 @@
 
     <script src="js/utils/api.js"></script>
     <script>
-        // 工具菜单功能
+        // 宸ュ叿鑿滃崟鍔熻兘
         document.addEventListener('DOMContentLoaded', () => {
             const toolsMenuToggle = document.getElementById('toolsMenuToggle');
             const toolsDropdown = document.getElementById('toolsDropdown');
 
             if (toolsMenuToggle && toolsDropdown) {
-                // 切换下拉菜单
+                // 鍒囨崲涓嬫媺鑿滃崟
                 toolsMenuToggle.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -307,7 +306,7 @@
                     toolsMenuToggle.classList.toggle('active');
                 });
 
-                // 点击其他地方关闭菜单
+                // 鐐瑰嚮鍏朵粬鍦版柟鍏抽棴鑿滃崟
                 document.addEventListener('click', (e) => {
                     if (!toolsMenuToggle.contains(e.target) && !toolsDropdown.contains(e.target)) {
                         toolsDropdown.classList.remove('show');
@@ -315,11 +314,11 @@
                     }
                 });
 
-                // 修改密码按钮事件
+                // 淇敼瀵嗙爜鎸夐挳浜嬩欢
                 const changePasswordBtn = document.getElementById('changePasswordBtn');
                 if (changePasswordBtn) {
                     changePasswordBtn.addEventListener('click', () => {
-                        // 重定向到首页并触发密码修改模态框
+                        // 閲嶅畾鍚戝埌棣栭〉骞惰Е鍙戝瘑鐮佷慨鏀规ā鎬佹
                         window.location.href = '/?action=change-password';
                     });
                 }
@@ -339,7 +338,7 @@
             kept: 0
         };
 
-        // 页面加载时检查登录状态并加载书签
+        // 椤甸潰鍔犺浇鏃舵鏌ョ櫥褰曠姸鎬佸苟鍔犺浇涔︾
         document.addEventListener('DOMContentLoaded', async () => {
             const token = localStorage.getItem('auth_token');
             if (!token) {
@@ -347,29 +346,29 @@
                 return;
             }
 
-            // 先执行数据库迁移
+            // 鍏堟墽琛屾暟鎹簱杩佺Щ
             await performMigration();
-            // 然后加载书签
+            // 鐒跺悗鍔犺浇涔︾
             await loadBookmarks();
         });
 
-        // 执行数据库迁移
+        // 鎵ц鏁版嵁搴撹縼绉?
         async function performMigration() {
             try {
-                console.log('检查数据库迁移...');
+                console.log('妫€鏌ユ暟鎹簱杩佺Щ...');
                 const response = await API.post('/api/system/migrate', {});
                 if (response.success) {
-                    console.log('数据库迁移完成:', response.message);
+                    console.log('鏁版嵁搴撹縼绉诲畬鎴?', response.message);
                 } else {
-                    console.warn('数据库迁移失败:', response.error);
+                    console.warn('鏁版嵁搴撹縼绉诲け璐?', response.error);
                 }
             } catch (error) {
-                console.warn('数据库迁移检查失败:', error.message);
-                // 迁移失败不影响页面正常使用
+                console.warn('鏁版嵁搴撹縼绉绘鏌ュけ璐?', error.message);
+                // 杩佺Щ澶辫触涓嶅奖鍝嶉〉闈㈡甯镐娇鐢?
             }
         }
 
-        // 绑定事件
+        // 缁戝畾浜嬩欢
         document.getElementById('startCheck').addEventListener('click', startLinkCheck);
         document.getElementById('stopCheck').addEventListener('click', stopLinkCheck);
         document.getElementById('loadBookmarks').addEventListener('click', loadBookmarks);
@@ -380,29 +379,29 @@
         document.getElementById('batchDelete').addEventListener('click', batchDeleteInaccessible);
         document.getElementById('toggleExplanation').addEventListener('click', toggleExplanation);
 
-        // 绑定统计项筛选事件
+        // 缁戝畾缁熻椤圭瓫閫変簨浠?
         document.querySelectorAll('.stat-item').forEach(item => {
             item.addEventListener('click', function() {
                 const filter = this.dataset.filter;
                 currentFilter = filter;
                 filterBookmarksDisplay(filter);
 
-                // 更新活跃状态
+                // 鏇存柊娲昏穬鐘舵€?
                 document.querySelectorAll('.stat-item').forEach(i => i.classList.remove('active'));
                 this.classList.add('active');
             });
         });
 
-        // 绑定筛选按钮和删除按钮事件
+        // 缁戝畾绛涢€夋寜閽拰鍒犻櫎鎸夐挳浜嬩欢
         document.addEventListener('click', (e) => {
-            // 筛选按钮
+            // 绛涢€夋寜閽?
             if (e.target.classList.contains('filter-btn') || e.target.closest('.filter-btn')) {
                 const filterBtn = e.target.classList.contains('filter-btn') ? e.target : e.target.closest('.filter-btn');
                 const filter = filterBtn.dataset.filter;
                 setFilter(filter);
             }
 
-            // 删除按钮
+            // 鍒犻櫎鎸夐挳
             if (e.target.classList.contains('delete-single-btn')) {
                 const bookmarkId = e.target.dataset.bookmarkId;
                 if (bookmarkId) {
@@ -410,7 +409,7 @@
                 }
             }
 
-            // 保留按钮
+            // 淇濈暀鎸夐挳
             if (e.target.classList.contains('keep-btn')) {
                 const bookmarkId = e.target.dataset.bookmarkId;
                 if (bookmarkId) {
@@ -418,7 +417,7 @@
                 }
             }
 
-            // 取消保留按钮
+            // 鍙栨秷淇濈暀鎸夐挳
             if (e.target.classList.contains('unkeep-btn')) {
                 const bookmarkId = e.target.dataset.bookmarkId;
                 if (bookmarkId) {
@@ -427,19 +426,19 @@
             }
         });
 
-        // 加载书签列表
+        // 鍔犺浇涔︾鍒楄〃
         async function loadBookmarks() {
             try {
                 const response = await API.get('/api/system/check-links-stream');
                 if (response.success && response.data) {
                     const newBookmarks = response.data;
 
-                    // 确保 newBookmarks 是数组
+                    // 纭繚 newBookmarks 鏄暟缁?
                     if (!Array.isArray(newBookmarks)) {
-                        throw new Error('服务器返回的数据格式不正确');
+                        throw new Error('鏈嶅姟鍣ㄨ繑鍥炵殑鏁版嵁鏍煎紡涓嶆纭?);
                     }
 
-                    // 如果已有书签数据，保留检查状态
+                    // 濡傛灉宸叉湁涔︾鏁版嵁锛屼繚鐣欐鏌ョ姸鎬?
                     if (bookmarks && bookmarks.length > 0) {
                         const checkedBookmarksMap = new Map();
                         bookmarks.forEach(bookmark => {
@@ -472,20 +471,20 @@
                     displayBookmarks();
                     updateStats();
                 } else {
-                    throw new Error(response.error || '服务器响应异常');
+                    throw new Error(response.error || '鏈嶅姟鍣ㄥ搷搴斿紓甯?);
                 }
             } catch (error) {
-                console.error('加载书签失败:', error);
+                console.error('鍔犺浇涔︾澶辫触:', error);
                 document.getElementById('bookmarksList').innerHTML =
-                    '<div class="error">加载失败: ' + error.message + '</div>';
-                // 确保 bookmarks 仍然是数组
+                    '<div class="error">鍔犺浇澶辫触: ' + error.message + '</div>';
+                // 纭繚 bookmarks 浠嶇劧鏄暟缁?
                 if (!Array.isArray(bookmarks)) {
                     bookmarks = [];
                 }
             }
         }
 
-        // 重新计算统计数据
+        // 閲嶆柊璁＄畻缁熻鏁版嵁
         function recalculateStats() {
             stats.checked = 0;
             stats.accessible = 0;
@@ -506,21 +505,21 @@
             });
         }
 
-        // 设置筛选器
+        // 璁剧疆绛涢€夊櫒
         function setFilter(filter) {
             currentFilter = filter;
 
-            // 更新筛选按钮状态
+            // 鏇存柊绛涢€夋寜閽姸鎬?
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
 
-            // 重新显示书签列表
+            // 閲嶆柊鏄剧ず涔︾鍒楄〃
             displayBookmarks();
         }
 
-        // 筛选书签
+        // 绛涢€変功绛?
         function filterBookmarks(bookmarks) {
             if (currentFilter === 'all') {
                 return bookmarks;
@@ -544,9 +543,9 @@
             });
         }
 
-        // 为显示排序书签：检查时只显示已检查的，未检查时显示全部
+        // 涓烘樉绀烘帓搴忎功绛撅細妫€鏌ユ椂鍙樉绀哄凡妫€鏌ョ殑锛屾湭妫€鏌ユ椂鏄剧ず鍏ㄩ儴
         function sortBookmarksForDisplay(bookmarks) {
-            // 如果正在检查，只显示已检查的书签和正在检查的书签
+            // 濡傛灉姝ｅ湪妫€鏌ワ紝鍙樉绀哄凡妫€鏌ョ殑涔︾鍜屾鍦ㄦ鏌ョ殑涔︾
             let filteredBookmarks = bookmarks;
             if (isChecking) {
                 filteredBookmarks = bookmarks.filter(bookmark =>
@@ -555,23 +554,23 @@
             }
 
             return filteredBookmarks.sort((a, b) => {
-                // 如果不在检查中，按原来的逻辑：未检查的在前
+                // 濡傛灉涓嶅湪妫€鏌ヤ腑锛屾寜鍘熸潵鐨勯€昏緫锛氭湭妫€鏌ョ殑鍦ㄥ墠
                 if (!isChecking) {
                     if (a.checked !== b.checked) {
-                        return a.checked ? 1 : -1; // false (未检查) 在前，true (已检查) 在后
+                        return a.checked ? 1 : -1; // false (鏈鏌? 鍦ㄥ墠锛宼rue (宸叉鏌? 鍦ㄥ悗
                     }
 
-                    // 如果都是未检查的，按原始顺序（ID）排序
+                    // 濡傛灉閮芥槸鏈鏌ョ殑锛屾寜鍘熷椤哄簭锛圛D锛夋帓搴?
                     if (!a.checked && !b.checked) {
                         return a.id - b.id;
                     }
 
-                    // 如果都是已检查的，按状态优先级排序
+                    // 濡傛灉閮芥槸宸叉鏌ョ殑锛屾寜鐘舵€佷紭鍏堢骇鎺掑簭
                     if (a.checked && b.checked) {
                         const statusPriority = {
-                            'accessible': 1,    // 可访问的
-                            'inaccessible': 2,  // 不可访问的
-                            'deleted': 3        // 已删除的在最后
+                            'accessible': 1,    // 鍙闂殑
+                            'inaccessible': 2,  // 涓嶅彲璁块棶鐨?
+                            'deleted': 3        // 宸插垹闄ょ殑鍦ㄦ渶鍚?
                         };
 
                         const aPriority = statusPriority[a.status] || 999;
@@ -581,24 +580,24 @@
                             return aPriority - bPriority;
                         }
 
-                        // 同状态按ID排序
+                        // 鍚岀姸鎬佹寜ID鎺掑簭
                         return a.id - b.id;
                     }
                 } else {
-                    // 检查中的排序逻辑：正在检查的在最前，然后按检查完成的时间倒序
+                    // 妫€鏌ヤ腑鐨勬帓搴忛€昏緫锛氭鍦ㄦ鏌ョ殑鍦ㄦ渶鍓嶏紝鐒跺悗鎸夋鏌ュ畬鎴愮殑鏃堕棿鍊掑簭
                     if (a.status === 'checking' && b.status !== 'checking') {
-                        return -1; // 正在检查的在最前
+                        return -1; // 姝ｅ湪妫€鏌ョ殑鍦ㄦ渶鍓?
                     }
                     if (b.status === 'checking' && a.status !== 'checking') {
                         return 1;
                     }
 
-                    // 如果都是已检查完成的，按检查完成时间倒序（最新检查的在上面）
+                    // 濡傛灉閮芥槸宸叉鏌ュ畬鎴愮殑锛屾寜妫€鏌ュ畬鎴愭椂闂村€掑簭锛堟渶鏂版鏌ョ殑鍦ㄤ笂闈級
                     if (a.checked && b.checked && a.status !== 'checking' && b.status !== 'checking') {
-                        // 使用检查完成时间戳，如果没有则使用ID倒序
+                        // 浣跨敤妫€鏌ュ畬鎴愭椂闂存埑锛屽鏋滄病鏈夊垯浣跨敤ID鍊掑簭
                         const aTime = a.checkedTime || (999999 - a.id);
                         const bTime = b.checkedTime || (999999 - b.id);
-                        return bTime - aTime; // 倒序：最新的在上面
+                        return bTime - aTime; // 鍊掑簭锛氭渶鏂扮殑鍦ㄤ笂闈?
                     }
                 }
 
@@ -606,14 +605,14 @@
             });
         }
 
-        // 显示书签列表
+        // 鏄剧ず涔︾鍒楄〃
         function displayBookmarks() {
             const bookmarksList = document.getElementById('bookmarksList');
             const filterStatus = document.getElementById('filterStatus');
 
-            // 确保 bookmarks 是数组
+            // 纭繚 bookmarks 鏄暟缁?
             if (!Array.isArray(bookmarks) || bookmarks.length === 0) {
-                bookmarksList.innerHTML = '<div class="empty-state">暂无书签</div>';
+                bookmarksList.innerHTML = '<div class="empty-state">鏆傛棤涔︾</div>';
                 if (filterStatus) filterStatus.textContent = '';
                 return;
             }
@@ -622,7 +621,7 @@
             updateFilterStatus(filteredBookmarks.length);
 
             if (filteredBookmarks.length === 0) {
-                bookmarksList.innerHTML = `<div class="empty-state">没有符合筛选条件的书签</div>`;
+                bookmarksList.innerHTML = `<div class="empty-state">娌℃湁绗﹀悎绛涢€夋潯浠剁殑涔︾</div>`;
                 return;
             }
 
@@ -639,17 +638,17 @@
                     </div>
                     <div class="bookmark-info">
                         <div class="bookmark-title">
-                            ${bookmark.title || bookmark.name || '无标题'}
+                            ${bookmark.title || bookmark.name || '鏃犳爣棰?}
                         </div>
                         <div class="bookmark-url">
-                            <a href="${bookmark.url || '#'}" target="_blank" rel="noopener noreferrer" title="点击在新标签页中打开">
-                                ${bookmark.url || '无URL'}
+                            <a href="${bookmark.url || '#'}" target="_blank" rel="noopener noreferrer" title="鐐瑰嚮鍦ㄦ柊鏍囩椤典腑鎵撳紑">
+                                ${bookmark.url || '鏃燯RL'}
                             </a>
                         </div>
                     </div>
                     <div class="bookmark-meta">
                         <div class="bookmark-category" style="background-color: ${bookmark.categoryColor || '#6B7280'}">
-                            ${bookmark.category || '未分类'}
+                            ${bookmark.category || '鏈垎绫?}
                         </div>
                         <div class="bookmark-result" id="result-${bookmark.id}">
                             ${getResultText(bookmark)}
@@ -662,51 +661,51 @@
                 `;
             }).join('');
 
-            // 确保操作按钮对不可访问的书签可见
+            // 纭繚鎿嶄綔鎸夐挳瀵逛笉鍙闂殑涔︾鍙
             setTimeout(() => {
                 ensureActionButtonsVisible();
             }, 100);
         }
 
-        // 获取结果文本
+        // 鑾峰彇缁撴灉鏂囨湰
         function getResultText(bookmark) {
             if (!bookmark.checked) {
-                return '等待检查';
+                return '绛夊緟妫€鏌?;
             }
 
             switch (bookmark.status) {
                 case 'checking':
-                    return '检查中...';
+                    return '妫€鏌ヤ腑...';
                 case 'accessible':
                     return `${bookmark.statusCode} ${bookmark.statusText}`;
                 case 'inaccessible':
                     return bookmark.error || `${bookmark.statusCode} ${bookmark.statusText}`;
                 case 'deleted':
-                    return '已删除';
+                    return '宸插垹闄?;
                 default:
-                    return '等待检查';
+                    return '绛夊緟妫€鏌?;
             }
         }
 
-        // 获取状态图标
+        // 鑾峰彇鐘舵€佸浘鏍?
         function getStatusIcon(bookmark, displayIndex) {
             switch (bookmark.status) {
                 case 'pending':
-                    return displayIndex; // 显示序号
+                    return displayIndex; // 鏄剧ず搴忓彿
                 case 'checking':
-                    return '⏳';
+                    return '鈴?;
                 case 'accessible':
-                    return '✓';
+                    return '鉁?;
                 case 'inaccessible':
-                    return '✗';
+                    return '鉁?;
                 case 'deleted':
-                    return '🗑️';
+                    return '馃棏锔?;
                 default:
-                    return displayIndex; // 默认显示序号
+                    return displayIndex; // 榛樿鏄剧ず搴忓彿
             }
         }
 
-        // 确保操作按钮对不可访问的书签可见
+        // 纭繚鎿嶄綔鎸夐挳瀵逛笉鍙闂殑涔︾鍙
         function ensureActionButtonsVisible() {
             bookmarks.forEach(bookmark => {
                 if ((bookmark.status === 'inaccessible' || (bookmark.checked && !bookmark.accessible)) && !bookmark.deleted) {
@@ -714,11 +713,11 @@
                     if (actionsContainer && (!actionsContainer.innerHTML.trim() || !actionsContainer.querySelector('.bookmark-actions'))) {
                         const actionsHtml = `
                             <div class="bookmark-actions">
-                                <button class="keep-btn" data-bookmark-id="${bookmark.id}" title="标记为保留（不再建议删除）">
-                                    📌 保留
+                                <button class="keep-btn" data-bookmark-id="${bookmark.id}" title="鏍囪涓轰繚鐣欙紙涓嶅啀寤鸿鍒犻櫎锛?>
+                                    馃搶 淇濈暀
                                 </button>
-                                <button class="delete-single-btn" data-bookmark-id="${bookmark.id}" title="删除此书签">
-                                    🗑️ 删除
+                                <button class="delete-single-btn" data-bookmark-id="${bookmark.id}" title="鍒犻櫎姝や功绛?>
+                                    馃棏锔?鍒犻櫎
                                 </button>
                             </div>
                         `;
@@ -728,72 +727,72 @@
             });
         }
 
-        // 手动触发按钮显示（用于测试）
+        // 鎵嬪姩瑙﹀彂鎸夐挳鏄剧ず锛堢敤浜庢祴璇曪級
         window.forceShowButtons = function() {
-            console.log('手动触发按钮显示...');
+            console.log('鎵嬪姩瑙﹀彂鎸夐挳鏄剧ず...');
             ensureActionButtonsVisible();
         };
 
-        // 获取书签操作按钮
+        // 鑾峰彇涔︾鎿嶄綔鎸夐挳
         function getBookmarkActions(bookmark) {
-            // 如果已删除，不显示任何操作
+            // 濡傛灉宸插垹闄わ紝涓嶆樉绀轰换浣曟搷浣?
             if (bookmark.deleted || bookmark.status === 'deleted') {
                 return '';
             }
 
-            // 如果已标记为保留
+            // 濡傛灉宸叉爣璁颁负淇濈暀
             if (bookmark.keepStatus === 'keep') {
                 return `<div class="bookmark-actions">
-                    <span class="keep-status">📌 已保留</span>
-                    <button class="unkeep-btn" data-bookmark-id="${bookmark.id}" title="取消保留标记">
-                        ❌ 取消保留
+                    <span class="keep-status">馃搶 宸蹭繚鐣?/span>
+                    <button class="unkeep-btn" data-bookmark-id="${bookmark.id}" title="鍙栨秷淇濈暀鏍囪">
+                        鉂?鍙栨秷淇濈暀
                     </button>
                     ${bookmark.status === 'inaccessible' ?
-                        `<button class="delete-single-btn" data-bookmark-id="${bookmark.id}" title="删除此书签">
-                            🗑️ 删除
+                        `<button class="delete-single-btn" data-bookmark-id="${bookmark.id}" title="鍒犻櫎姝や功绛?>
+                            馃棏锔?鍒犻櫎
                         </button>` : ''
                     }
                 </div>`;
             }
 
-            // 如果是不可访问的书签 - 强制显示按钮
+            // 濡傛灉鏄笉鍙闂殑涔︾ - 寮哄埗鏄剧ず鎸夐挳
             if (bookmark.status === 'inaccessible' || (bookmark.checked && !bookmark.accessible)) {
                 return `<div class="bookmark-actions">
-                    <button class="keep-btn" data-bookmark-id="${bookmark.id}" title="标记为保留（不再建议删除）">
-                        📌 保留
+                    <button class="keep-btn" data-bookmark-id="${bookmark.id}" title="鏍囪涓轰繚鐣欙紙涓嶅啀寤鸿鍒犻櫎锛?>
+                        馃搶 淇濈暀
                     </button>
-                    <button class="delete-single-btn" data-bookmark-id="${bookmark.id}" title="删除此书签">
-                        🗑️ 删除
+                    <button class="delete-single-btn" data-bookmark-id="${bookmark.id}" title="鍒犻櫎姝や功绛?>
+                        馃棏锔?鍒犻櫎
                     </button>
                 </div>`;
             }
 
-            // 其他情况不显示操作按钮
+            // 鍏朵粬鎯呭喌涓嶆樉绀烘搷浣滄寜閽?
             return '';
         }
 
-        // 更新筛选状态显示
+        // 鏇存柊绛涢€夌姸鎬佹樉绀?
         function updateFilterStatus(filteredCount) {
             const filterStatus = document.getElementById('filterStatus');
 
             if (isChecking) {
-                // 检查时显示特殊信息
-                filterStatus.textContent = `检查中：显示已检查的书签 (${filteredCount} 个)`;
+                // 妫€鏌ユ椂鏄剧ず鐗规畩淇℃伅
+                filterStatus.textContent = `妫€鏌ヤ腑锛氭樉绀哄凡妫€鏌ョ殑涔︾ (${filteredCount} 涓?`;
             } else if (currentFilter === 'all') {
-                filterStatus.textContent = `显示全部 ${filteredCount} 个书签`;
+                filterStatus.textContent = `鏄剧ず鍏ㄩ儴 ${filteredCount} 涓功绛綻;
             } else {
                 const filterNames = {
-                    'checked': '已检查',
-                    'accessible': '可访问',
-                    'inaccessible': '不可访问',
-                    'deleted': '已删除',
-                    'kept': '已保留'
+                    'checked': '宸叉鏌?,
+                    'accessible': '鍙闂?,
+                    'inaccessible': '涓嶅彲璁块棶',
+                    'deleted': '宸插垹闄?,
+                    'kept': '宸蹭繚鐣?
                 };
-                filterStatus.textContent = `筛选: ${filterNames[currentFilter]} (${filteredCount}/${bookmarks.length})`;
+                filterStatus.textContent = `绛涢€? ${filterNames[currentFilter]} (${filteredCount}/${bookmarks.length})`;
             }
         }
 
-        // 开始检查
+        // 寮€濮嬫鏌?
         async function startLinkCheck() {
             if (isChecking) return;
 
@@ -802,7 +801,7 @@
             const checkDelay = parseInt(document.getElementById('checkDelay').value);
 
             if (bookmarks.length === 0) {
-                alert('没有书签需要检查');
+                alert('娌℃湁涔︾闇€瑕佹鏌?);
                 return;
             }
 
@@ -810,29 +809,29 @@
             checkingIndex = 0;
             stats = { total: bookmarks.length, checked: 0, accessible: 0, inaccessible: 0, deleted: 0 };
 
-            // 更新UI状态
+            // 鏇存柊UI鐘舵€?
             document.getElementById('startCheck').classList.add('hidden');
             document.getElementById('stopCheck').classList.remove('hidden');
             document.getElementById('progressSection').style.display = 'block';
-            document.getElementById('batchDelete').classList.add('hidden'); // 隐藏批量删除按钮
+            document.getElementById('batchDelete').classList.add('hidden'); // 闅愯棌鎵归噺鍒犻櫎鎸夐挳
 
-            // 重置所有书签状态
+            // 閲嶇疆鎵€鏈変功绛剧姸鎬?
             bookmarks.forEach(bookmark => {
                 bookmark.status = 'pending';
                 bookmark.checked = false;
                 bookmark.retryCount = 0;
-                bookmark.deleted = false; // 重置删除状态
+                bookmark.deleted = false; // 閲嶇疆鍒犻櫎鐘舵€?
                 updateBookmarkDisplay(bookmark);
             });
 
-            // 开始检查时重新显示书签列表（只显示已检查的）
+            // 寮€濮嬫鏌ユ椂閲嶆柊鏄剧ず涔︾鍒楄〃锛堝彧鏄剧ず宸叉鏌ョ殑锛?
             displayBookmarks();
 
-            // 开始逐个检查
+            // 寮€濮嬮€愪釜妫€鏌?
             await checkNextBookmark(smartCheck, retryCount, checkDelay);
         }
 
-        // 检查下一个书签
+        // 妫€鏌ヤ笅涓€涓功绛?
         async function checkNextBookmark(smartCheck, retryCount, checkDelay) {
             if (!isChecking || checkingIndex >= bookmarks.length) {
                 finishChecking();
@@ -841,7 +840,7 @@
 
             const bookmark = bookmarks[checkingIndex];
 
-            // 更新当前书签为检查中状态
+            // 鏇存柊褰撳墠涔︾涓烘鏌ヤ腑鐘舵€?
             bookmark.status = 'checking';
             updateBookmarkDisplay(bookmark);
             updateProgress();
@@ -850,7 +849,7 @@
                 const result = await checkBookmarkWithRetry(bookmark, smartCheck, retryCount);
 
                 bookmark.checked = true;
-                bookmark.checkedTime = Date.now(); // 记录检查完成时间
+                bookmark.checkedTime = Date.now(); // 璁板綍妫€鏌ュ畬鎴愭椂闂?
                 bookmark.accessible = result.accessible;
                 bookmark.status = result.accessible ? 'accessible' : 'inaccessible';
                 bookmark.statusCode = result.status;
@@ -858,7 +857,7 @@
                 bookmark.error = result.error;
                 bookmark.deleted = false;
 
-                // 智能检查逻辑 - 添加详细建议信息
+                // 鏅鸿兘妫€鏌ラ€昏緫 - 娣诲姞璇︾粏寤鸿淇℃伅
                 if (!result.accessible && smartCheck) {
                     const recommendation = getDeleteRecommendation(result);
                     bookmark.error = `${result.error} (${recommendation.reason})`;
@@ -867,7 +866,7 @@
                     bookmark.error = result.error;
                 }
 
-                // 更新统计
+                // 鏇存柊缁熻
                 stats.checked++;
                 if (result.accessible) {
                     stats.accessible++;
@@ -879,9 +878,9 @@
                 updateStats();
 
             } catch (error) {
-                console.error(`检查书签失败 (${bookmark.title}):`, error);
+                console.error(`妫€鏌ヤ功绛惧け璐?(${bookmark.title}):`, error);
                 bookmark.checked = true;
-                bookmark.checkedTime = Date.now(); // 记录检查完成时间
+                bookmark.checkedTime = Date.now(); // 璁板綍妫€鏌ュ畬鎴愭椂闂?
                 bookmark.accessible = false;
                 bookmark.status = 'inaccessible';
                 bookmark.error = error.message;
@@ -893,13 +892,13 @@
 
             checkingIndex++;
 
-            // 延迟后检查下一个
+            // 寤惰繜鍚庢鏌ヤ笅涓€涓?
             if (isChecking) {
                 setTimeout(() => checkNextBookmark(smartCheck, retryCount, checkDelay), checkDelay);
             }
         }
 
-        // 带重试的书签检查
+        // 甯﹂噸璇曠殑涔︾妫€鏌?
         async function checkBookmarkWithRetry(bookmark, smartCheck, maxRetries) {
             let lastResult = null;
 
@@ -915,17 +914,17 @@
                     if (response.success) {
                         lastResult = response.data;
 
-                        // 如果成功访问，直接返回
+                        // 濡傛灉鎴愬姛璁块棶锛岀洿鎺ヨ繑鍥?
                         if (lastResult.accessible) {
                             return lastResult;
                         }
 
-                        // 如果是最后一次尝试，返回结果
+                        // 濡傛灉鏄渶鍚庝竴娆″皾璇曪紝杩斿洖缁撴灉
                         if (attempt === maxRetries) {
                             return lastResult;
                         }
 
-                        // 如果不是最后一次，等待一下再重试
+                        // 濡傛灉涓嶆槸鏈€鍚庝竴娆★紝绛夊緟涓€涓嬪啀閲嶈瘯
                         if (attempt < maxRetries) {
                             await new Promise(resolve => setTimeout(resolve, 1000));
                         }
@@ -949,105 +948,105 @@
             return lastResult;
         }
 
-        // 智能判断是否应该删除书签 - 更新版本，更好地处理Cloudflare等情况
+        // 鏅鸿兘鍒ゆ柇鏄惁搴旇鍒犻櫎涔︾ - 鏇存柊鐗堟湰锛屾洿濂藉湴澶勭悊Cloudflare绛夋儏鍐?
         function shouldDeleteBookmark(result) {
-            // 如果网站可访问，不删除
+            // 濡傛灉缃戠珯鍙闂紝涓嶅垹闄?
             if (result.accessible) {
                 return false;
             }
 
-            // 明确的错误类型，建议删除
+            // 鏄庣‘鐨勯敊璇被鍨嬶紝寤鸿鍒犻櫎
             const deleteReasons = [
-                '域名不存在',        // 域名确实不存在
-                '连接被拒绝',        // 服务器拒绝连接
-                'SSL证书问题'        // 证书问题
+                '鍩熷悕涓嶅瓨鍦?,        // 鍩熷悕纭疄涓嶅瓨鍦?
+                '杩炴帴琚嫆缁?,        // 鏈嶅姟鍣ㄦ嫆缁濊繛鎺?
+                'SSL璇佷功闂'        // 璇佷功闂
             ];
 
-            // 明确的HTTP状态码，建议删除
+            // 鏄庣‘鐨凥TTP鐘舵€佺爜锛屽缓璁垹闄?
             const deleteStatusCodes = [
-                404, // 页面不存在
-                410  // 页面已永久删除
+                404, // 椤甸潰涓嶅瓨鍦?
+                410  // 椤甸潰宸叉案涔呭垹闄?
             ];
 
-            // 应该保留的情况（可能是临时问题或防护机制）
+            // 搴旇淇濈暀鐨勬儏鍐碉紙鍙兘鏄复鏃堕棶棰樻垨闃叉姢鏈哄埗锛?
             const keepReasons = [
-                'Cloudflare防护',    // Cloudflare防护
-                '请求超时',          // 可能是网络问题
-                '网站响应缓慢',      // 响应慢但可能正常
-                '服务器内部错误',    // 500错误可能是临时的
-                '网关错误',          // 502错误可能是临时的
-                '服务暂时不可用',    // 503可能是维护
-                '网关超时',          // 504可能是临时的
-                '请求过于频繁',      // 429限流
-                '访问被禁止',        // 403可能需要登录
-                '网络连接问题'       // 网络问题
+                'Cloudflare闃叉姢',    // Cloudflare闃叉姢
+                '璇锋眰瓒呮椂',          // 鍙兘鏄綉缁滈棶棰?
+                '缃戠珯鍝嶅簲缂撴參',      // 鍝嶅簲鎱絾鍙兘姝ｅ父
+                '鏈嶅姟鍣ㄥ唴閮ㄩ敊璇?,    // 500閿欒鍙兘鏄复鏃剁殑
+                '缃戝叧閿欒',          // 502閿欒鍙兘鏄复鏃剁殑
+                '鏈嶅姟鏆傛椂涓嶅彲鐢?,    // 503鍙兘鏄淮鎶?
+                '缃戝叧瓒呮椂',          // 504鍙兘鏄复鏃剁殑
+                '璇锋眰杩囦簬棰戠箒',      // 429闄愭祦
+                '璁块棶琚姝?,        // 403鍙兘闇€瑕佺櫥褰?
+                '缃戠粶杩炴帴闂'       // 缃戠粶闂
             ];
 
-            // 检查是否应该保留
+            // 妫€鏌ユ槸鍚﹀簲璇ヤ繚鐣?
             if (result.error) {
                 for (const reason of keepReasons) {
                     if (result.error.includes(reason)) {
-                        return false; // 建议保留
+                        return false; // 寤鸿淇濈暀
                     }
                 }
 
-                // 检查是否应该删除
+                // 妫€鏌ユ槸鍚﹀簲璇ュ垹闄?
                 for (const reason of deleteReasons) {
                     if (result.error.includes(reason)) {
-                        return true; // 建议删除
+                        return true; // 寤鸿鍒犻櫎
                     }
                 }
             }
 
-            // 检查状态码
+            // 妫€鏌ョ姸鎬佺爜
             if (deleteStatusCodes.includes(result.status)) {
-                return true; // 建议删除
+                return true; // 寤鸿鍒犻櫎
             }
 
-            // 默认情况：如果不确定，建议保留（安全优先）
+            // 榛樿鎯呭喌锛氬鏋滀笉纭畾锛屽缓璁繚鐣欙紙瀹夊叏浼樺厛锛?
             return false;
         }
 
-        // 获取删除建议的详细说明
+        // 鑾峰彇鍒犻櫎寤鸿鐨勮缁嗚鏄?
         function getDeleteRecommendation(result) {
             if (result.accessible) {
-                return { shouldDelete: false, reason: '网站可正常访问' };
+                return { shouldDelete: false, reason: '缃戠珯鍙甯歌闂? };
             }
 
             const shouldDelete = shouldDeleteBookmark(result);
 
             if (shouldDelete) {
                 if (result.status === 404) {
-                    return { shouldDelete: true, reason: '页面不存在，建议删除' };
+                    return { shouldDelete: true, reason: '椤甸潰涓嶅瓨鍦紝寤鸿鍒犻櫎' };
                 }
                 if (result.status === 410) {
-                    return { shouldDelete: true, reason: '页面已永久删除，建议删除' };
+                    return { shouldDelete: true, reason: '椤甸潰宸叉案涔呭垹闄わ紝寤鸿鍒犻櫎' };
                 }
-                if (result.error && result.error.includes('域名不存在')) {
-                    return { shouldDelete: true, reason: '域名不存在，建议删除' };
+                if (result.error && result.error.includes('鍩熷悕涓嶅瓨鍦?)) {
+                    return { shouldDelete: true, reason: '鍩熷悕涓嶅瓨鍦紝寤鸿鍒犻櫎' };
                 }
-                return { shouldDelete: true, reason: '网站确实失效，建议删除' };
+                return { shouldDelete: true, reason: '缃戠珯纭疄澶辨晥锛屽缓璁垹闄? };
             } else {
-                if (result.error && result.error.includes('Cloudflare防护')) {
-                    return { shouldDelete: false, reason: 'Cloudflare防护，网站正常，建议保留' };
+                if (result.error && result.error.includes('Cloudflare闃叉姢')) {
+                    return { shouldDelete: false, reason: 'Cloudflare闃叉姢锛岀綉绔欐甯革紝寤鸿淇濈暀' };
                 }
-                if (result.error && result.error.includes('超时')) {
-                    return { shouldDelete: false, reason: '网络超时，可能是临时问题，建议保留' };
+                if (result.error && result.error.includes('瓒呮椂')) {
+                    return { shouldDelete: false, reason: '缃戠粶瓒呮椂锛屽彲鑳芥槸涓存椂闂锛屽缓璁繚鐣? };
                 }
                 if (result.status >= 500) {
-                    return { shouldDelete: false, reason: '服务器错误，可能是临时问题，建议保留' };
+                    return { shouldDelete: false, reason: '鏈嶅姟鍣ㄩ敊璇紝鍙兘鏄复鏃堕棶棰橈紝寤鸿淇濈暀' };
                 }
-                return { shouldDelete: false, reason: '可能是临时问题，建议保留' };
+                return { shouldDelete: false, reason: '鍙兘鏄复鏃堕棶棰橈紝寤鸿淇濈暀' };
             }
         }
 
-        // 停止检查
+        // 鍋滄妫€鏌?
         function stopLinkCheck() {
             isChecking = false;
             finishChecking();
         }
 
-        // 完成检查
+        // 瀹屾垚妫€鏌?
         function finishChecking() {
             isChecking = false;
             document.getElementById('startCheck').classList.remove('hidden');
@@ -1055,34 +1054,34 @@
 
             updateProgress();
 
-            // 显示完成消息
-            const message = `检查完成！总计: ${stats.total}, 可访问: ${stats.accessible}, 不可访问: ${stats.inaccessible}${stats.deleted > 0 ? `, 已删除: ${stats.deleted}` : ''}`;
+            // 鏄剧ず瀹屾垚娑堟伅
+            const message = `妫€鏌ュ畬鎴愶紒鎬昏: ${stats.total}, 鍙闂? ${stats.accessible}, 涓嶅彲璁块棶: ${stats.inaccessible}${stats.deleted > 0 ? `, 宸插垹闄? ${stats.deleted}` : ''}`;
             document.getElementById('progressText').textContent = message;
 
-            // 检查完成后重新显示所有书签
+            // 妫€鏌ュ畬鎴愬悗閲嶆柊鏄剧ず鎵€鏈変功绛?
             displayBookmarks();
 
-            // 如果有不可访问的链接，显示批量删除按钮
+            // 濡傛灉鏈変笉鍙闂殑閾炬帴锛屾樉绀烘壒閲忓垹闄ゆ寜閽?
             const inaccessibleCount = bookmarks.filter(b => b.status === 'inaccessible' && !b.deleted).length;
             const batchDeleteBtn = document.getElementById('batchDelete');
             if (inaccessibleCount > 0) {
                 batchDeleteBtn.classList.remove('hidden');
-                batchDeleteBtn.innerHTML = `<span class="btn-icon">🗑️</span>删除所有无效链接 (${inaccessibleCount})`;
+                batchDeleteBtn.innerHTML = `<span class="btn-icon">馃棏锔?/span>鍒犻櫎鎵€鏈夋棤鏁堥摼鎺?(${inaccessibleCount})`;
             } else {
                 batchDeleteBtn.classList.add('hidden');
             }
         }
 
-        // 批量删除不可访问的书签
+        // 鎵归噺鍒犻櫎涓嶅彲璁块棶鐨勪功绛?
         async function batchDeleteInaccessible() {
             const inaccessibleBookmarks = bookmarks.filter(b => b.status === 'inaccessible' && !b.deleted);
 
             if (inaccessibleBookmarks.length === 0) {
-                showMessage('没有需要删除的无效链接', 'info');
+                showMessage('娌℃湁闇€瑕佸垹闄ょ殑鏃犳晥閾炬帴', 'info');
                 return;
             }
 
-            const confirmMessage = `⚠️ 批量删除确认\n\n确定要删除所有 ${inaccessibleBookmarks.length} 个无效链接吗？\n\n将删除以下书签：\n${inaccessibleBookmarks.slice(0, 5).map(b => `• ${b.title}`).join('\n')}${inaccessibleBookmarks.length > 5 ? `\n... 还有 ${inaccessibleBookmarks.length - 5} 个` : ''}\n\n⚠️ 重要提醒：\n• 此操作不可撤销！\n• 建议先手动检查几个链接确认\n• 某些网站可能临时无法访问\n\n确定继续吗？`;
+            const confirmMessage = `鈿狅笍 鎵归噺鍒犻櫎纭\n\n纭畾瑕佸垹闄ゆ墍鏈?${inaccessibleBookmarks.length} 涓棤鏁堥摼鎺ュ悧锛焅n\n灏嗗垹闄や互涓嬩功绛撅細\n${inaccessibleBookmarks.slice(0, 5).map(b => `鈥?${b.title}`).join('\n')}${inaccessibleBookmarks.length > 5 ? `\n... 杩樻湁 ${inaccessibleBookmarks.length - 5} 涓猔 : ''}\n\n鈿狅笍 閲嶈鎻愰啋锛歕n鈥?姝ゆ搷浣滀笉鍙挙閿€锛乗n鈥?寤鸿鍏堟墜鍔ㄦ鏌ュ嚑涓摼鎺ョ‘璁n鈥?鏌愪簺缃戠珯鍙兘涓存椂鏃犳硶璁块棶\n\n纭畾缁х画鍚楋紵`;
 
             if (!confirm(confirmMessage)) {
                 return;
@@ -1093,7 +1092,7 @@
 
             for (const bookmark of inaccessibleBookmarks) {
                 try {
-                    // 准备删除请求，包含检查状态信息
+                    // 鍑嗗鍒犻櫎璇锋眰锛屽寘鍚鏌ョ姸鎬佷俊鎭?
                     const deleteData = {
                         reason: 'batch_delete_inaccessible',
                         checkStatus: bookmark.status,
@@ -1117,34 +1116,34 @@
                         deletedCount++;
                     } else {
                         failedCount++;
-                        console.error(`删除书签失败: ${bookmark.title}`, response.error);
+                        console.error(`鍒犻櫎涔︾澶辫触: ${bookmark.title}`, response.error);
                     }
                 } catch (error) {
                     failedCount++;
-                    console.error(`删除书签失败: ${bookmark.title}`, error);
+                    console.error(`鍒犻櫎涔︾澶辫触: ${bookmark.title}`, error);
                 }
             }
 
-            // 更新统计
+            // 鏇存柊缁熻
             stats.deleted += deletedCount;
             stats.inaccessible -= deletedCount;
 
-            // 更新显示
+            // 鏇存柊鏄剧ず
             updateStats();
             displayBookmarks();
 
-            // 隐藏批量删除按钮
+            // 闅愯棌鎵归噺鍒犻櫎鎸夐挳
             document.getElementById('batchDelete').classList.add('hidden');
 
-            // 显示结果消息
+            // 鏄剧ず缁撴灉娑堟伅
             if (failedCount === 0) {
-                showMessage(`成功删除 ${deletedCount} 个无效链接`, 'success');
+                showMessage(`鎴愬姛鍒犻櫎 ${deletedCount} 涓棤鏁堥摼鎺, 'success');
             } else {
-                showMessage(`删除完成：成功 ${deletedCount} 个，失败 ${failedCount} 个`, 'info');
+                showMessage(`鍒犻櫎瀹屾垚锛氭垚鍔?${deletedCount} 涓紝澶辫触 ${failedCount} 涓猔, 'info');
             }
         }
 
-        // 更新书签显示
+        // 鏇存柊涔︾鏄剧ず
         function updateBookmarkDisplay(bookmark) {
             const importantStatusChanges = ['checking', 'accessible', 'inaccessible', 'deleted'];
             if (importantStatusChanges.includes(bookmark.status)) {
@@ -1155,21 +1154,21 @@
                 return;
             }
 
-            // 对于非重要状态变化，只更新单个元素
+            // 瀵逛簬闈為噸瑕佺姸鎬佸彉鍖栵紝鍙洿鏂板崟涓厓绱?
             const bookmarkElement = document.getElementById(`bookmark-${bookmark.id}`);
             const statusElement = document.getElementById(`status-${bookmark.id}`);
             const resultElement = document.getElementById(`result-${bookmark.id}`);
 
             if (!bookmarkElement) {
-                // 如果当前筛选下看不到这个书签，重新显示列表
+                // 濡傛灉褰撳墠绛涢€変笅鐪嬩笉鍒拌繖涓功绛撅紝閲嶆柊鏄剧ず鍒楄〃
                 displayBookmarks();
                 return;
             }
 
-            // 更新书签项样式
+            // 鏇存柊涔︾椤规牱寮?
             bookmarkElement.className = `bookmark-item ${bookmark.status}`;
 
-            // 更新状态图标
+            // 鏇存柊鐘舵€佸浘鏍?
             statusElement.className = `bookmark-status status-${bookmark.status}`;
 
             let statusIcon = '';
@@ -1180,16 +1179,16 @@
                     statusIcon = bookmarkElement.dataset.index ? parseInt(bookmarkElement.dataset.index) + 1 : '?';
                     break;
                 case 'checking':
-                    statusIcon = '⏳';
+                    statusIcon = '鈴?;
                     break;
                 case 'accessible':
-                    statusIcon = '✓';
+                    statusIcon = '鉁?;
                     break;
                 case 'inaccessible':
-                    statusIcon = '✗';
+                    statusIcon = '鉁?;
                     break;
                 case 'deleted':
-                    statusIcon = '🗑️';
+                    statusIcon = '馃棏锔?;
                     break;
             }
 
@@ -1197,9 +1196,9 @@
             resultElement.textContent = resultText;
         }
 
-        // 更新统计信息
+        // 鏇存柊缁熻淇℃伅
         function updateStats() {
-            // 重新计算统计数据
+            // 閲嶆柊璁＄畻缁熻鏁版嵁
             stats.total = bookmarks.length;
             stats.checked = bookmarks.filter(b => b.checked).length;
             stats.accessible = bookmarks.filter(b => b.status === 'accessible').length;
@@ -1207,7 +1206,7 @@
             stats.deleted = bookmarks.filter(b => b.deleted || b.status === 'deleted').length;
             stats.kept = bookmarks.filter(b => b.keepStatus === 'keep').length;
 
-            // 更新显示
+            // 鏇存柊鏄剧ず
             document.getElementById('totalBookmarks').textContent = stats.total;
             document.getElementById('checkedCount').textContent = stats.checked;
             document.getElementById('accessibleCount').textContent = stats.accessible;
@@ -1216,7 +1215,7 @@
             document.getElementById('keptCount').textContent = stats.kept;
         }
 
-        // 更新进度
+        // 鏇存柊杩涘害
         function updateProgress() {
             const percentage = stats.total > 0 ? Math.round((stats.checked / stats.total) * 100) : 0;
             document.getElementById('progressFill').style.width = percentage + '%';
@@ -1224,24 +1223,24 @@
 
             if (isChecking && checkingIndex < bookmarks.length) {
                 const currentBookmark = bookmarks[checkingIndex];
-                document.getElementById('progressText').textContent = `正在检查: ${currentBookmark.title}`;
+                document.getElementById('progressText').textContent = `姝ｅ湪妫€鏌? ${currentBookmark.title}`;
             }
         }
 
-        // 删除单个书签
+        // 鍒犻櫎鍗曚釜涔︾
         async function deleteBookmark(bookmarkId) {
-            const bookmark = bookmarks.find(b => b.id == bookmarkId); // 使用 == 而不是 === 来处理类型转换
+            const bookmark = bookmarks.find(b => b.id == bookmarkId); // 浣跨敤 == 鑰屼笉鏄?=== 鏉ュ鐞嗙被鍨嬭浆鎹?
             if (!bookmark) {
-                console.error('未找到书签，ID:', bookmarkId);
+                console.error('鏈壘鍒颁功绛撅紝ID:', bookmarkId);
                 return;
             }
 
-            if (!confirm(`⚠️ 删除确认\n\n确定要删除书签 "${bookmark.title}" 吗？\n\nURL: ${bookmark.url}\n\n⚠️ 注意：\n• 此操作不可撤销！\n• 建议先手动访问确认链接确实无效\n• 某些网站可能只是临时无法访问\n\n确定删除吗？`)) {
+            if (!confirm(`鈿狅笍 鍒犻櫎纭\n\n纭畾瑕佸垹闄や功绛?"${bookmark.title}" 鍚楋紵\n\nURL: ${bookmark.url}\n\n鈿狅笍 娉ㄦ剰锛歕n鈥?姝ゆ搷浣滀笉鍙挙閿€锛乗n鈥?寤鸿鍏堟墜鍔ㄨ闂‘璁ら摼鎺ョ‘瀹炴棤鏁圽n鈥?鏌愪簺缃戠珯鍙兘鍙槸涓存椂鏃犳硶璁块棶\n\n纭畾鍒犻櫎鍚楋紵`)) {
                 return;
             }
 
             try {
-                // 准备删除请求，包含检查状态信息
+                // 鍑嗗鍒犻櫎璇锋眰锛屽寘鍚鏌ョ姸鎬佷俊鎭?
                 const deleteData = {
                     reason: bookmark.status === 'inaccessible' ? 'link_check_failed' : 'manual_delete',
                     checkStatus: bookmark.status,
@@ -1260,7 +1259,7 @@
                 });
 
                 if (response.success) {
-                    // 更新书签状态为已删除
+                    // 鏇存柊涔︾鐘舵€佷负宸插垹闄?
                     bookmark.deleted = true;
                     bookmark.status = 'deleted';
                     stats.deleted++;
@@ -1268,19 +1267,19 @@
 
                     updateBookmarkDisplay(bookmark);
                     updateStats();
-                    displayBookmarks(); // 重新显示以更新删除按钮
+                    displayBookmarks(); // 閲嶆柊鏄剧ず浠ユ洿鏂板垹闄ゆ寜閽?
 
-                    // 显示成功消息
-                    showMessage(`书签 "${bookmark.title}" 已删除`, 'success');
+                    // 鏄剧ず鎴愬姛娑堟伅
+                    showMessage(`涔︾ "${bookmark.title}" 宸插垹闄, 'success');
                 } else {
-                    showMessage('删除失败: ' + response.error, 'error');
+                    showMessage('鍒犻櫎澶辫触: ' + response.error, 'error');
                 }
             } catch (error) {
-                showMessage('删除失败: ' + error.message, 'error');
+                showMessage('鍒犻櫎澶辫触: ' + error.message, 'error');
             }
         }
 
-        // 显示消息提示
+        // 鏄剧ず娑堟伅鎻愮ず
         function showMessage(text, type = 'info') {
             const message = document.createElement('div');
             message.style.cssText = `
@@ -1297,7 +1296,7 @@
             `;
             message.textContent = text;
 
-            // 添加动画样式
+            // 娣诲姞鍔ㄧ敾鏍峰紡
             if (!document.querySelector('#message-styles')) {
                 const style = document.createElement('style');
                 style.id = 'message-styles';
@@ -1312,22 +1311,22 @@
 
             document.body.appendChild(message);
 
-            // 自动移除
+            // 鑷姩绉婚櫎
             setTimeout(() => {
                 message.style.animation = 'slideIn 0.3s ease-out reverse';
                 setTimeout(() => message.remove(), 300);
             }, 3000);
         }
 
-        // 标记书签为保留
+        // 鏍囪涔︾涓轰繚鐣?
         async function keepBookmark(bookmarkId) {
             const bookmark = bookmarks.find(b => b.id == bookmarkId);
             if (!bookmark) {
-                console.error('未找到书签，ID:', bookmarkId);
+                console.error('鏈壘鍒颁功绛撅紝ID:', bookmarkId);
                 return;
             }
 
-            if (!confirm(`确定要标记书签 "${bookmark.title}" 为保留吗？\n\n标记为保留后：\n• 即使检查失败也不会建议删除\n• 可以随时取消保留标记\n• 仍会参与链接检查`)) {
+            if (!confirm(`纭畾瑕佹爣璁颁功绛?"${bookmark.title}" 涓轰繚鐣欏悧锛焅n\n鏍囪涓轰繚鐣欏悗锛歕n鈥?鍗充娇妫€鏌ュけ璐ヤ篃涓嶄細寤鸿鍒犻櫎\n鈥?鍙互闅忔椂鍙栨秷淇濈暀鏍囪\n鈥?浠嶄細鍙備笌閾炬帴妫€鏌)) {
                 return;
             }
 
@@ -1338,31 +1337,31 @@
                 });
 
                 if (response.success) {
-                    // 更新书签状态
+                    // 鏇存柊涔︾鐘舵€?
                     bookmark.keepStatus = 'keep';
 
-                    // 重新显示书签列表
+                    // 閲嶆柊鏄剧ず涔︾鍒楄〃
                     displayBookmarks();
 
-                    // 显示成功消息
-                    showMessage(`书签 "${bookmark.title}" 已标记为保留`, 'success');
+                    // 鏄剧ず鎴愬姛娑堟伅
+                    showMessage(`涔︾ "${bookmark.title}" 宸叉爣璁颁负淇濈暀`, 'success');
                 } else {
-                    showMessage('标记保留失败: ' + response.error, 'error');
+                    showMessage('鏍囪淇濈暀澶辫触: ' + response.error, 'error');
                 }
             } catch (error) {
-                showMessage('标记保留失败: ' + error.message, 'error');
+                showMessage('鏍囪淇濈暀澶辫触: ' + error.message, 'error');
             }
         }
 
-        // 取消书签保留标记
+        // 鍙栨秷涔︾淇濈暀鏍囪
         async function unkeepBookmark(bookmarkId) {
             const bookmark = bookmarks.find(b => b.id == bookmarkId);
             if (!bookmark) {
-                console.error('未找到书签，ID:', bookmarkId);
+                console.error('鏈壘鍒颁功绛撅紝ID:', bookmarkId);
                 return;
             }
 
-            if (!confirm(`确定要取消书签 "${bookmark.title}" 的保留标记吗？\n\n取消后：\n• 如果链接检查失败，会重新建议删除\n• 可以重新标记为保留`)) {
+            if (!confirm(`纭畾瑕佸彇娑堜功绛?"${bookmark.title}" 鐨勪繚鐣欐爣璁板悧锛焅n\n鍙栨秷鍚庯細\n鈥?濡傛灉閾炬帴妫€鏌ュけ璐ワ紝浼氶噸鏂板缓璁垹闄n鈥?鍙互閲嶆柊鏍囪涓轰繚鐣檂)) {
                 return;
             }
 
@@ -1373,19 +1372,19 @@
                 });
 
                 if (response.success) {
-                    // 更新书签状态
+                    // 鏇存柊涔︾鐘舵€?
                     bookmark.keepStatus = 'normal';
 
-                    // 重新显示书签列表
+                    // 閲嶆柊鏄剧ず涔︾鍒楄〃
                     displayBookmarks();
 
-                    // 显示成功消息
-                    showMessage(`书签 "${bookmark.title}" 已取消保留标记`, 'success');
+                    // 鏄剧ず鎴愬姛娑堟伅
+                    showMessage(`涔︾ "${bookmark.title}" 宸插彇娑堜繚鐣欐爣璁癭, 'success');
                 } else {
-                    showMessage('取消保留失败: ' + response.error, 'error');
+                    showMessage('鍙栨秷淇濈暀澶辫触: ' + response.error, 'error');
                 }
             } catch (error) {
-                showMessage('取消保留失败: ' + error.message, 'error');
+                showMessage('鍙栨秷淇濈暀澶辫触: ' + error.message, 'error');
             }
         }
 
@@ -1396,7 +1395,7 @@
                     displayHistory(response.data);
                 }
             } catch (error) {
-                console.error('加载历史失败:', error);
+                console.error('鍔犺浇鍘嗗彶澶辫触:', error);
             }
         }
 
@@ -1404,7 +1403,7 @@
             const historyList = document.getElementById('historyList');
             
             if (history.length === 0) {
-                historyList.innerHTML = '<div class="empty-state">暂无检查历史</div>';
+                historyList.innerHTML = '<div class="empty-state">鏆傛棤妫€鏌ュ巻鍙?/div>';
                 return;
             }
 
@@ -1413,14 +1412,14 @@
                     <div class="history-header">
                         <strong>${new Date(record.checkedAt).toLocaleString()}</strong>
                         <div class="history-stats">
-                            <span>总计: ${record.total}</span>
-                            <span style="color: #28a745;">可访问: ${record.accessible}</span>
-                            <span style="color: #dc3545;">不可访问: ${record.inaccessible}</span>
-                            ${record.autoDelete ? `<span style="color: #ffc107;">已删除: ${record.inaccessible}</span>` : ''}
+                            <span>鎬昏: ${record.total}</span>
+                            <span style="color: #28a745;">鍙闂? ${record.accessible}</span>
+                            <span style="color: #dc3545;">涓嶅彲璁块棶: ${record.inaccessible}</span>
+                            ${record.autoDelete ? `<span style="color: #ffc107;">宸插垹闄? ${record.inaccessible}</span>` : ''}
                         </div>
                     </div>
                     <div>
-                        ${record.autoDelete ? '✅ 自动删除已启用' : '⚠️ 仅检查，未删除'}
+                        ${record.autoDelete ? '鉁?鑷姩鍒犻櫎宸插惎鐢? : '鈿狅笍 浠呮鏌ワ紝鏈垹闄?}
                     </div>
                 </div>
             `).join('');
@@ -1431,21 +1430,21 @@
             historyCard.classList.toggle('hidden');
         }
 
-        // 切换说明面板
+        // 鍒囨崲璇存槑闈㈡澘
         function toggleExplanation() {
             const content = document.getElementById('explanationContent');
             const toggleText = document.getElementById('explanationToggleText');
 
             if (content.classList.contains('hidden')) {
                 content.classList.remove('hidden');
-                toggleText.textContent = '隐藏详情';
+                toggleText.textContent = '闅愯棌璇︽儏';
             } else {
                 content.classList.add('hidden');
-                toggleText.textContent = '显示详情';
+                toggleText.textContent = '鏄剧ず璇︽儏';
             }
         }
 
-        // 筛选书签显示
+        // 绛涢€変功绛炬樉绀?
         function filterBookmarksDisplay(filter) {
             const bookmarkItems = document.querySelectorAll('.bookmark-item');
             let visibleCount = 0;
@@ -1485,23 +1484,24 @@
                 }
             });
 
-            // 更新筛选状态显示
+            // 鏇存柊绛涢€夌姸鎬佹樉绀?
             const filterStatus = document.getElementById('filterStatus');
             if (filterStatus) {
                 if (filter === 'all') {
-                    filterStatus.textContent = `显示全部 (${visibleCount})`;
+                    filterStatus.textContent = `鏄剧ず鍏ㄩ儴 (${visibleCount})`;
                 } else {
                     const filterNames = {
-                        'checked': '已检查',
-                        'accessible': '可访问',
-                        'inaccessible': '不可访问',
-                        'deleted': '已删除',
-                        'kept': '已保留'
+                        'checked': '宸叉鏌?,
+                        'accessible': '鍙闂?,
+                        'inaccessible': '涓嶅彲璁块棶',
+                        'deleted': '宸插垹闄?,
+                        'kept': '宸蹭繚鐣?
                     };
-                    filterStatus.textContent = `筛选: ${filterNames[filter]} (${visibleCount})`;
+                    filterStatus.textContent = `绛涢€? ${filterNames[filter]} (${visibleCount})`;
                 }
             }
         }
     </script>
 </body>
 </html>
+

@@ -1,13 +1,15 @@
-import { authenticateRequest } from '../auth/verify.js';
-import { ResponseHelper } from '../../utils/response-helper.js';
-import { AIWikiGenerator } from '../../utils/ai-wiki.js';
+import { authenticateRequest } from "../auth/verify.js";
+import { ResponseHelper } from "../../utils/response-helper.js";
+import { AIWikiGenerator } from "../../utils/ai-wiki.js";
 
-const SNAPSHOT_KEY = 'wiki_ai_snapshot';
+const SNAPSHOT_KEY = "wiki_ai_snapshot";
 
 async function fetchSnapshot(env) {
   const row = await env.BOOKMARKS_DB.prepare(
-    'SELECT config_value FROM system_config WHERE config_key = ?'
-  ).bind(SNAPSHOT_KEY).first();
+    "SELECT config_value FROM system_config WHERE config_key = ?",
+  )
+    .bind(SNAPSHOT_KEY)
+    .first();
 
   if (!row?.config_value) {
     return null;
@@ -21,22 +23,23 @@ async function fetchSnapshot(env) {
 }
 
 async function saveSnapshot(env, snapshot) {
-  await env.BOOKMARKS_DB.prepare(`
+  await env.BOOKMARKS_DB.prepare(
+    `
     INSERT INTO system_config (config_key, config_value, description, updated_at)
     VALUES (?, ?, ?, CURRENT_TIMESTAMP)
     ON CONFLICT(config_key) DO UPDATE SET
       config_value = excluded.config_value,
       description = excluded.description,
       updated_at = CURRENT_TIMESTAMP
-  `).bind(
-    SNAPSHOT_KEY,
-    JSON.stringify(snapshot),
-    'AI 自动整理的 Wiki Snapshot'
-  ).run();
+  `,
+  )
+    .bind(SNAPSHOT_KEY, JSON.stringify(snapshot), "AI 自动整理的 Wiki Snapshot")
+    .run();
 }
 
 async function loadAllBookmarks(env) {
-  const result = await env.BOOKMARKS_DB.prepare(`
+  const result = await env.BOOKMARKS_DB.prepare(
+    `
     SELECT 
       b.id,
       b.title,
@@ -53,7 +56,8 @@ async function loadAllBookmarks(env) {
     FROM bookmarks b
     LEFT JOIN categories c ON b.category_id = c.id
     ORDER BY b.created_at DESC
-  `).all();
+  `,
+  ).all();
 
   return result?.results || [];
 }
@@ -62,7 +66,7 @@ export async function onRequestGet(context) {
   const snapshot = await fetchSnapshot(context.env);
   return ResponseHelper.success({
     snapshot,
-    available: Boolean(snapshot)
+    available: Boolean(snapshot),
   });
 }
 
@@ -77,15 +81,15 @@ export async function onRequestPost(context) {
   try {
     const bookmarks = await loadAllBookmarks(env);
     if (!bookmarks.length) {
-      return ResponseHelper.validationError('还没有书签，无法生成 Wiki');
+      return ResponseHelper.validationError("还没有书签，无法生成 Wiki");
     }
 
     const snapshot = await AIWikiGenerator.generate(bookmarks, env);
     await saveSnapshot(env, snapshot);
 
-    return ResponseHelper.success(snapshot, 'AI Wiki 生成完成');
+    return ResponseHelper.success(snapshot, "AI Wiki 生成完成");
   } catch (error) {
-    console.error('AI Wiki 生成失败:', error);
-    return ResponseHelper.serverError('AI 生成失败', error.message);
+    console.error("AI Wiki 生成失败:", error);
+    return ResponseHelper.serverError("AI 生成失败", error.message);
   }
 }

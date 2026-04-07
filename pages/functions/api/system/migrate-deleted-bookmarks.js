@@ -43,23 +43,28 @@ export async function onRequestPost(context) {
       ON deleted_bookmarks(url);
     `);
 
-    return new Response(JSON.stringify({
-      success: true,
-      message: '删除书签记录表创建成功'
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
-
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: "删除书签记录表创建成功",
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   } catch (error) {
-    console.error('创建删除书签记录表失败:', error);
-    return new Response(JSON.stringify({
-      success: false,
-      error: '创建删除书签记录表失败',
-      message: error.message
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    console.error("创建删除书签记录表失败:", error);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "创建删除书签记录表失败",
+        message: error.message,
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   }
 }

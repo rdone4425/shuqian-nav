@@ -1,66 +1,67 @@
 // 视图切换和UI增强功能
 class ViewManager {
   constructor() {
-    this.currentView = 'grid'; // 'grid' 或 'list'
+    this.currentView = "grid"; // 'grid' 或 'list'
     this.bookmarksGrid = null;
     this.init();
   }
 
   init() {
-    this.bookmarksGrid = document.getElementById('bookmarksGrid');
+    this.bookmarksGrid = document.getElementById("bookmarksGrid");
     this.bindViewControls();
     this.enhanceUI();
   }
 
   bindViewControls() {
-    const gridViewBtn = document.getElementById('gridViewBtn');
-    const listViewBtn = document.getElementById('listViewBtn');
+    const gridViewBtn = document.getElementById("gridViewBtn");
+    const listViewBtn = document.getElementById("listViewBtn");
 
-    gridViewBtn?.addEventListener('click', () => {
-      this.switchView('grid');
+    gridViewBtn?.addEventListener("click", () => {
+      this.switchView("grid");
     });
 
-    listViewBtn?.addEventListener('click', () => {
-      this.switchView('list');
+    listViewBtn?.addEventListener("click", () => {
+      this.switchView("list");
     });
   }
 
   switchView(viewType) {
     this.currentView = viewType;
-    
+
     // 更新按钮状态
-    document.querySelectorAll('.view-btn').forEach(btn => {
-      btn.classList.remove('active');
+    document.querySelectorAll(".view-btn").forEach((btn) => {
+      btn.classList.remove("active");
     });
 
-    if (viewType === 'grid') {
-      document.getElementById('gridViewBtn')?.classList.add('active');
-      this.bookmarksGrid?.classList.remove('list-view');
+    if (viewType === "grid") {
+      document.getElementById("gridViewBtn")?.classList.add("active");
+      this.bookmarksGrid?.classList.remove("list-view");
     } else {
-      document.getElementById('listViewBtn')?.classList.add('active');
-      this.bookmarksGrid?.classList.add('list-view');
+      document.getElementById("listViewBtn")?.classList.add("active");
+      this.bookmarksGrid?.classList.add("list-view");
     }
 
     // 保存用户偏好
-    localStorage.setItem('bookmark_view_preference', viewType);
+    localStorage.setItem("bookmark_view_preference", viewType);
   }
 
   enhanceUI() {
     // 恢复用户视图偏好
-    const savedView = localStorage.getItem('bookmark_view_preference') || 'grid';
+    const savedView =
+      localStorage.getItem("bookmark_view_preference") || "grid";
     this.switchView(savedView);
 
     // 添加快捷键支持
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener("keydown", (e) => {
       if (e.ctrlKey || e.metaKey) {
-        switch(e.key) {
-          case '1':
+        switch (e.key) {
+          case "1":
             e.preventDefault();
-            this.switchView('grid');
+            this.switchView("grid");
             break;
-          case '2':
+          case "2":
             e.preventDefault();
-            this.switchView('list');
+            this.switchView("list");
             break;
         }
       }
@@ -72,28 +73,31 @@ class ViewManager {
 
   addCardAnimations() {
     // 使用 Intersection Observer 实现卡片进入动画
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry, index) => {
-        if (entry.isIntersecting) {
-          setTimeout(() => {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-          }, index * 100);
-        }
-      });
-    }, {
-      threshold: 0.1
-    });
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry, index) => {
+          if (entry.isIntersecting) {
+            setTimeout(() => {
+              entry.target.style.opacity = "1";
+              entry.target.style.transform = "translateY(0)";
+            }, index * 100);
+          }
+        });
+      },
+      {
+        threshold: 0.1,
+      },
+    );
 
     // 监听新添加的书签卡片
     const observeBookmarkCards = () => {
-      document.querySelectorAll('.bookmark-card').forEach(card => {
-        if (!card.hasAttribute('data-observed')) {
-          card.style.opacity = '0';
-          card.style.transform = 'translateY(20px)';
-          card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+      document.querySelectorAll(".bookmark-card").forEach((card) => {
+        if (!card.hasAttribute("data-observed")) {
+          card.style.opacity = "0";
+          card.style.transform = "translateY(20px)";
+          card.style.transition = "opacity 0.5s ease, transform 0.5s ease";
           observer.observe(card);
-          card.setAttribute('data-observed', 'true');
+          card.setAttribute("data-observed", "true");
         }
       });
     };
@@ -108,7 +112,7 @@ class ViewManager {
 
     mutationObserver.observe(this.bookmarksGrid || document.body, {
       childList: true,
-      subtree: true
+      subtree: true,
     });
   }
 
@@ -116,10 +120,10 @@ class ViewManager {
   markAsNew(bookmarkId) {
     const card = document.querySelector(`[data-id="${bookmarkId}"]`);
     if (card) {
-      card.classList.add('new');
+      card.classList.add("new");
       // 3秒后移除NEW标识
       setTimeout(() => {
-        card.classList.remove('new');
+        card.classList.remove("new");
       }, 3000);
     }
   }
@@ -127,7 +131,7 @@ class ViewManager {
   markAsFeatured(bookmarkId) {
     const card = document.querySelector(`[data-id="${bookmarkId}"]`);
     if (card) {
-      card.classList.add('featured');
+      card.classList.add("featured");
     }
   }
 
@@ -136,13 +140,13 @@ class ViewManager {
     const card = document.querySelector(`[data-id="${bookmarkId}"]`);
     if (card) {
       card.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
+        behavior: "smooth",
+        block: "center",
       });
       // 高亮效果
-      card.style.boxShadow = '0 0 0 3px rgba(102, 126, 234, 0.5)';
+      card.style.boxShadow = "0 0 0 3px rgba(102, 126, 234, 0.5)";
       setTimeout(() => {
-        card.style.boxShadow = '';
+        card.style.boxShadow = "";
       }, 2000);
     }
   }
@@ -171,7 +175,7 @@ class StatsEnhancer {
   async updateBookmarkStats() {
     try {
       // 获取最新统计数据
-      const response = await fetch('/api/analytics?type=summary');
+      const response = await fetch("/api/analytics?type=summary");
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
@@ -179,14 +183,14 @@ class StatsEnhancer {
         }
       }
     } catch (error) {
-      console.log('统计更新失败:', error);
+      console.log("统计更新失败:", error);
     }
   }
 
   displayStats(stats) {
     // 更新页面统计信息
     if (stats.summary) {
-      const totalElement = document.getElementById('totalCount');
+      const totalElement = document.getElementById("totalCount");
       if (totalElement) {
         totalElement.textContent = stats.summary.totalBookmarks || 0;
       }
@@ -194,8 +198,10 @@ class StatsEnhancer {
 
     // 显示热门书签提示
     if (stats.popularBookmarks && stats.popularBookmarks.length > 0) {
-      stats.popularBookmarks.slice(0, 3).forEach(bookmark => {
-        const card = document.querySelector(`[data-id="${bookmark.bookmarkId}"]`);
+      stats.popularBookmarks.slice(0, 3).forEach((bookmark) => {
+        const card = document.querySelector(
+          `[data-id="${bookmark.bookmarkId}"]`,
+        );
         if (card && bookmark.recentVisits > 5) {
           viewManager.markAsFeatured(bookmark.bookmarkId);
         }
@@ -216,10 +222,10 @@ class TooltipManager {
   }
 
   createTooltipContainer() {
-    if (!document.getElementById('tooltip')) {
-      const tooltip = document.createElement('div');
-      tooltip.id = 'tooltip';
-      tooltip.className = 'tooltip-container';
+    if (!document.getElementById("tooltip")) {
+      const tooltip = document.createElement("div");
+      tooltip.id = "tooltip";
+      tooltip.className = "tooltip-container";
       tooltip.style.cssText = `
         position: absolute;
         background: rgba(0, 0, 0, 0.9);
@@ -239,58 +245,66 @@ class TooltipManager {
   }
 
   bindTooltipEvents() {
-    document.addEventListener('mouseover', (e) => {
-      const target = e.target.closest('[title], [data-tooltip]');
+    document.addEventListener("mouseover", (e) => {
+      const target = e.target.closest("[title], [data-tooltip]");
       if (target) {
-        const text = target.getAttribute('title') || target.getAttribute('data-tooltip');
+        const text =
+          target.getAttribute("title") || target.getAttribute("data-tooltip");
         if (text) {
           this.showTooltip(e, text);
           // 清除原生title避免重复显示
-          if (target.hasAttribute('title')) {
-            target.setAttribute('data-original-title', target.getAttribute('title'));
-            target.removeAttribute('title');
+          if (target.hasAttribute("title")) {
+            target.setAttribute(
+              "data-original-title",
+              target.getAttribute("title"),
+            );
+            target.removeAttribute("title");
           }
         }
       }
     });
 
-    document.addEventListener('mousemove', (e) => {
+    document.addEventListener("mousemove", (e) => {
       this.updateTooltipPosition(e);
     });
 
-    document.addEventListener('mouseout', (e) => {
-      const target = e.target.closest('[data-original-title], [data-tooltip]');
+    document.addEventListener("mouseout", (e) => {
+      const target = e.target.closest("[data-original-title], [data-tooltip]");
       if (target) {
         this.hideTooltip();
         // 恢复原生title
-        if (target.hasAttribute('data-original-title')) {
-          target.setAttribute('title', target.getAttribute('data-original-title'));
-          target.removeAttribute('data-original-title');
+        if (target.hasAttribute("data-original-title")) {
+          target.setAttribute(
+            "title",
+            target.getAttribute("data-original-title"),
+          );
+          target.removeAttribute("data-original-title");
         }
       }
     });
   }
 
   showTooltip(e, text) {
-    const tooltip = document.getElementById('tooltip');
+    const tooltip = document.getElementById("tooltip");
     tooltip.textContent = text;
-    tooltip.style.opacity = '1';
+    tooltip.style.opacity = "1";
     this.updateTooltipPosition(e);
   }
 
   hideTooltip() {
-    const tooltip = document.getElementById('tooltip');
-    tooltip.style.opacity = '0';
+    const tooltip = document.getElementById("tooltip");
+    tooltip.style.opacity = "0";
   }
 
   updateTooltipPosition(e) {
-    const tooltip = document.getElementById('tooltip');
+    const tooltip = document.getElementById("tooltip");
     const rect = tooltip.getBoundingClientRect();
     const x = e.clientX + 10;
     const y = e.clientY - rect.height - 10;
 
-    tooltip.style.left = Math.min(x, window.innerWidth - rect.width - 10) + 'px';
-    tooltip.style.top = Math.max(y, 10) + 'px';
+    tooltip.style.left =
+      Math.min(x, window.innerWidth - rect.width - 10) + "px";
+    tooltip.style.top = Math.max(y, 10) + "px";
   }
 }
 
@@ -300,7 +314,7 @@ let statsEnhancer;
 let tooltipManager;
 
 // 页面加载完成后初始化
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   viewManager = new ViewManager();
   statsEnhancer = new StatsEnhancer();
   tooltipManager = new TooltipManager();
@@ -310,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // 页面卸载时清理
-window.addEventListener('beforeunload', () => {
+window.addEventListener("beforeunload", () => {
   if (statsEnhancer) {
     statsEnhancer.stopRealTimeUpdates();
   }

@@ -192,6 +192,7 @@ CREATE INDEX IF NOT EXISTS idx_categories_created_at ON categories(created_at DE
 
 INSERT OR IGNORE INTO system_config (config_key, config_value, description) VALUES
     ('initialized', 'true', 'Database schema has been applied'),
+    ('admin_password', 'admin123', 'Default admin password, change after first login'),
     ('site_title', '书签导航', 'Site title'),
     ('site_description', '现代化书签管理系统', 'Site description'),
     ('ai_api_endpoint', '', 'AI API endpoint, can be overridden by env'),

@@ -2,8 +2,8 @@
  * 认证中间件
  * 统一处理API认证逻辑，减少重复代码
  */
-import { authenticateRequest } from '../api/auth/verify.js';
-import { ResponseHelper } from './response-helper.js';
+import { authenticateRequest } from "../api/auth/verify.js";
+import { ResponseHelper } from "./response-helper.js";
 
 export class AuthMiddleware {
   /**
@@ -16,23 +16,23 @@ export class AuthMiddleware {
   static async authenticate(request, env, required = true) {
     try {
       const auth = await authenticateRequest(request, env);
-      
+
       if (required && !auth.authenticated) {
         return {
           success: false,
-          response: ResponseHelper.unauthorized(auth.error)
+          response: ResponseHelper.unauthorized(auth.error),
         };
       }
-      
+
       return {
         success: true,
         auth,
-        user: auth.user || null
+        user: auth.user || null,
       };
     } catch (error) {
       return {
         success: false,
-        response: ResponseHelper.serverError('认证验证失败', error.message)
+        response: ResponseHelper.serverError("认证验证失败", error.message),
       };
     }
   }
@@ -44,17 +44,17 @@ export class AuthMiddleware {
   static withAuth(handler, required = true) {
     return async (context) => {
       const { request, env } = context;
-      
+
       const authResult = await this.authenticate(request, env, required);
-      
+
       if (!authResult.success) {
         return authResult.response;
       }
-      
+
       // 将认证信息添加到context中
       context.auth = authResult.auth;
       context.user = authResult.user;
-      
+
       return await handler(context);
     };
   }

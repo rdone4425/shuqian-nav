@@ -1,179 +1,170 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>登录 - 书签导航</title>
-    <meta name="description" content="书签导航系统登录页面">
-    <link rel="stylesheet" href="/css/styles.css">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-</head>
-<body class="login-page">
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Bookmark Navigator</title>
+    <meta
+      name="description"
+      content="Administrator login for Bookmark Navigator"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  </head>
+  <body class="login-page">
     <div class="login-container">
-        <!-- 登录卡片 -->
-        <div class="login-card">
-            <div class="login-header">
-                <div class="logo">
-                    <span class="logo-icon">📚</span>
-                    <h1 class="logo-text">书签导航</h1>
-                </div>
-                <p class="login-subtitle">请输入密码以访问您的书签</p>
-                <p class="login-hint">💡 首次使用？系统会自动引导您设置密码</p>
-            </div>
-
-            <form id="loginForm" class="login-form">
-                <div class="form-group">
-                    <label for="password" class="form-label">
-                        <span class="label-icon">🔑</span>
-                        <span class="label-text">访问密码</span>
-                    </label>
-                    <input 
-                        type="password" 
-                        id="password" 
-                        name="password" 
-                        required 
-                        class="form-input"
-                        placeholder="请输入访问密码"
-                        autocomplete="current-password"
-                    >
-                </div>
-
-                <button type="submit" id="loginBtn" class="btn btn-primary btn-full">
-                    <span class="btn-icon">🚀</span>
-                    <span class="btn-text">登录</span>
-                </button>
-            </form>
-
-            <!-- 登录状态提示 -->
-            <div id="loginStatus" class="login-status hidden">
-                <div class="status-icon">⏳</div>
-                <div class="status-text">正在验证...</div>
-            </div>
-
-            <!-- 错误提示 -->
-            <div id="errorMessage" class="error-message hidden">
-                <div class="error-icon">⚠️</div>
-                <div class="error-text">密码错误，请重试</div>
-            </div>
+      <div class="login-card">
+        <div class="login-header">
+          <div class="logo">
+            <span class="logo-icon">B</span>
+            <h1 class="logo-text">Bookmark Navigator</h1>
+          </div>
+          <p class="login-subtitle">Enter the admin password to continue.</p>
+          <p class="login-hint">
+            First login: use <strong>admin123</strong>, then change it
+            immediately after sign-in.
+          </p>
         </div>
 
-        <!-- 页面底部信息 -->
-        <div class="login-footer">
-            <div class="footer-info">
-                <p>书签导航系统 v1.0.0</p>
-                <p>基于 Cloudflare Pages + Functions + D1</p>
-            </div>
-            <div class="footer-links">
-                <a href="/api/health" target="_blank" class="footer-link">系统状态</a>
-            </div>
+        <form id="loginForm" class="login-form">
+          <div class="form-group">
+            <label for="password" class="form-label">
+              <span class="label-icon">P</span>
+              <span class="label-text">Password</span>
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required
+              class="form-input"
+              placeholder="Enter password"
+              autocomplete="current-password"
+            />
+          </div>
+
+          <button type="submit" id="loginBtn" class="btn btn-primary btn-full">
+            <span class="btn-icon">L</span>
+            <span class="btn-text">Login</span>
+          </button>
+        </form>
+
+        <div id="loginStatus" class="login-status hidden">
+          <div class="status-icon">...</div>
+          <div class="status-text">Verifying...</div>
         </div>
+
+        <div id="errorMessage" class="error-message hidden">
+          <div class="error-icon">!</div>
+          <div class="error-text">Password is incorrect.</div>
+        </div>
+      </div>
+
+      <div class="login-footer">
+        <div class="footer-info">
+          <p>Bookmark Navigator v1.0.0</p>
+          <p>Cloudflare Pages + Functions + D1</p>
+        </div>
+        <div class="footer-links">
+          <a
+            href="/api/health"
+            target="_blank"
+            rel="noreferrer"
+            class="footer-link"
+            >Health Check</a
+          >
+        </div>
+      </div>
     </div>
 
-    <!-- 背景装饰 -->
     <div class="login-background">
-        <div class="bg-shape shape-1"></div>
-        <div class="bg-shape shape-2"></div>
-        <div class="bg-shape shape-3"></div>
+      <div class="bg-shape shape-1"></div>
+      <div class="bg-shape shape-2"></div>
+      <div class="bg-shape shape-3"></div>
     </div>
 
-    <!-- JavaScript -->
     <script src="/js/utils/storage.js"></script>
     <script src="/js/utils/api.js"></script>
     <script src="/js/auth.js"></script>
-    
+
     <script>
-        // 登录页面逻辑
-        document.addEventListener('DOMContentLoaded', () => {
-            const loginForm = document.getElementById('loginForm');
-            const passwordInput = document.getElementById('password');
-            const loginBtn = document.getElementById('loginBtn');
-            const loginStatus = document.getElementById('loginStatus');
-            const errorMessage = document.getElementById('errorMessage');
+      document.addEventListener("DOMContentLoaded", async () => {
+        const loginForm = document.getElementById("loginForm");
+        const passwordInput = document.getElementById("password");
+        const loginBtn = document.getElementById("loginBtn");
+        const loginStatus = document.getElementById("loginStatus");
+        const errorMessage = document.getElementById("errorMessage");
 
-            // 检查是否已登录
-            if (Auth.checkAuthenticated()) {
-                window.location.href = '/';
-                return;
+        await Auth.init();
+        if (Auth.checkAuthenticated()) {
+          window.location.href = "/";
+          return;
+        }
+
+        loginForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+
+          const password = passwordInput.value.trim();
+          if (!password) {
+            showError("Please enter a password.");
+            return;
+          }
+
+          try {
+            showLoading();
+            const result = await Auth.login(password);
+
+            if (!result.success) {
+              showError(result.error || "Login failed.");
+              return;
             }
 
-            // 处理登录表单提交
-            loginForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                const password = passwordInput.value.trim();
-                if (!password) {
-                    showError('请输入密码');
-                    return;
-                }
+            showSuccess(
+              result.isDefaultPassword
+                ? "Login successful. Change the default password as soon as possible."
+                : "Login successful. Redirecting...",
+            );
 
-                try {
-                    showLoading();
-                    const result = await Auth.login(password);
-                    
-                    if (result.success) {
-                        // 检查是否使用默认密码
-                        if (result.isDefaultPassword) {
-                            showSuccess('⚠️ ' + result.message + ' - 为了安全，建议尽快修改密码');
-                        } else {
-                            showSuccess('登录成功，正在跳转...');
-                        }
-                        setTimeout(() => {
-                            Auth.redirectAfterLogin();
-                        }, 1000);
-                    } else {
-                        // 处理特殊错误状态
-                        if (result.requireInitialSetup) {
-                            showError('🚀 系统需要初始化，请联系管理员或检查数据库配置');
-                        } else if (result.configRequired) {
-                            showError('⚙️ 配置错误：' + (result.details || result.error));
-                        } else {
-                            showError(result.error || '登录失败');
-                        }
-                    }
-                } catch (error) {
-                    console.error('登录错误:', error);
-                    showError('网络连接异常，请稍后重试');
-                }
-            });
-
-            // 显示加载状态
-            function showLoading() {
-                loginBtn.disabled = true;
-                loginBtn.querySelector('.btn-text').textContent = '登录中...';
-                loginStatus.classList.remove('hidden');
-                errorMessage.classList.add('hidden');
-            }
-
-            // 显示错误信息
-            function showError(message) {
-                loginBtn.disabled = false;
-                loginBtn.querySelector('.btn-text').textContent = '登录';
-                loginStatus.classList.add('hidden');
-                errorMessage.querySelector('.error-text').textContent = message;
-                errorMessage.classList.remove('hidden');
-                
-                // 聚焦到密码输入框
-                passwordInput.focus();
-                passwordInput.select();
-            }
-
-            // 显示成功信息
-            function showSuccess(message) {
-                loginStatus.querySelector('.status-icon').textContent = '✅';
-                loginStatus.querySelector('.status-text').textContent = message;
-                errorMessage.classList.add('hidden');
-            }
-
-            // 自动聚焦到密码输入框
-            passwordInput.focus();
-
-            // 回车键快捷登录
-            passwordInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    loginForm.dispatchEvent(new Event('submit'));
-                }
-            });
+            setTimeout(() => {
+              Auth.redirectAfterLogin();
+            }, 800);
+          } catch (error) {
+            console.error("Login failed:", error);
+            showError(error.message || "Network error. Please try again.");
+          }
         });
+
+        function showLoading() {
+          loginBtn.disabled = true;
+          loginBtn.querySelector(".btn-text").textContent = "Logging in...";
+          loginStatus.classList.remove("hidden");
+          loginStatus.querySelector(".status-icon").textContent = "...";
+          loginStatus.querySelector(".status-text").textContent =
+            "Verifying...";
+          errorMessage.classList.add("hidden");
+        }
+
+        function showError(message) {
+          loginBtn.disabled = false;
+          loginBtn.querySelector(".btn-text").textContent = "Login";
+          loginStatus.classList.add("hidden");
+          errorMessage.querySelector(".error-text").textContent = message;
+          errorMessage.classList.remove("hidden");
+          passwordInput.focus();
+          passwordInput.select();
+        }
+
+        function showSuccess(message) {
+          loginBtn.disabled = false;
+          loginBtn.querySelector(".btn-text").textContent = "Login";
+          loginStatus.classList.remove("hidden");
+          loginStatus.querySelector(".status-icon").textContent = "OK";
+          loginStatus.querySelector(".status-text").textContent = message;
+          errorMessage.classList.add("hidden");
+        }
+
+        passwordInput.focus();
+      });
     </script>
-</body>
+  </body>
 </html>

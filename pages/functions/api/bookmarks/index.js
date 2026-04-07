@@ -1,6 +1,6 @@
 // 书签列表API - 支持分页、搜索、排序
-import { authenticateRequest } from '../auth/verify.js';
-import { ResponseHelper } from '../../utils/response-helper.js';
+import { authenticateRequest } from "../auth/verify.js";
+import { ResponseHelper } from "../../utils/response-helper.js";
 
 export async function onRequestGet(context) {
   const { request, env } = context;
@@ -20,15 +20,15 @@ export async function onRequestGet(context) {
     // }
 
     // 获取查询参数
-    const page = parseInt(url.searchParams.get('page')) || 1;
-    const requestedLimit = parseInt(url.searchParams.get('limit')) || 20;
+    const page = parseInt(url.searchParams.get("page")) || 1;
+    const requestedLimit = parseInt(url.searchParams.get("limit")) || 20;
     // 对于导出功能，允许更大的limit值，最大5000
     const limit = Math.min(requestedLimit, 5000);
-    const search = url.searchParams.get('search') || '';
-    const category = url.searchParams.get('category') || '';
-    const sortBy = url.searchParams.get('sortBy') || 'created_at';
-    const sortOrder = url.searchParams.get('sortOrder') || 'desc';
-    
+    const search = url.searchParams.get("search") || "";
+    const category = url.searchParams.get("category") || "";
+    const sortBy = url.searchParams.get("sortBy") || "created_at";
+    const sortOrder = url.searchParams.get("sortOrder") || "desc";
+
     const offset = (page - 1) * limit;
 
     // 构建查询条件
@@ -36,22 +36,38 @@ export async function onRequestGet(context) {
     let params = [];
 
     if (search) {
-      whereConditions.push('(b.title LIKE ? OR b.description LIKE ? OR b.url LIKE ?)');
+      whereConditions.push(
+        "(b.title LIKE ? OR b.description LIKE ? OR b.url LIKE ?)",
+      );
       const searchPattern = `%${search}%`;
       params.push(searchPattern, searchPattern, searchPattern);
     }
 
     if (category) {
-      whereConditions.push('b.category_id = ?');
+      whereConditions.push("b.category_id = ?");
       params.push(category);
     }
 
-    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+    const whereClause =
+      whereConditions.length > 0
+        ? `WHERE ${whereConditions.join(" AND ")}`
+        : "";
 
     // 验证排序字段
-    const allowedSortFields = ['created_at', 'updated_at', 'title', 'url', 'visit_count', 'last_visited'];
-    const validSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'created_at';
-    const validSortOrder = ['asc', 'desc'].includes(sortOrder.toLowerCase()) ? sortOrder.toUpperCase() : 'DESC';
+    const allowedSortFields = [
+      "created_at",
+      "updated_at",
+      "title",
+      "url",
+      "visit_count",
+      "last_visited",
+    ];
+    const validSortBy = allowedSortFields.includes(sortBy)
+      ? sortBy
+      : "created_at";
+    const validSortOrder = ["asc", "desc"].includes(sortOrder.toLowerCase())
+      ? sortOrder.toUpperCase()
+      : "DESC";
 
     // 查询书签数据
     const bookmarksQuery = `
@@ -103,18 +119,17 @@ export async function onRequestGet(context) {
         total,
         totalPages,
         hasNext: page < totalPages,
-        hasPrev: page > 1
+        hasPrev: page > 1,
       },
       filters: {
         search,
         category,
         sortBy: validSortBy,
-        sortOrder: validSortOrder
-      }
+        sortOrder: validSortOrder,
+      },
     });
-
   } catch (error) {
-    return ResponseHelper.serverError('获取书签列表失败', error.message);
+    return ResponseHelper.serverError("获取书签列表失败", error.message);
   }
 }
 
@@ -133,7 +148,7 @@ export async function onRequestPost(context) {
 
     // 验证必填字段
     if (!title || !url) {
-      return ResponseHelper.validationError('标题和URL是必填字段');
+      return ResponseHelper.validationError("标题和URL是必填字段");
     }
 
     // 生成favicon URL
@@ -141,14 +156,19 @@ export async function onRequestPost(context) {
     const favicon_url = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
 
     // 插入新书签
-    const result = await env.BOOKMARKS_DB.prepare(`
+    const result = await env.BOOKMARKS_DB.prepare(
+      `
       INSERT INTO bookmarks (title, url, description, category_id, favicon_url)
       VALUES (?, ?, ?, ?, ?)
-    `).bind(title, url, description || null, category_id || null, favicon_url).run();
+    `,
+    )
+      .bind(title, url, description || null, category_id || null, favicon_url)
+      .run();
 
     if (result.success) {
       // 获取新创建的书签
-      const newBookmark = await env.BOOKMARKS_DB.prepare(`
+      const newBookmark = await env.BOOKMARKS_DB.prepare(
+        `
         SELECT 
           b.id,
           b.title,
@@ -163,14 +183,16 @@ export async function onRequestPost(context) {
         FROM bookmarks b
         LEFT JOIN categories c ON b.category_id = c.id
         WHERE b.id = ?
-      `).bind(result.meta.last_row_id).first();
+      `,
+      )
+        .bind(result.meta.last_row_id)
+        .first();
 
-      return ResponseHelper.success(newBookmark, '书签创建成功', 201);
+      return ResponseHelper.success(newBookmark, "书签创建成功", 201);
     } else {
-      throw new Error('数据库插入失败');
+      throw new Error("数据库插入失败");
     }
-
   } catch (error) {
-    return ResponseHelper.serverError('创建书签失败', error.message);
+    return ResponseHelper.serverError("创建书签失败", error.message);
   }
 }

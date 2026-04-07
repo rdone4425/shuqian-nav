@@ -14,11 +14,11 @@ export class BookmarkAnalytics {
     const visitRecord = {
       bookmarkId,
       timestamp: now.toISOString(),
-      title: bookmarkData.title || '',
-      url: bookmarkData.url || '',
-      category: bookmarkData.category || '',
-      userAgent: bookmarkData.userAgent || '',
-      referrer: bookmarkData.referrer || ''
+      title: bookmarkData.title || "",
+      url: bookmarkData.url || "",
+      category: bookmarkData.category || "",
+      userAgent: bookmarkData.userAgent || "",
+      referrer: bookmarkData.referrer || "",
     };
 
     // 记录单个书签访问
@@ -29,9 +29,9 @@ export class BookmarkAnalytics {
         lastVisit: null,
         firstVisit: null,
         visitHistory: [],
-        title: bookmarkData.title || '',
-        url: bookmarkData.url || '',
-        category: bookmarkData.category || ''
+        title: bookmarkData.title || "",
+        url: bookmarkData.url || "",
+        category: bookmarkData.category || "",
       });
     }
 
@@ -41,7 +41,7 @@ export class BookmarkAnalytics {
     if (!bookmark.firstVisit) {
       bookmark.firstVisit = visitRecord.timestamp;
     }
-    
+
     // 保留最近100次访问记录
     bookmark.visitHistory.push(visitRecord);
     if (bookmark.visitHistory.length > 100) {
@@ -60,14 +60,14 @@ export class BookmarkAnalytics {
         totalVisits: 0,
         uniqueBookmarks: new Set(),
         categories: new Map(),
-        hourlyDistribution: new Array(24).fill(0)
+        hourlyDistribution: new Array(24).fill(0),
       });
     }
 
     const dailyStat = this.dailyStats.get(dateKey);
     dailyStat.totalVisits++;
     dailyStat.uniqueBookmarks.add(bookmarkId);
-    
+
     // 小时分布
     const hour = now.getHours();
     dailyStat.hourlyDistribution[hour]++;
@@ -77,8 +77,10 @@ export class BookmarkAnalytics {
       if (!dailyStat.categories.has(bookmarkData.category)) {
         dailyStat.categories.set(bookmarkData.category, 0);
       }
-      dailyStat.categories.set(bookmarkData.category, 
-        dailyStat.categories.get(bookmarkData.category) + 1);
+      dailyStat.categories.set(
+        bookmarkData.category,
+        dailyStat.categories.get(bookmarkData.category) + 1,
+      );
 
       // 全局分类统计
       if (!this.categories.has(bookmarkData.category)) {
@@ -86,7 +88,7 @@ export class BookmarkAnalytics {
           name: bookmarkData.category,
           totalVisits: 0,
           uniqueBookmarks: new Set(),
-          lastVisit: null
+          lastVisit: null,
         });
       }
       const categoryStat = this.categories.get(bookmarkData.category);
@@ -112,7 +114,7 @@ export class BookmarkAnalytics {
         firstSearch: null,
         lastSearch: null,
         avgResultCount: 0,
-        totalResultCount: 0
+        totalResultCount: 0,
       });
     }
 
@@ -123,7 +125,8 @@ export class BookmarkAnalytics {
       searchStat.firstSearch = now.toISOString();
     }
     searchStat.totalResultCount += resultCount;
-    searchStat.avgResultCount = searchStat.totalResultCount / searchStat.searchCount;
+    searchStat.avgResultCount =
+      searchStat.totalResultCount / searchStat.searchCount;
 
     return searchStat;
   }
@@ -136,8 +139,8 @@ export class BookmarkAnalytics {
     const popularBookmarks = [];
 
     for (const [bookmarkId, data] of this.visits) {
-      const recentVisits = data.visitHistory.filter(visit => 
-        new Date(visit.timestamp) >= cutoffDate
+      const recentVisits = data.visitHistory.filter(
+        (visit) => new Date(visit.timestamp) >= cutoffDate,
       );
 
       if (recentVisits.length > 0) {
@@ -149,7 +152,7 @@ export class BookmarkAnalytics {
           totalVisits: data.totalVisits,
           recentVisits: recentVisits.length,
           lastVisit: data.lastVisit,
-          popularity: this.calculatePopularity(data, recentVisits)
+          popularity: this.calculatePopularity(data, recentVisits),
         });
       }
     }
@@ -171,9 +174,11 @@ export class BookmarkAnalytics {
     const lastVisitTime = new Date(data.lastVisit).getTime();
     const now = Date.now();
     const daysSinceLastVisit = (now - lastVisitTime) / (1000 * 60 * 60 * 24);
-    const recencyScore = Math.max(0, 1 - (daysSinceLastVisit / 30));
+    const recencyScore = Math.max(0, 1 - daysSinceLastVisit / 30);
 
-    return (frequencyScore * frequencyWeight + recencyScore * recencyWeight) * 100;
+    return (
+      (frequencyScore * frequencyWeight + recencyScore * recencyWeight) * 100
+    );
   }
 
   // 获取使用统计报告
@@ -189,19 +194,19 @@ export class BookmarkAnalytics {
         activeDays: 0,
         avgVisitsPerDay: 0,
         reportPeriod: days,
-        generatedAt: new Date().toISOString()
+        generatedAt: new Date().toISOString(),
       },
       dailyStats: [],
       popularBookmarks: this.getPopularBookmarks(10, days),
       categoryStats: [],
       searchStats: this.getSearchStatistics(days),
       timeDistribution: this.getTimeDistribution(days),
-      insights: []
+      insights: [],
     };
 
     // 统计每日数据
     const sortedDays = Array.from(this.dailyStats.keys())
-      .filter(dateKey => dateKey >= cutoffKey)
+      .filter((dateKey) => dateKey >= cutoffKey)
       .sort();
 
     for (const dateKey of sortedDays) {
@@ -210,19 +215,24 @@ export class BookmarkAnalytics {
         date: dateKey,
         totalVisits: dailyStat.totalVisits,
         uniqueBookmarks: dailyStat.uniqueBookmarks.size,
-        categories: Array.from(dailyStat.categories.entries()).map(([name, count]) => ({
-          name, count
-        })),
-        hourlyDistribution: dailyStat.hourlyDistribution
+        categories: Array.from(dailyStat.categories.entries()).map(
+          ([name, count]) => ({
+            name,
+            count,
+          }),
+        ),
+        hourlyDistribution: dailyStat.hourlyDistribution,
       };
-      
+
       report.dailyStats.push(dayData);
       report.summary.totalVisits += dailyStat.totalVisits;
     }
 
     report.summary.activeDays = sortedDays.length;
-    report.summary.avgVisitsPerDay = report.summary.activeDays > 0 ? 
-      Math.round(report.summary.totalVisits / report.summary.activeDays) : 0;
+    report.summary.avgVisitsPerDay =
+      report.summary.activeDays > 0
+        ? Math.round(report.summary.totalVisits / report.summary.activeDays)
+        : 0;
 
     // 分类统计
     for (const [categoryName, categoryData] of this.categories) {
@@ -232,8 +242,8 @@ export class BookmarkAnalytics {
         uniqueBookmarks: categoryData.uniqueBookmarks.size,
         lastVisit: categoryData.lastVisit,
         avgVisitsPerBookmark: Math.round(
-          categoryData.totalVisits / categoryData.uniqueBookmarks.size
-        )
+          categoryData.totalVisits / categoryData.uniqueBookmarks.size,
+        ),
       });
     }
 
@@ -251,20 +261,25 @@ export class BookmarkAnalytics {
     cutoffDate.setDate(cutoffDate.getDate() - days);
 
     const popularSearches = Array.from(this.searchTerms.values())
-      .filter(search => new Date(search.lastSearch) >= cutoffDate)
+      .filter((search) => new Date(search.lastSearch) >= cutoffDate)
       .sort((a, b) => b.searchCount - a.searchCount)
       .slice(0, 20);
 
     return {
-      totalSearches: popularSearches.reduce((sum, search) => sum + search.searchCount, 0),
+      totalSearches: popularSearches.reduce(
+        (sum, search) => sum + search.searchCount,
+        0,
+      ),
       uniqueTerms: popularSearches.length,
-      popularTerms: popularSearches.map(search => ({
+      popularTerms: popularSearches.map((search) => ({
         term: search.term,
         searchCount: search.searchCount,
         avgResultCount: Math.round(search.avgResultCount),
-        lastSearch: search.lastSearch
+        lastSearch: search.lastSearch,
       })),
-      noResultSearches: popularSearches.filter(search => search.avgResultCount === 0).length
+      noResultSearches: popularSearches.filter(
+        (search) => search.avgResultCount === 0,
+      ).length,
     };
   }
 
@@ -295,13 +310,13 @@ export class BookmarkAnalytics {
       hourlyDistribution: hourlyTotal.map((count, hour) => ({
         hour,
         count,
-        label: `${hour.toString().padStart(2, '0')}:00`
+        label: `${hour.toString().padStart(2, "0")}:00`,
       })),
       weeklyDistribution: daylyTotal.map((count, day) => ({
         day,
         count,
-        label: ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][day]
-      }))
+        label: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"][day],
+      })),
     };
   }
 
@@ -312,41 +327,41 @@ export class BookmarkAnalytics {
     // 使用频率洞察
     if (report.summary.avgVisitsPerDay > 10) {
       insights.push({
-        type: 'usage_pattern',
-        title: '高频用户',
+        type: "usage_pattern",
+        title: "高频用户",
         description: `您每天平均访问 ${report.summary.avgVisitsPerDay} 个书签，是一个活跃用户！`,
-        icon: '🔥'
+        icon: "🔥",
       });
     } else if (report.summary.avgVisitsPerDay < 2) {
       insights.push({
-        type: 'usage_pattern',
-        title: '轻度使用',
-        description: '您可以尝试将常用网站添加为书签来提高效率',
-        icon: '💡'
+        type: "usage_pattern",
+        title: "轻度使用",
+        description: "您可以尝试将常用网站添加为书签来提高效率",
+        icon: "💡",
       });
     }
 
     // 时间模式洞察
     const timeStats = report.timeDistribution;
-    const peakHour = timeStats.hourlyDistribution.reduce((max, current) => 
-      current.count > max.count ? current : max
+    const peakHour = timeStats.hourlyDistribution.reduce((max, current) =>
+      current.count > max.count ? current : max,
     );
-    
+
     if (peakHour.count > 0) {
-      let timeDescription = '';
+      let timeDescription = "";
       if (peakHour.hour >= 9 && peakHour.hour <= 17) {
-        timeDescription = '工作时间';
+        timeDescription = "工作时间";
       } else if (peakHour.hour >= 18 && peakHour.hour <= 22) {
-        timeDescription = '晚间时间';
+        timeDescription = "晚间时间";
       } else {
-        timeDescription = '深夜时间';
+        timeDescription = "深夜时间";
       }
 
       insights.push({
-        type: 'time_pattern',
-        title: '使用时间偏好',
+        type: "time_pattern",
+        title: "使用时间偏好",
         description: `您主要在${timeDescription}（${peakHour.label}）使用书签`,
-        icon: '⏰'
+        icon: "⏰",
       });
     }
 
@@ -354,20 +369,20 @@ export class BookmarkAnalytics {
     if (report.categoryStats.length > 0) {
       const topCategory = report.categoryStats[0];
       insights.push({
-        type: 'category_preference',
-        title: '偏好分类',
+        type: "category_preference",
+        title: "偏好分类",
         description: `您最常访问「${topCategory.name}」分类的书签（${topCategory.totalVisits}次访问）`,
-        icon: '📁'
+        icon: "📁",
       });
     }
 
     // 搜索行为洞察
     if (report.searchStats.noResultSearches > 0) {
       insights.push({
-        type: 'search_behavior',
-        title: '搜索优化建议',
+        type: "search_behavior",
+        title: "搜索优化建议",
         description: `有 ${report.searchStats.noResultSearches} 个搜索词没有找到结果，可能需要添加相关书签`,
-        icon: '🔍'
+        icon: "🔍",
       });
     }
 
@@ -376,7 +391,7 @@ export class BookmarkAnalytics {
 
   // 获取日期键
   getDateKey(date) {
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   }
 
   // 清理旧数据
@@ -387,10 +402,10 @@ export class BookmarkAnalytics {
 
     // 清理访问记录
     for (const [bookmarkId, data] of this.visits) {
-      data.visitHistory = data.visitHistory.filter(visit => 
-        new Date(visit.timestamp).getTime() > cutoffTime
+      data.visitHistory = data.visitHistory.filter(
+        (visit) => new Date(visit.timestamp).getTime() > cutoffTime,
       );
-      
+
       // 如果没有访问记录，移除整个条目
       if (data.visitHistory.length === 0) {
         this.visits.delete(bookmarkId);
@@ -410,21 +425,27 @@ export class BookmarkAnalytics {
   exportData() {
     return {
       visits: Object.fromEntries(this.visits),
-      dailyStats: Object.fromEntries(Array.from(this.dailyStats.entries()).map(([key, value]) => [
-        key, {
-          ...value,
-          uniqueBookmarks: Array.from(value.uniqueBookmarks),
-          categories: Object.fromEntries(value.categories)
-        }
-      ])),
-      categories: Object.fromEntries(Array.from(this.categories.entries()).map(([key, value]) => [
-        key, {
-          ...value,
-          uniqueBookmarks: Array.from(value.uniqueBookmarks)
-        }
-      ])),
+      dailyStats: Object.fromEntries(
+        Array.from(this.dailyStats.entries()).map(([key, value]) => [
+          key,
+          {
+            ...value,
+            uniqueBookmarks: Array.from(value.uniqueBookmarks),
+            categories: Object.fromEntries(value.categories),
+          },
+        ]),
+      ),
+      categories: Object.fromEntries(
+        Array.from(this.categories.entries()).map(([key, value]) => [
+          key,
+          {
+            ...value,
+            uniqueBookmarks: Array.from(value.uniqueBookmarks),
+          },
+        ]),
+      ),
       searchTerms: Object.fromEntries(this.searchTerms),
-      exportedAt: new Date().toISOString()
+      exportedAt: new Date().toISOString(),
     };
   }
 
@@ -433,26 +454,32 @@ export class BookmarkAnalytics {
     if (data.visits) {
       this.visits = new Map(Object.entries(data.visits));
     }
-    
+
     if (data.dailyStats) {
-      this.dailyStats = new Map(Object.entries(data.dailyStats).map(([key, value]) => [
-        key, {
-          ...value,
-          uniqueBookmarks: new Set(value.uniqueBookmarks),
-          categories: new Map(Object.entries(value.categories))
-        }
-      ]));
+      this.dailyStats = new Map(
+        Object.entries(data.dailyStats).map(([key, value]) => [
+          key,
+          {
+            ...value,
+            uniqueBookmarks: new Set(value.uniqueBookmarks),
+            categories: new Map(Object.entries(value.categories)),
+          },
+        ]),
+      );
     }
-    
+
     if (data.categories) {
-      this.categories = new Map(Object.entries(data.categories).map(([key, value]) => [
-        key, {
-          ...value,
-          uniqueBookmarks: new Set(value.uniqueBookmarks)
-        }
-      ]));
+      this.categories = new Map(
+        Object.entries(data.categories).map(([key, value]) => [
+          key,
+          {
+            ...value,
+            uniqueBookmarks: new Set(value.uniqueBookmarks),
+          },
+        ]),
+      );
     }
-    
+
     if (data.searchTerms) {
       this.searchTerms = new Map(Object.entries(data.searchTerms));
     }

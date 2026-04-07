@@ -4,11 +4,11 @@
 const Storage = {
   // 存储键名常量
   KEYS: {
-    AUTH_TOKEN: 'bookmark_auth_token',
-    USER_PREFERENCES: 'bookmark_user_preferences',
-    LAST_SEARCH: 'bookmark_last_search',
-    VIEW_MODE: 'bookmark_view_mode',
-    SORT_PREFERENCE: 'bookmark_sort_preference'
+    AUTH_TOKEN: "bookmark_auth_token",
+    USER_PREFERENCES: "bookmark_user_preferences",
+    LAST_SEARCH: "bookmark_last_search",
+    VIEW_MODE: "bookmark_view_mode",
+    SORT_PREFERENCE: "bookmark_sort_preference",
   },
 
   // 获取存储项
@@ -18,7 +18,7 @@ const Storage = {
       if (item === null) {
         return defaultValue;
       }
-      
+
       // 尝试解析JSON，如果失败则返回原始字符串
       try {
         return JSON.parse(item);
@@ -26,7 +26,7 @@ const Storage = {
         return item;
       }
     } catch (error) {
-      console.warn('获取存储项失败:', error);
+      console.warn("获取存储项失败:", error);
       return defaultValue;
     }
   },
@@ -34,11 +34,12 @@ const Storage = {
   // 设置存储项
   set(key, value) {
     try {
-      const serializedValue = typeof value === 'string' ? value : JSON.stringify(value);
+      const serializedValue =
+        typeof value === "string" ? value : JSON.stringify(value);
       localStorage.setItem(key, serializedValue);
       return true;
     } catch (error) {
-      console.error('设置存储项失败:', error);
+      console.error("设置存储项失败:", error);
       return false;
     }
   },
@@ -49,7 +50,7 @@ const Storage = {
       localStorage.removeItem(key);
       return true;
     } catch (error) {
-      console.error('删除存储项失败:', error);
+      console.error("删除存储项失败:", error);
       return false;
     }
   },
@@ -60,7 +61,7 @@ const Storage = {
       localStorage.clear();
       return true;
     } catch (error) {
-      console.error('清空存储失败:', error);
+      console.error("清空存储失败:", error);
       return false;
     }
   },
@@ -75,7 +76,7 @@ const Storage = {
     try {
       return Object.keys(localStorage);
     } catch (error) {
-      console.error('获取存储键名失败:', error);
+      console.error("获取存储键名失败:", error);
       return [];
     }
   },
@@ -91,7 +92,7 @@ const Storage = {
       }
       return total;
     } catch (error) {
-      console.error('计算存储大小失败:', error);
+      console.error("计算存储大小失败:", error);
       return 0;
     }
   },
@@ -117,7 +118,7 @@ const Storage = {
     hasToken() {
       const token = Storage.auth.getToken();
       return token && token.length > 0;
-    }
+    },
   },
 
   // 用户偏好设置
@@ -125,12 +126,12 @@ const Storage = {
     // 获取所有偏好设置
     getAll() {
       return Storage.get(Storage.KEYS.USER_PREFERENCES, {
-        viewMode: 'grid',
-        sortBy: 'created_at',
-        sortOrder: 'desc',
+        viewMode: "grid",
+        sortBy: "created_at",
+        sortOrder: "desc",
         itemsPerPage: 20,
         showDescriptions: true,
-        autoRefresh: false
+        autoRefresh: false,
       });
     },
 
@@ -150,7 +151,7 @@ const Storage = {
     // 重置偏好设置
     reset() {
       return Storage.remove(Storage.KEYS.USER_PREFERENCES);
-    }
+    },
   },
 
   // 搜索历史
@@ -158,38 +159,38 @@ const Storage = {
     // 获取最后搜索
     getLast() {
       return Storage.get(Storage.KEYS.LAST_SEARCH, {
-        query: '',
-        category: '',
-        timestamp: null
+        query: "",
+        category: "",
+        timestamp: null,
       });
     },
 
     // 保存搜索
-    save(query, category = '') {
+    save(query, category = "") {
       return Storage.set(Storage.KEYS.LAST_SEARCH, {
         query,
         category,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     },
 
     // 清除搜索历史
     clear() {
       return Storage.remove(Storage.KEYS.LAST_SEARCH);
-    }
+    },
   },
 
   // 视图模式
   viewMode: {
     // 获取视图模式
     get() {
-      return Storage.get(Storage.KEYS.VIEW_MODE, 'grid');
+      return Storage.get(Storage.KEYS.VIEW_MODE, "grid");
     },
 
     // 设置视图模式
     set(mode) {
       return Storage.set(Storage.KEYS.VIEW_MODE, mode);
-    }
+    },
   },
 
   // 排序偏好
@@ -197,8 +198,8 @@ const Storage = {
     // 获取排序偏好
     get() {
       return Storage.get(Storage.KEYS.SORT_PREFERENCE, {
-        sortBy: 'created_at',
-        sortOrder: 'desc'
+        sortBy: "created_at",
+        sortOrder: "desc",
       });
     },
 
@@ -206,9 +207,9 @@ const Storage = {
     set(sortBy, sortOrder) {
       return Storage.set(Storage.KEYS.SORT_PREFERENCE, {
         sortBy,
-        sortOrder
+        sortOrder,
       });
-    }
+    },
   },
 
   // 数据导出
@@ -216,7 +217,7 @@ const Storage = {
     try {
       const data = {};
       for (let key in localStorage) {
-        if (localStorage.hasOwnProperty(key) && key.startsWith('bookmark_')) {
+        if (localStorage.hasOwnProperty(key) && key.startsWith("bookmark_")) {
           data[key] = localStorage[key];
         }
       }
@@ -224,13 +225,13 @@ const Storage = {
         success: true,
         data: data,
         timestamp: new Date().toISOString(),
-        version: '1.0.0'
+        version: "1.0.0",
       };
     } catch (error) {
-      console.error('导出数据失败:', error);
+      console.error("导出数据失败:", error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   },
@@ -238,13 +239,13 @@ const Storage = {
   // 数据导入
   import(data) {
     try {
-      if (!data || typeof data !== 'object') {
-        throw new Error('无效的导入数据格式');
+      if (!data || typeof data !== "object") {
+        throw new Error("无效的导入数据格式");
       }
 
       let importedCount = 0;
       for (let key in data.data || data) {
-        if (key.startsWith('bookmark_')) {
+        if (key.startsWith("bookmark_")) {
           localStorage.setItem(key, data.data ? data.data[key] : data[key]);
           importedCount++;
         }
@@ -253,16 +254,16 @@ const Storage = {
       return {
         success: true,
         importedCount: importedCount,
-        message: `成功导入 ${importedCount} 项设置`
+        message: `成功导入 ${importedCount} 项设置`,
       };
     } catch (error) {
-      console.error('导入数据失败:', error);
+      console.error("导入数据失败:", error);
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
-  }
+  },
 };
 
 // 导出到全局作用域

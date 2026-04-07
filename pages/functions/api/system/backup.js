@@ -3,25 +3,28 @@
  * 导出所有书签和分类数据，不受数量限制
  */
 
-import { authenticateRequest } from '../auth/verify.js';
+import { authenticateRequest } from "../auth/verify.js";
 
 export async function onRequestGet(context) {
   try {
     // 验证认证
     const auth = await authenticateRequest(context.request, context.env);
     if (!auth.authenticated) {
-      return new Response(JSON.stringify({
-        success: false,
-        error: auth.error
-      }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: auth.error,
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
     }
 
     const db = context.env.BOOKMARKS_DB;
     const url = new URL(context.request.url);
-    const format = url.searchParams.get('format') || 'json'; // json 或 html
+    const format = url.searchParams.get("format") || "json"; // json 或 html
 
     // 获取所有书签（不分页）
     const bookmarksQuery = `
@@ -73,7 +76,7 @@ export async function onRequestGet(context) {
 
     const systemResult = await db.prepare(systemQuery).all();
     const systemConfig = {};
-    (systemResult.results || []).forEach(row => {
+    (systemResult.results || []).forEach((row) => {
       systemConfig[row.config_key] = row.config_value;
     });
 
@@ -82,71 +85,76 @@ export async function onRequestGet(context) {
       metadata: {
         exportTime: new Date().toISOString(),
         exportFormat: format,
-        version: '1.0.0',
+        version: "1.0.0",
         totalBookmarks: bookmarks.length,
         totalCategories: categories.length,
-        systemConfig: systemConfig
+        systemConfig: systemConfig,
       },
       bookmarks: bookmarks,
       categories: categories,
       statistics: {
-        bookmarksByCategory: categories.map(cat => ({
+        bookmarksByCategory: categories.map((cat) => ({
           categoryName: cat.name,
-          count: cat.bookmark_count
+          count: cat.bookmark_count,
         })),
-        totalVisits: bookmarks.reduce((sum, b) => sum + (b.visit_count || 0), 0),
+        totalVisits: bookmarks.reduce(
+          (sum, b) => sum + (b.visit_count || 0),
+          0,
+        ),
         mostVisited: bookmarks
-          .filter(b => b.visit_count > 0)
+          .filter((b) => b.visit_count > 0)
           .sort((a, b) => (b.visit_count || 0) - (a.visit_count || 0))
           .slice(0, 10)
-          .map(b => ({ title: b.title, url: b.url, visits: b.visit_count }))
-      }
+          .map((b) => ({ title: b.title, url: b.url, visits: b.visit_count })),
+      },
     };
 
-    if (format === 'html') {
+    if (format === "html") {
       // 生成HTML格式
       const html = generateBackupHTML(exportData);
-      
+
       return new Response(html, {
         status: 200,
         headers: {
-          'Content-Type': 'text/html; charset=utf-8',
-          'Content-Disposition': `attachment; filename="bookmarks-backup-${new Date().toISOString().split('T')[0]}.html"`
-        }
+          "Content-Type": "text/html; charset=utf-8",
+          "Content-Disposition": `attachment; filename="bookmarks-backup-${new Date().toISOString().split("T")[0]}.html"`,
+        },
       });
     } else {
       // 返回JSON格式
       return new Response(JSON.stringify(exportData, null, 2), {
         status: 200,
         headers: {
-          'Content-Type': 'application/json; charset=utf-8',
-          'Content-Disposition': `attachment; filename="bookmarks-backup-${new Date().toISOString().split('T')[0]}.json"`
-        }
+          "Content-Type": "application/json; charset=utf-8",
+          "Content-Disposition": `attachment; filename="bookmarks-backup-${new Date().toISOString().split("T")[0]}.json"`,
+        },
       });
     }
-
   } catch (error) {
-    console.error('备份失败:', error);
-    
-    return new Response(JSON.stringify({
-      success: false,
-      error: '备份失败: ' + error.message
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    console.error("备份失败:", error);
+
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "备份失败: " + error.message,
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   }
 }
 
 // 生成HTML格式的备份文件
 function generateBackupHTML(exportData) {
   const { metadata, bookmarks, categories } = exportData;
-  
+
   // 按分类组织书签
   const bookmarksByCategory = {};
   const uncategorized = [];
-  
-  bookmarks.forEach(bookmark => {
+
+  bookmarks.forEach((bookmark) => {
     if (bookmark.category_name) {
       if (!bookmarksByCategory[bookmark.category_name]) {
         bookmarksByCategory[bookmark.category_name] = [];
@@ -162,7 +170,7 @@ function generateBackupHTML(exportData) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>书签备份 - ${metadata.exportTime.split('T')[0]}</title>
+    <title>书签备份 - ${metadata.exportTime.split("T")[0]}</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 20px; background: #f5f5f5; }
         .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
@@ -185,7 +193,7 @@ function generateBackupHTML(exportData) {
     <div class="container">
         <div class="header">
             <h1>📚 书签备份</h1>
-            <p>导出时间: ${new Date(metadata.exportTime).toLocaleString('zh-CN')}</p>
+            <p>导出时间: ${new Date(metadata.exportTime).toLocaleString("zh-CN")}</p>
         </div>
         
         <div class="stats">
@@ -204,29 +212,32 @@ function generateBackupHTML(exportData) {
         </div>`;
 
   // 添加分类书签
-  Object.entries(bookmarksByCategory).forEach(([categoryName, categoryBookmarks]) => {
-    html += `
+  Object.entries(bookmarksByCategory).forEach(
+    ([categoryName, categoryBookmarks]) => {
+      html += `
         <div class="category">
             <div class="category-header">
                 📁 ${categoryName} (${categoryBookmarks.length})
             </div>`;
-    
-    categoryBookmarks.forEach(bookmark => {
-      const visitInfo = bookmark.visit_count > 0 ? `访问${bookmark.visit_count}次` : '';
-      html += `
+
+      categoryBookmarks.forEach((bookmark) => {
+        const visitInfo =
+          bookmark.visit_count > 0 ? `访问${bookmark.visit_count}次` : "";
+        html += `
             <div class="bookmark">
-                <img src="${bookmark.favicon_url || '/favicon.ico'}" alt="" class="favicon" onerror="this.style.display='none'">
+                <img src="${bookmark.favicon_url || "/favicon.ico"}" alt="" class="favicon" onerror="this.style.display='none'">
                 <div class="bookmark-info">
                     <a href="${bookmark.url}" class="bookmark-title" target="_blank">${bookmark.title}</a>
                     <div class="bookmark-url">${bookmark.url}</div>
-                    ${bookmark.description ? `<div class="bookmark-url">${bookmark.description}</div>` : ''}
+                    ${bookmark.description ? `<div class="bookmark-url">${bookmark.description}</div>` : ""}
                 </div>
                 <div class="bookmark-meta">${visitInfo}</div>
             </div>`;
-    });
-    
-    html += `</div>`;
-  });
+      });
+
+      html += `</div>`;
+    },
+  );
 
   // 添加未分类书签
   if (uncategorized.length > 0) {
@@ -235,21 +246,22 @@ function generateBackupHTML(exportData) {
             <div class="category-header">
                 📄 未分类 (${uncategorized.length})
             </div>`;
-    
-    uncategorized.forEach(bookmark => {
-      const visitInfo = bookmark.visit_count > 0 ? `访问${bookmark.visit_count}次` : '';
+
+    uncategorized.forEach((bookmark) => {
+      const visitInfo =
+        bookmark.visit_count > 0 ? `访问${bookmark.visit_count}次` : "";
       html += `
             <div class="bookmark">
-                <img src="${bookmark.favicon_url || '/favicon.ico'}" alt="" class="favicon" onerror="this.style.display='none'">
+                <img src="${bookmark.favicon_url || "/favicon.ico"}" alt="" class="favicon" onerror="this.style.display='none'">
                 <div class="bookmark-info">
                     <a href="${bookmark.url}" class="bookmark-title" target="_blank">${bookmark.title}</a>
                     <div class="bookmark-url">${bookmark.url}</div>
-                    ${bookmark.description ? `<div class="bookmark-url">${bookmark.description}</div>` : ''}
+                    ${bookmark.description ? `<div class="bookmark-url">${bookmark.description}</div>` : ""}
                 </div>
                 <div class="bookmark-meta">${visitInfo}</div>
             </div>`;
     });
-    
+
     html += `</div>`;
   }
 

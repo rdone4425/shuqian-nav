@@ -5,27 +5,27 @@
 class DOMHelper {
   // 缓存DOM元素引用
   static elementCache = new Map();
-  
+
   /**
    * 批量获取DOM元素并缓存
    */
   static getElements(selectors) {
     const elements = {};
-    
+
     for (const [key, selector] of Object.entries(selectors)) {
       // 先检查缓存
       if (this.elementCache.has(selector)) {
         elements[key] = this.elementCache.get(selector);
       } else {
-        const element = document.getElementById(selector) || 
-                       document.querySelector(selector);
+        const element =
+          document.getElementById(selector) || document.querySelector(selector);
         elements[key] = element;
         if (element) {
           this.elementCache.set(selector, element);
         }
       }
     }
-    
+
     return elements;
   }
 
@@ -36,24 +36,24 @@ class DOMHelper {
     if (this.elementCache.has(selector)) {
       return this.elementCache.get(selector);
     }
-    
-    const element = document.getElementById(selector) || 
-                   document.querySelector(selector);
+
+    const element =
+      document.getElementById(selector) || document.querySelector(selector);
     if (element) {
       this.elementCache.set(selector, element);
     }
-    
+
     return element;
   }
 
   /**
    * 批量设置元素显示/隐藏
    */
-  static setDisplay(elements, display = 'block') {
+  static setDisplay(elements, display = "block") {
     const elementsList = Array.isArray(elements) ? elements : [elements];
-    
-    elementsList.forEach(element => {
-      if (typeof element === 'string') {
+
+    elementsList.forEach((element) => {
+      if (typeof element === "string") {
         element = this.get(element);
       }
       if (element) {
@@ -66,27 +66,28 @@ class DOMHelper {
    * 批量隐藏元素
    */
   static hide(...elements) {
-    this.setDisplay(elements, 'none');
+    this.setDisplay(elements, "none");
   }
 
   /**
    * 批量显示元素
    */
   static show(...elements) {
-    this.setDisplay(elements, 'block');
+    this.setDisplay(elements, "block");
   }
 
   /**
    * 切换元素显示状态
    */
   static toggle(element) {
-    if (typeof element === 'string') {
+    if (typeof element === "string") {
       element = this.get(element);
     }
     if (element) {
-      const isHidden = element.style.display === 'none' || 
-                      getComputedStyle(element).display === 'none';
-      element.style.display = isHidden ? 'block' : 'none';
+      const isHidden =
+        element.style.display === "none" ||
+        getComputedStyle(element).display === "none";
+      element.style.display = isHidden ? "block" : "none";
     }
   }
 
@@ -107,10 +108,10 @@ class DOMHelper {
   /**
    * 设置元素内容
    */
-  static setContent(selector, content, type = 'text') {
+  static setContent(selector, content, type = "text") {
     const element = this.get(selector);
     if (element) {
-      if (type === 'html') {
+      if (type === "html") {
         element.innerHTML = content;
       } else {
         element.textContent = content;
@@ -173,15 +174,15 @@ class DOMHelper {
   static createPagination(container, currentPage, totalPages, onPageChange) {
     const element = this.get(container);
     if (!element || totalPages <= 1) {
-      if (element) element.innerHTML = '';
+      if (element) element.innerHTML = "";
       return;
     }
 
     // 创建分页HTML
     let html = '<div class="pagination">';
-    
+
     // 上一页按钮
-    const prevDisabled = currentPage <= 1 ? 'disabled' : '';
+    const prevDisabled = currentPage <= 1 ? "disabled" : "";
     html += `<button class="pagination-btn ${prevDisabled}" 
              onclick="(${onPageChange})(${Math.max(1, currentPage - 1)})">上一页</button>`;
 
@@ -197,7 +198,7 @@ class DOMHelper {
     }
 
     for (let i = startPage; i <= endPage; i++) {
-      const activeClass = i === currentPage ? 'active' : '';
+      const activeClass = i === currentPage ? "active" : "";
       html += `<button class="pagination-btn ${activeClass}" 
                onclick="(${onPageChange})(${i})">${i}</button>`;
     }
@@ -210,11 +211,11 @@ class DOMHelper {
     }
 
     // 下一页按钮
-    const nextDisabled = currentPage >= totalPages ? 'disabled' : '';
+    const nextDisabled = currentPage >= totalPages ? "disabled" : "";
     html += `<button class="pagination-btn ${nextDisabled}" 
              onclick="(${onPageChange})(${Math.min(totalPages, currentPage + 1)})">下一页</button>`;
 
-    html += '</div>';
+    html += "</div>";
     element.innerHTML = html;
   }
 
@@ -223,39 +224,39 @@ class DOMHelper {
    */
   static setState(stateName, options = {}) {
     const {
-      container = 'content',
-      message = '',
+      container = "content",
+      message = "",
       showRetry = false,
-      onRetry = null
+      onRetry = null,
     } = options;
 
     // 隐藏所有状态
-    this.hide('loadingState', 'errorState', 'emptyState', 'content');
+    this.hide("loadingState", "errorState", "emptyState", "content");
 
     switch (stateName) {
-      case 'loading':
-        this.show('loadingState');
+      case "loading":
+        this.show("loadingState");
         break;
-      case 'error':
-        this.show('errorState');
+      case "error":
+        this.show("errorState");
         if (message) {
-          this.setContent('errorMessage', message);
+          this.setContent("errorMessage", message);
         }
         if (showRetry && onRetry) {
-          const retryBtn = this.get('retryBtn');
+          const retryBtn = this.get("retryBtn");
           if (retryBtn) {
             retryBtn.onclick = onRetry;
-            this.show('retryBtn');
+            this.show("retryBtn");
           }
         }
         break;
-      case 'empty':
-        this.show('emptyState');
+      case "empty":
+        this.show("emptyState");
         if (message) {
-          this.setContent('emptyMessage', message);
+          this.setContent("emptyMessage", message);
         }
         break;
-      case 'content':
+      case "content":
         this.show(container);
         break;
     }

@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "description": "Deployment wrapper for Cloudflare Pages.",
+  "type": "module",
   "scripts": {
     "dev": "wrangler pages dev",
     "dev:local": "wrangler pages dev --local",
