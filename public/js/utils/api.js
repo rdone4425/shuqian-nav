@@ -362,7 +362,6 @@ API.addResponseInterceptor(async (response) => {
 
 // 系统初始化API
 const SystemAPI = {
-  // 检查数据库初始化状态（不需要认证）
   // 清除示例数据
   async clearSampleData() {
     return await API.post('/api/system/clear-sample-data');
@@ -402,7 +401,6 @@ const SystemAPI = {
   }
 };
 
-// 应用启动时自动检查初始化
 // 导出到全局作用域
 window.API = API;
 window.APIError = APIError;

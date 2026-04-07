@@ -3,282 +3,354 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>数据库诊断 - 书签导航</title>
+    <title>系统检查 - 书签导航</title>
     <style>
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 45%, #e0f2fe 100%);
+            color: #0f172a;
             min-height: 100vh;
-            padding: 20px;
+            padding: 24px;
         }
 
-        .container {
-            max-width: 800px;
+        .wrap {
+            max-width: 880px;
             margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.94);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            border-radius: 20px;
+            box-shadow: 0 24px 80px rgba(15, 23, 42, 0.12);
+            padding: 32px;
         }
 
         .header {
-            text-align: center;
-            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: flex-start;
+            margin-bottom: 28px;
         }
 
         .title {
-            font-size: 24px;
-            font-weight: 600;
-            color: #1a1a1a;
-            margin-bottom: 10px;
+            font-size: 30px;
+            line-height: 1.2;
+            margin-bottom: 8px;
         }
 
         .subtitle {
-            color: #666;
-            font-size: 14px;
+            color: #475569;
+            line-height: 1.6;
+            max-width: 620px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
         }
 
         .btn {
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-            margin: 10px 5px;
-        }
-
-        .btn:hover {
+            appearance: none;
+            border: 0;
+            border-radius: 999px;
             background: #2563eb;
-        }
-
-        .check-item {
-            display: flex;
-            align-items: center;
-            padding: 12px;
-            margin: 8px 0;
-            border-radius: 6px;
-            border-left: 4px solid #e5e7eb;
-        }
-
-        .check-item.pass {
-            background: #f0fdf4;
-            border-left-color: #10b981;
-        }
-
-        .check-item.fail {
-            background: #fef2f2;
-            border-left-color: #ef4444;
-        }
-
-        .check-item.error {
-            background: #fffbeb;
-            border-left-color: #f59e0b;
-        }
-
-        .check-item.info {
-            background: #eff6ff;
-            border-left-color: #3b82f6;
-        }
-
-        .check-status {
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
             font-weight: 600;
-            margin-right: 12px;
-            min-width: 60px;
-            font-size: 12px;
+            padding: 12px 18px;
+            text-decoration: none;
         }
 
-        .check-content {
-            flex: 1;
+        .btn.secondary {
+            background: #e2e8f0;
+            color: #0f172a;
         }
 
-        .check-name {
-            font-weight: 500;
-            margin-bottom: 4px;
-        }
-
-        .check-details {
-            font-size: 12px;
-            color: #666;
+        .btn:disabled {
+            cursor: wait;
+            opacity: 0.7;
         }
 
         .summary {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
+            border-radius: 18px;
+            padding: 20px 22px;
+            margin-bottom: 24px;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
         }
 
         .summary.healthy {
             background: #f0fdf4;
-            border: 1px solid #10b981;
+            border-color: #22c55e;
         }
 
-        .summary.needs-attention {
-            background: #fef2f2;
-            border: 1px solid #ef4444;
+        .summary.attention {
+            background: #fff7ed;
+            border-color: #f97316;
+        }
+
+        .summary h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .summary p {
+            color: #334155;
+            line-height: 1.7;
+            margin: 6px 0;
+        }
+
+        .checks {
+            display: grid;
+            gap: 12px;
+        }
+
+        .check {
+            border-radius: 14px;
+            border-left: 6px solid #cbd5e1;
+            background: #fff;
+            padding: 14px 16px;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+        }
+
+        .check.pass { border-left-color: #16a34a; background: #f0fdf4; }
+        .check.fail { border-left-color: #dc2626; background: #fef2f2; }
+        .check.error { border-left-color: #ea580c; background: #fff7ed; }
+        .check.info { border-left-color: #2563eb; background: #eff6ff; }
+
+        .check-top {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .status {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            min-width: 56px;
+        }
+
+        .check-name {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .check-message {
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+
+        .check-details {
+            color: #475569;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .raw {
+            margin-top: 24px;
+        }
+
+        .raw pre {
+            background: #0f172a;
+            color: #e2e8f0;
+            border-radius: 16px;
+            font-size: 12px;
+            overflow: auto;
+            padding: 18px;
+        }
+
+        .loading,
+        .error-box {
+            border-radius: 14px;
+            margin-bottom: 20px;
+            padding: 16px 18px;
         }
 
         .loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
+            background: #eff6ff;
+            color: #1d4ed8;
         }
 
-        .actions {
-            text-align: center;
-            margin-top: 20px;
+        .error-box {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
         }
 
-        pre {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 6px;
-            overflow-x: auto;
-            font-size: 12px;
-            margin: 10px 0;
+        @media (max-width: 720px) {
+            .wrap {
+                padding: 22px;
+            }
+
+            .header {
+                flex-direction: column;
+            }
+
+            .title {
+                font-size: 24px;
+            }
+
+            .actions {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="wrap">
         <div class="header">
-            <h1 class="title">🔍 数据库诊断</h1>
-            <p class="subtitle">检查数据库绑定和表结构状态</p>
+            <div>
+                <h1 class="title">系统检查</h1>
+                <p class="subtitle">检查 Cloudflare Pages 当前环境里的 D1 绑定、数据库连接和核心表结构，确认部署是否已经完整生效。</p>
+            </div>
+            <div class="actions">
+                <button id="refreshBtn" class="btn">重新检查</button>
+                <button id="toggleRawBtn" class="btn secondary" style="display: none;">显示原始数据</button>
+                <a href="/" class="btn secondary">返回首页</a>
+            </div>
         </div>
 
-<div class="actions">
-            <button id="runDiagnosis" class="btn">🔍 运行诊断</button>
-            <button id="showRaw" class="btn" style="display: none;">📄 显示原始数据</button>
-            <a href="/" class="btn">🏠 返回首页</a>
-        </div>
-
-        <div id="loading" class="loading" style="display: none;">
-            正在运行诊断...
-        </div>
-
-        <div id="results" style="display: none;">
-            <div id="summary"></div>
-            <div id="checks"></div>
-            <div id="rawData" style="display: none;"></div>
-        </div>
+        <div id="loading" class="loading">正在检查当前部署环境，请稍候...</div>
+        <div id="errorBox" class="error-box" style="display: none;"></div>
+        <div id="summary" class="summary" style="display: none;"></div>
+        <div id="checks" class="checks" style="display: none;"></div>
+        <div id="raw" class="raw" style="display: none;"></div>
     </div>
 
     <script>
-        class DatabaseDiagnostic {
+        class DiagnosePage {
             constructor() {
-                this.runBtn = document.getElementById('runDiagnosis');
-                this.showRawBtn = document.getElementById('showRaw');
+                this.refreshBtn = document.getElementById('refreshBtn');
+                this.toggleRawBtn = document.getElementById('toggleRawBtn');
                 this.loading = document.getElementById('loading');
-                this.results = document.getElementById('results');
+                this.errorBox = document.getElementById('errorBox');
                 this.summary = document.getElementById('summary');
                 this.checks = document.getElementById('checks');
-                this.rawData = document.getElementById('rawData');
-                
-                this.bindEvents();
-                this.runDiagnosis(); // 自动运行
+                this.raw = document.getElementById('raw');
+                this.rawVisible = false;
+                this.payload = null;
+
+                this.refreshBtn.addEventListener('click', () => this.load());
+                this.toggleRawBtn.addEventListener('click', () => this.toggleRaw());
+
+                this.load();
             }
 
-            bindEvents() {
-                this.runBtn.addEventListener('click', () => this.runDiagnosis());
-                this.showRawBtn.addEventListener('click', () => this.toggleRawData());
+            setLoading(loading) {
+                this.refreshBtn.disabled = loading;
+                this.loading.style.display = loading ? 'block' : 'none';
             }
 
-            async runDiagnosis() {
-                try {
-                    this.loading.style.display = 'block';
-                    this.results.style.display = 'none';
-                    this.runBtn.disabled = true;
-
-                    const response = await fetch('/api/system/diagnose');
-                    const data = await response.json();
-
-                    this.displayResults(data);
-                    this.showRawBtn.style.display = 'inline-block';
-
-                } catch (error) {
-                    this.displayError(error);
-                } finally {
-                    this.loading.style.display = 'none';
-                    this.results.style.display = 'block';
-                    this.runBtn.disabled = false;
-                }
-            }
-
-            displayResults(data) {
-                // 显示总结
-                if (data.diagnosis && data.diagnosis.summary) {
-                    const summary = data.diagnosis.summary;
-                    const summaryClass = summary.overallStatus === 'HEALTHY' ? 'healthy' : 'needs-attention';
-                    
-                    this.summary.className = `summary ${summaryClass}`;
-                    this.summary.innerHTML = `
-                        <h3>📊 诊断总结</h3>
-                        <p><strong>整体状态:</strong> ${summary.overallStatus === 'HEALTHY' ? '✅ 健康' : '⚠️ 需要注意'}</p>
-                        <p><strong>表结构:</strong> ${summary.tablesExist ? '✅ 完整' : '❌ 缺失'}</p>
-                        <p><strong>需要初始化:</strong> ${summary.needsInitialization ? '是' : '否'}</p>
-                        <p><strong>检查结果:</strong> ${summary.totalChecks - summary.failedChecks}/${summary.totalChecks} 通过</p>
-                        ${data.recommendation ? `<p><strong>建议:</strong> ${data.recommendation}</p>` : ''}
-                    `;
-                }
-
-                // 显示详细检查
-                if (data.diagnosis && data.diagnosis.checks) {
-                    this.checks.innerHTML = '<h3>🔍 详细检查</h3>';
-                    
-                    data.diagnosis.checks.forEach(check => {
-                        const statusClass = check.status.toLowerCase();
-                        const checkElement = document.createElement('div');
-                        checkElement.className = `check-item ${statusClass}`;
-                        checkElement.innerHTML = `
-                            <div class="check-status">${check.status}</div>
-                            <div class="check-content">
-                                <div class="check-name">${check.name}</div>
-                                <div class="check-details">${check.message} - ${check.details}</div>
-                            </div>
-                        `;
-                        this.checks.appendChild(checkElement);
-                    });
-                }
-
-                // 保存原始数据
-                this.rawDataContent = data;
-            }
-
-            displayError(error) {
-                this.summary.className = 'summary needs-attention';
+            renderSummary(data) {
+                const summary = data.diagnosis?.summary;
+                const healthy = summary?.overallStatus === 'HEALTHY';
+                this.summary.className = `summary ${healthy ? 'healthy' : 'attention'}`;
                 this.summary.innerHTML = `
-                    <h3>❌ 诊断失败</h3>
-                    <p>无法完成数据库诊断: ${error.message}</p>
+                    <h2>${healthy ? '检查通过' : '需要处理'}</h2>
+                    <p><strong>环境：</strong>${data.diagnosis?.environment || 'unknown'}</p>
+                    <p><strong>状态：</strong>${summary?.overallStatus || 'UNKNOWN'}</p>
+                    <p><strong>通过率：</strong>${(summary?.totalChecks || 0) - (summary?.failedChecks || 0)} / ${summary?.totalChecks || 0}</p>
+                    <p><strong>建议：</strong>${data.recommendation || '无'}</p>
                 `;
-                this.checks.innerHTML = '';
+                this.summary.style.display = 'block';
             }
 
-            toggleRawData() {
-                if (this.rawData.style.display === 'none') {
-                    this.rawData.style.display = 'block';
-                    this.rawData.innerHTML = `
-                        <h3>📄 原始诊断数据</h3>
-                        <pre>${JSON.stringify(this.rawDataContent, null, 2)}</pre>
+            renderChecks(data) {
+                const checks = data.diagnosis?.checks || [];
+                this.checks.innerHTML = '';
+
+                checks.forEach((item) => {
+                    const node = document.createElement('div');
+                    node.className = `check ${item.status.toLowerCase()}`;
+                    node.innerHTML = `
+                        <div class="check-top">
+                            <div class="status">${item.status}</div>
+                            <div class="check-name">${item.name}</div>
+                        </div>
+                        <div class="check-message">${item.message}</div>
+                        <div class="check-details">${item.details || ''}</div>
                     `;
-                    this.showRawBtn.textContent = '📄 隐藏原始数据';
-                } else {
-                    this.rawData.style.display = 'none';
-                    this.showRawBtn.textContent = '📄 显示原始数据';
+                    this.checks.appendChild(node);
+                });
+
+                this.checks.style.display = 'grid';
+            }
+
+            renderRaw(data) {
+                this.payload = data;
+                this.toggleRawBtn.style.display = 'inline-block';
+                this.raw.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            }
+
+            toggleRaw() {
+                this.rawVisible = !this.rawVisible;
+                this.raw.style.display = this.rawVisible ? 'block' : 'none';
+                this.toggleRawBtn.textContent = this.rawVisible ? '隐藏原始数据' : '显示原始数据';
+            }
+
+            showError(message) {
+                this.errorBox.textContent = message;
+                this.errorBox.style.display = 'block';
+            }
+
+            clear() {
+                this.errorBox.style.display = 'none';
+                this.summary.style.display = 'none';
+                this.checks.style.display = 'none';
+                this.raw.style.display = 'none';
+                this.raw.innerHTML = '';
+                this.rawVisible = false;
+                this.toggleRawBtn.style.display = 'none';
+                this.toggleRawBtn.textContent = '显示原始数据';
+            }
+
+            async load() {
+                this.clear();
+                this.setLoading(true);
+
+                try {
+                    const response = await fetch('/api/system/diagnose', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'Cache-Control': 'no-cache'
+                        }
+                    });
+
+                    const text = await response.text();
+                    let data;
+
+                    try {
+                        data = JSON.parse(text);
+                    } catch (error) {
+                        throw new Error(`诊断接口没有返回合法 JSON。响应内容：${text.slice(0, 200)}`);
+                    }
+
+                    this.renderSummary(data);
+                    this.renderChecks(data);
+                    this.renderRaw(data);
+
+                    if (!response.ok || data.success === false) {
+                        this.showError(data.error || `系统检查返回了 HTTP ${response.status}`);
+                    }
+                } catch (error) {
+                    this.showError(`系统检查失败：${error.message}`);
+                } finally {
+                    this.setLoading(false);
                 }
             }
         }
 
-        // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', () => {
-            new DatabaseDiagnostic();
+            new DiagnosePage();
         });
     </script>
 </body>
