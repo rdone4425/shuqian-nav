@@ -363,43 +363,6 @@ API.addResponseInterceptor(async (response) => {
 // 系统初始化API
 const SystemAPI = {
   // 检查数据库初始化状态（不需要认证）
-  async checkAndInitialize() {
-    try {
-      // 为移动设备优化请求
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      const timeoutDuration = isMobile ? 15000 : 8000; // 移动设备使用更长超时
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
-
-      const response = await fetch('/api/system/init-database', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache'
-        },
-        signal: controller.signal
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('系统初始化检查失败:', error);
-      
-      // 如果是网络超时，返回一个特殊的错误
-      if (error.name === 'AbortError') {
-        throw new Error('网络连接超时，请检查网络连接');
-      }
-      
-      throw error;
-    }
-  },
-
   // 清除示例数据
   async clearSampleData() {
     return await API.post('/api/system/clear-sample-data');
@@ -440,68 +403,6 @@ const SystemAPI = {
 };
 
 // 应用启动时自动检查初始化
-document.addEventListener('DOMContentLoaded', async () => {
-  // 如果当前页面是初始化页面或登录页面，跳过检查
-  if (window.location.pathname.includes('init.html') || 
-      window.location.pathname.includes('login.html')) {
-    return;
-  }
-
-  // 添加移动设备兼容性检查
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  
-  try {
-    console.log('🔍 检查系统初始化状态...');
-    
-    // 为移动设备添加更长的超时时间
-    const timeoutDuration = isMobile ? 10000 : 5000;
-    
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
-    
-    const result = await SystemAPI.checkAndInitialize();
-    clearTimeout(timeoutId);
-
-    if (result.success) {
-      console.log('✅ 系统初始化检查完成:', result.message);
-      if (result.initialized) {
-        console.log('📊 数据库状态: 已初始化');
-      } else {
-        console.log('⚠️ 数据库状态: 未初始化');
-        console.log('💡 正在跳转到初始化页面...');
-        window.location.href = '/init.html';
-        return;
-      }
-    } else {
-      console.error('❌ 系统初始化失败:', result.message);
-      console.log('💡 正在跳转到初始化页面...');
-      window.location.href = '/init.html';
-      return;
-    }
-  } catch (error) {
-    console.error('❌ 系统初始化检查出错:', error);
-    
-    // 移动设备上如果初始化检查失败，可能是网络问题，给用户选择
-    if (isMobile && error.name === 'AbortError') {
-      const userChoice = confirm('网络连接较慢，是否继续等待初始化检查？\n\n点击"确定"重试，点击"取消"直接进入应用');
-      if (userChoice) {
-        // 重新加载页面重试
-        window.location.reload();
-        return;
-      } else {
-        // 跳过初始化检查，直接使用应用
-        console.log('用户选择跳过初始化检查');
-        return;
-      }
-    }
-    
-    console.error('💡 这可能是数据库未配置或服务器配置问题');
-    console.log('💡 正在跳转到初始化页面...');
-    window.location.href = '/init.html';
-    return;
-  }
-});
-
 // 导出到全局作用域
 window.API = API;
 window.APIError = APIError;

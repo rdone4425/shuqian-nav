@@ -148,9 +148,9 @@ export async function onRequestGet(context) {
     return new Response(JSON.stringify({
       success: true,
       diagnosis,
-      recommendation: allTablesExist ? 
+recommendation: allTablesExist ? 
         '数据库状态正常，可以正常使用' : 
-        '数据库需要初始化，请访问 /init.html 进行初始化'
+        '数据库缺少必要表结构，请检查 D1 绑定和 CI 中的 db/schema.sql 执行情況'
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }

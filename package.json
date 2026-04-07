@@ -19,7 +19,6 @@
     "format:check": "prettier --check \"**/*.{js,json,md,css,cjs,sql,toml,yml,yaml}\"",
     "test": "npm run lint && npm run format:check && echo \"All checks passed\"",
     "db:init:local": "wrangler d1 execute bookmark-navigator-local --local --file=db/schema.sql",
-    "db:init:remote": "wrangler d1 execute bookmark-navigator --file=db/schema.sql",
     "postinstall": "echo \"Deployment entrypoint moved to /pages. Run npm run config, then npm run dev or npm run deploy.\""
   },
   "keywords": [

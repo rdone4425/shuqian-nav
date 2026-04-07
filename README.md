@@ -96,7 +96,6 @@ npm run dev:local
 | `npm run config` | 生成本地 `pages/wrangler.toml` 和 `.dev.vars` |
 | `npm run reset` | 将 `db/schema.sql` 应用到本地 D1 |
 | `npm run db:init:local` | 初始化本地 D1 |
-| `npm run db:init:remote` | 初始化远程 D1 |
 | `npm run dev` | 启动 Pages 本地开发 |
 | `npm run dev:local` | 使用 `--local` 启动 Pages |
 | `npm run deploy` | 手动部署到 Pages |
@@ -195,13 +194,7 @@ database_name = "bookmark-navigator"
 database_id = "YOUR_D1_DATABASE_ID"
 ```
 
-### 2. 执行远程 schema 初始化
-
-```bash
-npm run db:init:remote
-```
-
-### 3. 部署到 Pages
+### 2. 部署到 Pages
 
 ```bash
 npm run deploy
@@ -240,6 +233,7 @@ db/schema.sql
 ```
 
 现在默认把数据库初始化入口收敛到这里，避免 schema 分散在多个脚本和 API 文件里。
+远程环境不再提供页面内手动初始化入口，生产初始化统一交给 CI 执行。
 
 ## 与旧部署方式的区别
 
@@ -331,7 +325,6 @@ npm run db:init:local
 
 ## 后续建议
 
-部署链路已经简化，但项目本身仍建议继续处理两类问题：
+部署链路已经简化，但项目本身仍建议继续处理一类问题：
 
-- 继续清理旧的数据库初始化逻辑，避免和 `db/schema.sql` 重复
 - 继续修复认证、默认口令和鉴权边界相关的安全问题
