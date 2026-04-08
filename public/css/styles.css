@@ -737,7 +737,7 @@ body {
 }
 
 .clear-btn {
-  background: var(--error-color);
+  background: var(--error);
 }
 
 .clear-btn:hover {
@@ -1515,22 +1515,22 @@ body {
 }
 
 .message-text.success {
-  background: var(--success-color);
+  background: var(--success);
   color: white;
 }
 
 .message-text.error {
-  background: var(--error-color);
+  background: var(--error);
   color: white;
 }
 
 .message-text.warning {
-  background: var(--warning-color);
+  background: var(--warning);
   color: white;
 }
 
 .message-text.info {
-  background: var(--info-color);
+  background: var(--info);
   color: white;
 }
 
@@ -1626,13 +1626,13 @@ body {
 
 .login-status {
   background: rgba(59, 130, 246, 0.1);
-  color: var(--info-color);
+  color: var(--info);
   border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 .error-message {
   background: rgba(239, 68, 68, 0.1);
-  color: var(--error-color);
+  color: var(--error);
   border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
