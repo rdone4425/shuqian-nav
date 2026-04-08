@@ -18,9 +18,9 @@
   
   /* Text */
   --text-primary: #f7f8f8;
-  --text-secondary: var(--text-secondary);
-  --text-muted: #8a8f98;
-  --text-faint: #62666d;
+  --text-secondary: #8a8f98;
+  --text-muted: #62666d;
+  --text-faint: #4a4d52;
   
   /* Brand accent — Linear indigo/violet */
   --accent: #7170ff;
@@ -1242,7 +1242,7 @@ body {
   right: 24px;
   width: 36px;
   height: 36px;
-  background: rgba(239, 68, 68, 0.1);
+  background: rgba(239, 68, 68, 0.08);
   border: 1px solid rgba(239, 68, 68, 0.2);
   color: var(--error);
   font-size: 18px;
@@ -1552,11 +1552,11 @@ body {
 }
 
 .login-card {
-  background: var(--bg-surface);
-  backdrop-filter: blur(20px);
+  background: var(--bg-panel);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-xl);
-  padding: var(--spacing-2xl);
-  box-shadow: var(--shadow-xl);
+  padding: 48px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
   animation: loginCardSlideIn var(--transition-slow);
 }
 
@@ -1625,13 +1625,13 @@ body {
 }
 
 .login-status {
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(59, 130, 246, 0.08);
   color: var(--info);
   border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 .error-message {
-  background: rgba(239, 68, 68, 0.1);
+  background: rgba(239, 68, 68, 0.08);
   color: var(--error);
   border: 1px solid rgba(239, 68, 68, 0.2);
 }
@@ -1677,7 +1677,7 @@ body {
 .bg-shape {
   position: absolute;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(94, 106, 210, 0.06);
   animation: float 6s ease-in-out infinite;
 }
 
