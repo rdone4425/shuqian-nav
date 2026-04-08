@@ -18,7 +18,7 @@
           </div>
           <div class="header-actions">
             <div class="action-group tools-menu">
-              <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" title="Tools menu">
+              <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" data-i18n-title="header.toolsTitle" title="工具菜单">
                 <span class="btn-icon">...</span>
                 <span class="dropdown-arrow">v</span>
               </button>
@@ -40,44 +40,44 @@
       <main class="ai-wrapper">
         <section class="ai-hero">
           <div>
-            <h1>Manage AI 端点 and default model</h1>
-            <p>
-              Save the public AI settings used by the app without redeploying the site.
+            <h1 data-i18n="aiSettings.heroTitle">管理 AI 端点和默认模型</h1>
+            <p data-i18n="aiSettings.heroDesc">
+              无需重新部署网站，即可保存应用使用的公共 AI 设置。
             </p>
             <div class="hero-meta">
-              <span class="hero-tag">OpenAI compatible</span>
-              <span class="hero-tag">Proxy friendly</span>
-              <span id="aiStatusPill" class="hero-tag">Loading config...</span>
+              <span class="hero-tag" data-i18n="aiSettings.heroTagOpenai">OpenAI 兼容</span>
+              <span class="hero-tag" data-i18n="aiSettings.heroTagProxy">代理友好</span>
+              <span id="aiStatusPill" class="hero-tag" data-i18n="aiSettings.heroTagLoading">正在加载配置...</span>
             </div>
           </div>
           <div class="tip-card">
-            <strong>Security note</strong>
-            <p>
-              Keep the secret key in Cloudflare environment variables. This page stores only the public endpoint and model name.
+            <strong data-i18n="aiSettings.securityNote">安全说明</strong>
+            <p data-i18n="aiSettings.securityDesc">
+              请将密钥保存在 Cloudflare 环境变量中。本页面仅存储公共端点和模型名称。
             </p>
           </div>
         </section>
 
         <section class="ai-card">
-          <h2>Current config</h2>
-          <p>Leave a field empty to fall back to environment defaults.</p>
+          <h2 data-i18n="aiSettings.currentConfig">当前配置</h2>
+          <p data-i18n="aiSettings.configHint">留空字段以回退到环境默认设置。</p>
           <form id="aiSettingsForm" class="form-grid">
             <div class="form-group">
-              <label for="aiEndpointInput">AI 端点 URL</label>
+              <label for="aiEndpointInput" data-i18n="aiSettings.labelEndpoint">AI 端点 URL</label>
               <input id="aiEndpointInput" class="form-input" type="url" placeholder="https://api.openai.com/v1/chat/completions" />
-              <small>Use any endpoint that supports a chat-completions style API.</small>
+              <small data-i18n="aiSettings.hintEndpoint">使用任何支持 chat-completions 风格 API 的端点。</small>
             </div>
             <div class="form-group">
-              <label for="aiModelInput">默认模型</label>
+              <label for="aiModelInput" data-i18n="aiSettings.labelModel">默认模型</label>
               <input id="aiModelInput" class="form-input" type="text" placeholder="gpt-4o-mini" />
-              <small>Example: gpt-4o-mini, gpt-4.1-mini, or any compatible model name.</small>
+              <small data-i18n="aiSettings.hintModel">例如：gpt-4o-mini、gpt-4.1-mini 或任何兼容的模型名称。</small>
             </div>
             <div class="button-row">
-              <button id="saveBtn" class="btn btn-primary" type="submit">Save config</button>
-              <button id="resetBtn" class="btn btn-outline" type="button">重置 to default</button>
-              <a class="btn btn-outline" href="/">Back home</a>
+              <button id="saveBtn" class="btn btn-primary" type="submit" data-i18n="aiSettings.btnSaveConfig">保存配置</button>
+              <button id="resetBtn" class="btn btn-outline" type="button" data-i18n="aiSettings.btnResetDefault">重置为默认</button>
+              <a class="btn btn-outline" href="/" data-i18n="aiSettings.btnBackHome">返回首页</a>
             </div>
-            <div id="lastUpdated" class="status-pill warning">Loading config...</div>
+            <div id="lastUpdated" class="status-pill warning" data-i18n="aiSettings.loadingConfig">正在加载配置...</div>
           </form>
         </section>
       </main>
@@ -102,12 +102,12 @@
       }
 
       async function loadAiSettings() {
-        updateStatus("Loading config...", "warning");
-        aiStatusPill.textContent = "Loading config...";
+        updateStatus(I18n.t("aiSettings.loadingConfig"), "warning");
+        aiStatusPill.textContent = I18n.t("aiSettings.loadingConfig");
 
         try {
           const response = await SystemAPI.getConfig();
-          if (!response.success) throw new Error(response.error || "Failed to load config");
+          if (!response.success) throw new Error(response.error || I18n.t("aiSettings.configLoadFailed"));
 
           const configs = response.data || [];
           const endpointConfig = configs.find((item) => item.config_key === "ai_api_endpoint");
@@ -123,16 +123,16 @@
             modelConfig?.created_at;
 
           if (lastTime) {
-            updateStatus(`Last updated: ${AdminUI.formatDate(lastTime)}`, "success");
-            aiStatusPill.textContent = "Config loaded";
+            updateStatus(`${I18n.t("aiSettings.lastUpdated")}${AdminUI.formatDate(lastTime)}`, "success");
+            aiStatusPill.textContent = I18n.t("aiSettings.configLoaded");
           } else {
-            updateStatus("No custom AI config has been saved", "warning");
-            aiStatusPill.textContent = "Using default config";
+            updateStatus(I18n.t("aiSettings.noCustomConfig"), "warning");
+            aiStatusPill.textContent = I18n.t("aiSettings.usingDefaultConfig");
           }
         } catch (error) {
-          updateStatus(`Load failed: ${error.message}`, "warning");
-          aiStatusPill.textContent = "Config load failed";
-          AdminUI.showToast(`Load failed: ${error.message}`, "error");
+          updateStatus(`${I18n.t("aiSettings.loadFailedWithError")}: ${error.message}`, "warning");
+          aiStatusPill.textContent = I18n.t("aiSettings.configLoadFailed");
+          AdminUI.showToast(`${I18n.t("aiSettings.loadFailedWithError")}: ${error.message}`, "error");
         }
       }
 
@@ -142,7 +142,7 @@
           SystemAPI.updateConfig("ai_model", model),
         ]);
         const failed = results.find((item) => !item.success);
-        if (failed) throw new Error(failed.error || "Failed to save config");
+        if (failed) throw new Error(failed.error || I18n.t("aiSettings.saveFailed"));
       }
 
       async function saveAiSettings(event) {
@@ -150,18 +150,18 @@
 
         saveBtn.disabled = true;
         resetBtn.disabled = true;
-        saveBtn.textContent = "Saving...";
+        saveBtn.textContent = I18n.t("aiSettings.saving");
 
         try {
           await persistAiSettings(endpointInput.value.trim(), modelInput.value.trim());
-          AdminUI.showToast("AI config saved");
+          AdminUI.showToast(I18n.t("aiSettings.aiConfigSaved"));
           await loadAiSettings();
         } catch (error) {
-          AdminUI.showToast(`Save failed: ${error.message}`, "error");
+          AdminUI.showToast(`${I18n.t("aiSettings.saveFailed")}: ${error.message}`, "error");
         } finally {
           saveBtn.disabled = false;
           resetBtn.disabled = false;
-          saveBtn.textContent = "Save config";
+          saveBtn.textContent = I18n.t("aiSettings.btnSaveConfig");
         }
       }
 

@@ -22,7 +22,8 @@
               <button
                 id="toolsMenuToggle"
                 class="action-btn-icon menu-toggle"
-                title="Tools menu"
+                data-i18n-title="header.toolsTitle"
+                title="工具菜单"
               >
                 <span class="btn-icon">...</span>
                 <span class="dropdown-arrow">v</span>
@@ -88,16 +89,16 @@
         <section class="token-card">
           <div class="token-header">
             <div>
-              <h2 class="token-title">Create a new token</h2>
-              <p class="token-subtitle">
-                Use a dedicated token for scripts, extensions, and automation.
+              <h2 class="token-title" data-i18n="token.createNewToken">创建新令牌</h2>
+              <p class="token-subtitle" data-i18n="token.createDesc">
+                为脚本、扩展程序和自动化工具使用专用令牌。
               </p>
             </div>
           </div>
 
           <form id="tokenForm" class="token-form">
             <div class="form-group">
-              <label class="form-label" for="tokenName">Token name</label>
+              <label class="form-label" for="tokenName" data-i18n="token.labelTokenName">令牌名称</label>
               <input
                 id="tokenName"
                 class="form-input"
@@ -105,11 +106,11 @@
                 placeholder="例如：Chrome 同步 worker"
                 required
               />
-              <div class="form-hint">Pick a clear label so it is easy to revoke later.</div>
+              <div class="form-hint" data-i18n="token.hintName">选择一个清晰的标签，便于以后撤销。</div>
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="tokenDescription">Description</label>
+              <label class="form-label" for="tokenDescription" data-i18n="token.labelDescription">描述</label>
               <input
                 id="tokenDescription"
                 class="form-input"
@@ -120,33 +121,33 @@
 
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label" for="tokenExpires">Expires in</label>
+                <label class="form-label" for="tokenExpires" data-i18n="token.labelExpires">有效期</label>
                 <select id="tokenExpires" class="form-select">
-                  <option value="7">7 days</option>
-                  <option value="30" selected>30 days</option>
-                  <option value="90">90 days</option>
-                  <option value="365">365 days</option>
+                  <option value="7" data-i18n="token.days7">7 天</option>
+                  <option value="30" selected data-i18n="token.days30">30 天</option>
+                  <option value="90" data-i18n="token.days90">90 天</option>
+                  <option value="365" data-i18n="token.days365">365 天</option>
                 </select>
               </div>
             </div>
 
             <div class="token-actions">
-              <button type="submit" id="createTokenBtn" class="btn btn-primary">
-                Create token
+              <button type="submit" id="createTokenBtn" class="btn btn-primary" data-i18n="token.btnCreateToken">
+                创建令牌
               </button>
             </div>
           </form>
 
           <section id="tokenResult" class="token-display hidden">
             <div class="token-display-header">
-              <div class="token-display-title">New token</div>
-              <button id="copyTokenBtn" class="btn btn-outline" type="button">
-                Copy
+              <div class="token-display-title" data-i18n="token.newToken">新令牌</div>
+              <button id="copyTokenBtn" class="btn btn-outline" type="button" data-i18n="token.btnCopy">
+                复制
               </button>
             </div>
             <div id="generatedToken" class="token-value"></div>
-            <div class="form-hint">
-              The full value is shown only once. Copy it now and store it safely.
+            <div class="form-hint" data-i18n="token.newTokenWarning">
+              完整值仅显示一次，请立即复制并妥善保存。
             </div>
           </section>
         </section>
@@ -154,40 +155,40 @@
         <section class="token-card">
           <div class="token-header">
             <div>
-              <h2 class="token-title">Existing tokens</h2>
-              <p class="token-subtitle">The list below shows saved token records.</p>
+              <h2 class="token-title" data-i18n="token.existingTokens">现有令牌</h2>
+              <p class="token-subtitle" data-i18n="token.existingTokensDesc">以下列表显示已保存的令牌记录。</p>
             </div>
-            <button id="refreshTokensBtn" class="btn btn-outline" type="button">
-              Refresh
+            <button id="refreshTokensBtn" class="btn btn-outline" type="button" data-i18n="token.btnRefresh">
+              刷新
             </button>
           </div>
 
           <div id="tokenList" class="tokens-list">
             <div class="tokens-header">
-              <p class="token-subtitle">Loading token list...</p>
+              <p class="token-subtitle" data-i18n="token.loadingTokens">正在加载令牌列表...</p>
             </div>
           </div>
         </section>
 
         <section class="api-docs">
           <div class="api-docs-header">
-            <h2 class="api-docs-title">Usage notes</h2>
-            <p class="api-docs-subtitle">Send the token in an API request header.</p>
+            <h2 class="api-docs-title" data-i18n="token.usageNotes">使用说明</h2>
+            <p class="api-docs-subtitle" data-i18n="token.usageNotesDesc">在 API 请求头中发送令牌。</p>
           </div>
 
           <div class="api-section">
-            <h3 class="api-section-title">Header</h3>
+            <h3 class="api-section-title" data-i18n="token.header">请求头</h3>
             <div class="api-endpoint">
               <code>X-API-Token: your-token-here</code>
             </div>
           </div>
 
           <div class="api-section">
-            <h3 class="api-section-title">Safety tips</h3>
+            <h3 class="api-section-title" data-i18n="token.safetyTips">安全提示</h3>
             <ul>
-              <li>Use different tokens for different tools when possible.</li>
-              <li>Delete and recreate a token immediately if you suspect a leak.</li>
-              <li>Do not expose admin tokens in public frontend code.</li>
+              <li data-i18n="token.safetyTip1">尽可能为不同的工具使用不同的令牌。</li>
+              <li data-i18n="token.safetyTip2">如果怀疑泄露，立即删除并重新创建令牌。</li>
+              <li data-i18n="token.safetyTip3">请勿在公共前端代码中暴露管理令牌。</li>
             </ul>
           </div>
         </section>
@@ -209,7 +210,7 @@
         if (!tokens.length) {
           tokenList.innerHTML = `
             <div class="tokens-header">
-              <p class="token-subtitle">No API tokens have been created yet.</p>
+              <p class="token-subtitle">${I18n.t("token.noTokensYet")}</p>
             </div>
           `;
           return;
@@ -218,8 +219,8 @@
         tokenList.innerHTML = tokens
           .map((token) => {
             const isExpired = new Date(token.expires) <= new Date();
-            const safeName = AdminUI.escapeHtml(token.name || "Unnamed token");
-            const safeDescription = AdminUI.escapeHtml(token.description || "No description");
+            const safeName = AdminUI.escapeHtml(token.name || I18n.t("token.unnamedToken"));
+            const safeDescription = AdminUI.escapeHtml(token.description || I18n.t("token.noDescription"));
             const safeId = AdminUI.escapeHtml(token.id);
 
             return `
@@ -229,15 +230,15 @@
                     <h3 class="token-name">${safeName}</h3>
                     <p class="token-description">${safeDescription}</p>
                     <div class="token-meta">
-                      <span class="token-meta-item">Created: ${AdminUI.formatDate(token.created)}</span>
-                      <span class="token-meta-item">Expires: ${AdminUI.formatDate(token.expires)}</span>
+                      <span class="token-meta-item">${I18n.t("token.created")}: ${AdminUI.formatDate(token.created)}</span>
+                      <span class="token-meta-item">${I18n.t("token.expires")}: ${AdminUI.formatDate(token.expires)}</span>
                     </div>
                   </div>
                   <div class="token-item-actions">
                     <span class="token-status ${isExpired ? "expired" : "active"}">
-                      ${isExpired ? "Expired" : "Active"}
+                      ${isExpired ? I18n.t("token.expired") : I18n.t("token.active")}
                     </span>
-                    <button class="btn btn-outline delete-token-btn" type="button">Delete</button>
+                    <button class="btn btn-outline delete-token-btn" type="button">${I18n.t("token.delete")}</button>
                   </div>
                 </div>
               </article>
@@ -250,21 +251,21 @@
         const tokenList = document.getElementById("tokenList");
         tokenList.innerHTML = `
           <div class="tokens-header">
-            <p class="token-subtitle">Loading token list...</p>
+            <p class="token-subtitle">${I18n.t("token.loadingTokens")}</p>
           </div>
         `;
 
         try {
           const response = await API.get("/api/auth/token");
           if (!response.success) {
-            throw new Error(response.error || "Failed to load tokens");
+            throw new Error(response.error || I18n.t("token.loadFailed"));
           }
 
           renderTokens(response.data || []);
         } catch (error) {
           tokenList.innerHTML = `
             <div class="tokens-header">
-              <p class="token-subtitle">Load failed: ${AdminUI.escapeHtml(error.message)}</p>
+              <p class="token-subtitle">${I18n.t("token.loadFailedWithError").replace("{error}", AdminUI.escapeHtml(error.message))}</p>
             </div>
           `;
         }
@@ -279,7 +280,7 @@
         const tokenExpires = document.getElementById("tokenExpires");
 
         createTokenBtn.disabled = true;
-        createTokenBtn.textContent = "Creating...";
+        createTokenBtn.textContent = I18n.t("token.creating");
 
         try {
           const response = await API.post("/api/auth/token", {
@@ -289,26 +290,26 @@
           });
 
           if (!response.success) {
-            throw new Error(response.error || "Failed to create token");
+            throw new Error(response.error || I18n.t("token.createFailed"));
           }
 
           state.latestToken = response.data.token;
           document.getElementById("generatedToken").textContent = state.latestToken;
           document.getElementById("tokenResult").classList.remove("hidden");
           document.getElementById("tokenForm").reset();
-          AdminUI.showToast("API token created");
+          AdminUI.showToast(I18n.t("token.tokenCreated"));
           await loadTokens();
         } catch (error) {
-          AdminUI.showToast(`Create failed: ${error.message}`, "error");
+          AdminUI.showToast(`${I18n.t("token.createFailed")}: ${error.message}`, "error");
         } finally {
           createTokenBtn.disabled = false;
-          createTokenBtn.textContent = "Create token";
+          createTokenBtn.textContent = I18n.t("token.btnCreateToken");
         }
       }
 
       async function deleteToken(tokenId, tokenName) {
         const confirmed = window.confirm(
-          `Delete token "${tokenName}" now? It will stop working immediately.`,
+          I18n.t("token.deleteConfirm").replace("{name}", tokenName),
         );
         if (!confirmed) {
           return;
@@ -321,24 +322,24 @@
           });
 
           if (!response.success) {
-            throw new Error(response.error || "Failed to delete token");
+            throw new Error(response.error || I18n.t("token.deleteFailed"));
           }
 
-          AdminUI.showToast(`Deleted: ${tokenName}`);
+          AdminUI.showToast(I18n.t("token.tokenDeleted").replace("{name}", tokenName));
           await loadTokens();
         } catch (error) {
-          AdminUI.showToast(`Delete failed: ${error.message}`, "error");
+          AdminUI.showToast(`${I18n.t("token.deleteFailed")}: ${error.message}`, "error");
         }
       }
 
       async function copyLatestToken() {
         if (!state.latestToken) {
-          AdminUI.showToast("There is no token to copy", "error");
+          AdminUI.showToast(I18n.t("token.noTokenToCopy"), "error");
           return;
         }
 
         await navigator.clipboard.writeText(state.latestToken);
-        AdminUI.showToast("Token copied");
+        AdminUI.showToast(I18n.t("token.tokenCopied"));
       }
 
       document.addEventListener("DOMContentLoaded", async () => {

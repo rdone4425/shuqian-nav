@@ -59,38 +59,38 @@
           </div>
           <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
           <div class="stats-grid">
-            <div class="stat-item"><span class="stat-value" id="totalBookmarks">0</span><span class="stat-label">Total</span></div>
-            <div class="stat-item"><span class="stat-value" id="checkedCount">0</span><span class="stat-label">Checked</span></div>
-            <div class="stat-item"><span class="stat-value" id="accessibleCount">0</span><span class="stat-label">Reachable</span></div>
-            <div class="stat-item"><span class="stat-value" id="inaccessibleCount">0</span><span class="stat-label">Unreachable</span></div>
-            <div class="stat-item"><span class="stat-value" id="keptCount">0</span><span class="stat-label">Kept</span></div>
-            <div class="stat-item"><span class="stat-value" id="deletedCount">0</span><span class="stat-label">Deleted</span></div>
+            <div class="stat-item"><span class="stat-value" id="totalBookmarks">0</span><span class="stat-label" data-i18n="linkChecker.statTotal">总计</span></div>
+            <div class="stat-item"><span class="stat-value" id="checkedCount">0</span><span class="stat-label" data-i18n="linkChecker.statChecked">已检查</span></div>
+            <div class="stat-item"><span class="stat-value" id="accessibleCount">0</span><span class="stat-label" data-i18n="linkChecker.statReachable">可访问</span></div>
+            <div class="stat-item"><span class="stat-value" id="inaccessibleCount">0</span><span class="stat-label" data-i18n="linkChecker.statUnreachable">不可访问</span></div>
+            <div class="stat-item"><span class="stat-value" id="keptCount">0</span><span class="stat-label" data-i18n="linkChecker.statKept">已保留</span></div>
+            <div class="stat-item"><span class="stat-value" id="deletedCount">0</span><span class="stat-label" data-i18n="linkChecker.statDeleted">已删除</span></div>
           </div>
         </section>
 
         <section class="details-section">
           <div class="details-content">
-            <h4>How this works</h4>
+            <h4 data-i18n="linkChecker.howThisWorks">工作原理</h4>
             <ul>
-              <li>The page loads the current bookmark list from <code>/api/system/check-links-stream</code>.</li>
-              <li>Each link is checked one by one when you start a run.</li>
-              <li>You can keep an item, re-check a single item, or delete manually.</li>
+              <li data-i18n="linkChecker.howThisWorksLine1">本页面从 /api/system/check-links-stream 加载当前书签列表。</li>
+              <li data-i18n="linkChecker.howThisWorksLine2">点击开始后，逐个检查每个链接的可访问性。</li>
+              <li data-i18n="linkChecker.howThisWorksLine3">你可以保留某个链接、重新检查单个链接，或手动删除。</li>
             </ul>
           </div>
         </section>
 
         <section id="bookmarksCard" class="bookmarks-section">
           <div class="bookmarks-header">
-            <h2>Bookmark list</h2>
-            <span id="filterStatus" class="bookmarks-stats">Waiting to load</span>
+            <h2 data-i18n="linkChecker.bookmarkList">书签列表</h2>
+            <span id="filterStatus" class="bookmarks-stats" data-i18n="linkChecker.waitingToLoad">等待加载</span>
           </div>
-          <div id="bookmarksList"><div class="bookmarks-stats">Loading bookmarks...</div></div>
+          <div id="bookmarksList"><div class="bookmarks-stats" data-i18n="linkChecker.loadingBookmarks">正在加载书签...</div></div>
         </section>
 
         <section class="details-section">
           <div class="details-content">
-            <h4>Recent runs</h4>
-            <div id="historyList">Loading history...</div>
+            <h4 data-i18n="linkChecker.recentRuns">最近运行记录</h4>
+            <div id="historyList" data-i18n="linkChecker.loadingHistory">正在加载历史记录...</div>
           </div>
         </section>
       </main>
@@ -134,20 +134,20 @@
         const list = document.getElementById("bookmarksList");
 
         if (!state.bookmarks.length) {
-          list.innerHTML = '<div class="bookmarks-stats">There are no bookmarks to check.</div>';
-          document.getElementById("filterStatus").textContent = "No data";
+          list.innerHTML = `<div class="bookmarks-stats">${I18n.t("linkChecker.noBookmarks")}</div>`;
+          document.getElementById("filterStatus").textContent = I18n.t("linkChecker.noData");
           updateStats();
           return;
         }
 
-        document.getElementById("filterStatus").textContent = `${state.bookmarks.length} bookmarks loaded`;
+        document.getElementById("filterStatus").textContent = I18n.t("linkChecker.bookmarksLoaded").replace("{count}", state.bookmarks.length);
         list.innerHTML = state.bookmarks
           .map((bookmark) => {
             const bookmarkClass = getBookmarkClass(bookmark);
             const keepAction =
               bookmark.keepStatus === "keep"
-                ? `<button class="unkeep-btn" type="button" data-action="unkeep" data-id="${bookmark.id}">Clear keep</button>`
-                : `<button class="keep-btn" type="button" data-action="keep" data-id="${bookmark.id}">Keep</button>`;
+                ? `<button class="unkeep-btn" type="button" data-action="unkeep" data-id="${bookmark.id}">${I18n.t("linkChecker.clearKeep")}</button>`
+                : `<button class="keep-btn" type="button" data-action="keep" data-id="${bookmark.id}">${I18n.t("linkChecker.keep")}</button>`;
 
             return `
               <article class="bookmark-item ${bookmarkClass}">
@@ -199,7 +199,7 @@
       }
 
       async function loadBookmarks() {
-        document.getElementById("bookmarksList").innerHTML = '<div class="bookmarks-stats">Loading bookmarks...</div>';
+        document.getElementById("bookmarksList").innerHTML = `<div class="bookmarks-stats">${I18n.t("linkChecker.loadingBookmarks")}</div>`;
 
         try {
           const response = await API.get("/api/system/check-links-stream");
@@ -214,10 +214,10 @@
             error: "",
           }));
 
-          document.getElementById("progressText").textContent = "Bookmark list loaded";
+          document.getElementById("progressText").textContent = I18n.t("linkChecker.bookmarkListLoaded");
           renderBookmarks();
         } catch (error) {
-          document.getElementById("bookmarksList").innerHTML = `<div class="bookmarks-stats">Load failed: ${AdminUI.escapeHtml(error.message)}</div>`;
+          document.getElementById("bookmarksList").innerHTML = `<div class="bookmarks-stats">${I18n.t("linkChecker.loadFailedWithError").replace("{error}", AdminUI.escapeHtml(error.message))}</div>`;
         }
       }
 
@@ -228,7 +228,7 @@
         bookmark.status = "checking";
         bookmark.error = "";
         renderBookmarks();
-        document.getElementById("progressText").textContent = `Checking: ${bookmark.title}`;
+        document.getElementById("progressText").textContent = `${I18n.t("linkChecker.checking")} ${bookmark.title}`;
 
         try {
           const response = await API.post("/api/system/check-links-stream", {
@@ -269,12 +269,12 @@
         state.stopRequested = false;
         document.getElementById("startCheckBtn").classList.remove("hidden");
         document.getElementById("stopCheckBtn").classList.add("hidden");
-        document.getElementById("progressText").textContent = "Checks completed";
+        document.getElementById("progressText").textContent = I18n.t("linkChecker.checksCompleted");
       }
 
       function stopBatchCheck() {
         state.stopRequested = true;
-        document.getElementById("progressText").textContent = "停止ping checks...";
+        document.getElementById("progressText").textContent = I18n.t("linkChecker.stopping");
       }
 
       async function updateKeepStatus(bookmarkId, keepStatus) {
@@ -290,9 +290,9 @@
           if (bookmark) bookmark.keepStatus = keepStatus;
 
           renderBookmarks();
-          AdminUI.showToast(keepStatus === "keep" ? "Bookmark marked as keep" : "Keep mark cleared");
+          AdminUI.showToast(keepStatus === "keep" ? I18n.t("linkChecker.bookmarkMarkedKeep") : I18n.t("linkChecker.keepMarkCleared"));
         } catch (error) {
-          AdminUI.showToast(`Update failed: ${error.message}`, "error");
+          AdminUI.showToast(`${I18n.t("linkChecker.updateFailed")}: ${error.message}`, "error");
         }
       }
 
@@ -317,16 +317,16 @@
           bookmark.deleted = true;
           bookmark.status = "deleted";
           renderBookmarks();
-          AdminUI.showToast(`Deleted: ${bookmark.title}`);
+          AdminUI.showToast(`${I18n.t("linkChecker.deleted")}: ${bookmark.title}`);
         } catch (error) {
-          AdminUI.showToast(`Delete failed: ${error.message}`, "error");
+          AdminUI.showToast(`${I18n.t("linkChecker.deleteFailed")}: ${error.message}`, "error");
         }
       }
 
       async function loadHistory() {
         try {
           const response = await API.get("/api/system/check-links");
-          if (!response.success) throw new Error(response.error || "Failed to load history");
+          if (!response.success) throw new Error(response.error || I18n.t("linkChecker.historyLoadFailed"));
 
           const history = response.data || [];
           const historyList = document.getElementById("historyList");
@@ -341,13 +341,16 @@
             .map(
               (item) => `
                 <div class="bookmarks-stats" style="margin-bottom: 8px;">
-                  ${AdminUI.formatDate(item.checkedAt || item.createdAt)}: total ${item.total ?? 0}, reachable ${item.accessible ?? 0}, unreachable ${item.inaccessible ?? 0}
+                  ${AdminUI.formatDate(item.checkedAt || item.createdAt)}: ${I18n.t("linkChecker.historyItem")
+                    .replace("{total}", item.total ?? 0)
+                    .replace("{accessible}", item.accessible ?? 0)
+                    .replace("{inaccessible}", item.inaccessible ?? 0)}
                 </div>
               `,
             )
             .join("");
         } catch (error) {
-          document.getElementById("historyList").textContent = `Load failed: ${error.message}`;
+          document.getElementById("historyList").textContent = `${I18n.t("linkChecker.historyLoadFailed")}: ${error.message}`;
         }
       }
 

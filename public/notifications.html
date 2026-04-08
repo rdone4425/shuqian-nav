@@ -18,7 +18,7 @@
           </div>
           <div class="header-actions">
             <div class="action-group tools-menu">
-              <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" title="Tools menu">
+              <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" data-i18n-title="header.toolsTitle" title="工具菜单">
                 <span class="btn-icon">...</span>
                 <span class="dropdown-arrow">v</span>
               </button>
@@ -40,22 +40,22 @@
       <main class="notifications-container">
         <section class="notification-card">
           <div class="notification-card-header">
-            <h2 class="notification-card-title">Summary</h2>
+            <h2 class="notification-card-title" data-i18n="notifications.summary">摘要</h2>
             <button id="refreshBtn" class="btn btn-secondary" type="button">刷新</button>
           </div>
           <div class="notification-stats">
-            <div class="stat-group"><span class="stat-icon">ALL</span><span class="stat-text">Total records</span><span id="totalChecks" class="stat-value">0</span></div>
-            <div class="stat-group"><span class="stat-icon">BAD</span><span class="stat-text">Total unreachable</span><span id="totalInaccessible" class="stat-value">0</span></div>
-            <div class="stat-group"><span class="stat-icon">TIME</span><span class="stat-text">Last check</span><span id="lastCheckTime" class="stat-value">-</span></div>
+            <div class="stat-group"><span class="stat-icon">ALL</span><span class="stat-text" data-i18n="notifications.totalRecords">总记录数</span><span id="totalChecks" class="stat-value">0</span></div>
+            <div class="stat-group"><span class="stat-icon">BAD</span><span class="stat-text" data-i18n="notifications.totalUnreachable">不可访问总数</span><span id="totalInaccessible" class="stat-value">0</span></div>
+            <div class="stat-group"><span class="stat-icon">TIME</span><span class="stat-text" data-i18n="notifications.lastCheck">最近检查</span><span id="lastCheckTime" class="stat-value">-</span></div>
           </div>
         </section>
 
         <section class="notification-card">
           <div class="notification-card-header">
-            <h2 class="notification-card-title">Recent records</h2>
+            <h2 class="notification-card-title" data-i18n="notifications.recentRecords">最近记录</h2>
           </div>
           <div id="notificationsList">
-            <div class="notification-description">Loading notification records...</div>
+            <div class="notification-description" data-i18n="notifications.loadingNotifications">正在加载通知记录...</div>
           </div>
         </section>
       </main>
@@ -67,9 +67,9 @@
     <script src="/js/admin-common.js"></script>
     <script>
       function getNotificationLabel(type) {
-        if (type === "weekly_check_notification") return "Auto notice";
-        if (type === "weekly_auto_check") return "Auto check";
-        return "System record";
+        if (type === "weekly_check_notification") return I18n.t("notifications.typeAutoNotice");
+        if (type === "weekly_auto_check") return I18n.t("notifications.typeAutoCheck");
+        return I18n.t("notifications.typeSystemRecord");
       }
 
       function renderNotificationItem(item) {
@@ -90,7 +90,7 @@
             </div>
             <div class="notification-content">
               <p class="notification-description">
-                ${inaccessible > 0 ? `Found ${inaccessible} unreachable links.` : "No unreachable links were reported in this run."}
+                ${inaccessible > 0 ? I18n.t("notifications.foundUnreachable").replace("{count}", inaccessible) : I18n.t("notifications.noUnreachable")}`}
               </p>
             </div>
             <div class="notification-stats">
@@ -103,7 +103,7 @@
               sample.length
                 ? `<div class="notification-content"><div class="notification-description"><strong>Examples:</strong><ul>${sample
                     .slice(0, 5)
-                    .map((bookmark) => `<li>${AdminUI.escapeHtml(bookmark.title || bookmark.url || "Untitled")}${bookmark.url ? ` - ${AdminUI.escapeHtml(bookmark.url)}` : ""}</li>`)
+                    .map((bookmark) => `<li>${AdminUI.escapeHtml(bookmark.title || bookmark.url || I18n.t("common.untitled"))}${bookmark.url ? ` - ${AdminUI.escapeHtml(bookmark.url)}` : ""}</li>`)
                     .join("")}</ul></div></div>`
                 : ""
             }
@@ -124,7 +124,7 @@
 
       async function loadNotifications() {
         const container = document.getElementById("notificationsList");
-        container.innerHTML = '<div class="notification-description">Loading notification records...</div>';
+        container.innerHTML = `<div class="notification-description">${I18n.t("notifications.loadingNotifications")}</div>`;
 
         try {
           const response = await API.get("/api/cron/weekly-check");
@@ -134,13 +134,13 @@
           updateSummary(items);
 
           if (!items.length) {
-            container.innerHTML = '<div class="notification-description">There are no notification records yet.</div>';
+            container.innerHTML = `<div class="notification-description">${I18n.t("notifications.noNotifications")}</div>`;
             return;
           }
 
           container.innerHTML = items.map(renderNotificationItem).join("");
         } catch (error) {
-          container.innerHTML = `<div class="notification-description">Load failed: ${AdminUI.escapeHtml(error.message)}</div>`;
+          container.innerHTML = `<div class="notification-description">${I18n.t("notifications.loadFailedWithError").replace("{error}", AdminUI.escapeHtml(error.message))}</div>`;
         }
       }
 

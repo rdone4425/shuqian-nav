@@ -19,7 +19,7 @@
           </div>
           <div class="header-actions">
             <div class="action-group tools-menu">
-              <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" title="Tools menu">
+              <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" data-i18n-title="header.toolsTitle" title="工具菜单">
                 <span class="btn-icon">...</span>
                 <span class="dropdown-arrow">v</span>
               </button>
@@ -41,24 +41,24 @@
       <main class="main-content">
         <section class="stats-section">
           <div class="stats-grid">
-            <div class="stat-card"><div class="stat-value" id="totalDeleted">0</div><div class="stat-label">Visible records</div></div>
-            <div class="stat-card"><div class="stat-value" id="manualDeleted">0</div><div class="stat-label">Manual delete</div></div>
-            <div class="stat-card"><div class="stat-value" id="autoDeleted">0</div><div class="stat-label">Failed link delete</div></div>
-            <div class="stat-card"><div class="stat-value" id="todayDeleted">0</div><div class="stat-label">Deleted today</div></div>
+            <div class="stat-card"><div class="stat-value" id="totalDeleted">0</div><div class="stat-label" data-i18n="deleted.statVisible">可见记录</div></div>
+            <div class="stat-card"><div class="stat-value" id="manualDeleted">0</div><div class="stat-label" data-i18n="deleted.statManual">手动删除</div></div>
+            <div class="stat-card"><div class="stat-value" id="autoDeleted">0</div><div class="stat-label" data-i18n="deleted.statFailedLink">链接检查失败</div></div>
+            <div class="stat-card"><div class="stat-value" id="todayDeleted">0</div><div class="stat-label" data-i18n="deleted.statToday">今日删除</div></div>
           </div>
         </section>
 
         <section class="actions-section">
           <div class="actions-left">
-            <button id="refreshBtn" class="btn btn-primary">Refresh list</button>
-            <button id="clearAllBtn" class="btn btn-danger" type="button" disabled>Bulk clear not supported</button>
+            <button id="refreshBtn" class="btn btn-primary" data-i18n="deleted.btnRefresh">刷新列表</button>
+            <button id="clearAllBtn" class="btn btn-danger" type="button" disabled data-i18n="deleted.btnBulkClear">批量清除（不支持）</button>
           </div>
           <div class="actions-right">
             <select id="filterSelect" class="filter-select">
-              <option value="all">All records</option>
-              <option value="manual_delete">Manual delete</option>
-              <option value="link_check_failed">Link check failed</option>
-              <option value="batch_delete_inaccessible">Batch delete</option>
+              <option value="all" data-i18n="deleted.filterAll">全部</option>
+              <option value="manual_delete" data-i18n="deleted.filterManual">手动删除</option>
+              <option value="link_check_failed" data-i18n="deleted.filterLinkFailed">链接检查失败</option>
+              <option value="batch_delete_inaccessible" data-i18n="deleted.filterBatchDelete">批量删除</option>
             </select>
             <input type="search" id="searchInput" placeholder="搜索标题或 URL" class="search-input" />
           </div>
@@ -66,12 +66,12 @@
 
         <section class="records-section">
           <div id="recordsList" class="records-list">
-            <div class="loading">Loading deleted bookmarks...</div>
+            <div class="loading" data-i18n="deleted.loadingDeleted">正在加载已删除书签...</div>
           </div>
           <div id="pagination" class="pagination hidden">
-            <button id="prevPage" class="btn btn-secondary">Previous</button>
-            <span id="pageInfo" class="page-info">Page 1 of 1</span>
-            <button id="nextPage" class="btn btn-secondary">Next</button>
+            <button id="prevPage" class="btn btn-secondary" data-i18n="deleted.btnPrevious">上一页</button>
+            <span id="pageInfo" class="page-info" data-i18n="deleted.pageOf">第 1 页，共 1 页</span>
+            <button id="nextPage" class="btn btn-secondary" data-i18n="deleted.btnNext">下一页</button>
           </div>
         </section>
       </main>
@@ -80,15 +80,15 @@
     <div id="restoreModal" class="modal hidden">
       <div class="modal-content">
         <div class="modal-header">
-          <h3>恢复 bookmark</h3>
-          <button id="close恢复Modal" class="btn-close">&times;</button>
+          <h3 data-i18n="deleted.modalRestoreTitle">恢复书签</h3>
+          <button id="closeRestoreModal" class="btn-close">&times;</button>
         </div>
         <div class="modal-body">
           <div id="restoreBookmarkInfo"></div>
-          <p>恢复 this bookmark now?</p>
+          <p data-i18n="deleted.modalRestoreBody">确定要恢复此书签吗？</p>
           <div class="modal-actions">
-            <button id="cancel恢复" class="btn btn-secondary">Cancel</button>
-            <button id="confirm恢复" class="btn btn-primary">恢复</button>
+            <button id="cancelRestore" class="btn btn-secondary" data-i18n="deleted.btnCancel">取消</button>
+            <button id="confirmRestore" class="btn btn-primary" data-i18n="deleted.restoreBtn">恢复</button>
           </div>
         </div>
       </div>
@@ -97,7 +97,7 @@
     <div id="detailModal" class="modal hidden">
       <div class="modal-content modal-large">
         <div class="modal-header">
-          <h3>Delete details</h3>
+          <h3 data-i18n="deleted.modalDetailsTitle">删除详情</h3>
           <button id="closeDetailModal" class="btn-close">&times;</button>
         </div>
         <div class="modal-body">

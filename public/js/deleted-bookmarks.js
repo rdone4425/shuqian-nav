@@ -25,7 +25,7 @@ class DeletedBookmarksManager {
     });
 
     document.getElementById("clearAllBtn").addEventListener("click", () => {
-      AdminUI.showToast("Bulk clear is not implemented yet", "error");
+      AdminUI.showToast(I18n.t("deleted.bulkClearNotImplemented"), "error");
     });
 
     document
@@ -114,7 +114,7 @@ class DeletedBookmarksManager {
   async loadDeletedRecords() {
     const recordsList = document.getElementById("recordsList");
     recordsList.innerHTML =
-      '<div class="loading">Loading deleted bookmarks...</div>';
+      `<div class="loading">${I18n.t("deleted.loadingDeleted")}</div>`;
 
     try {
       const params = new URLSearchParams({
@@ -134,7 +134,7 @@ class DeletedBookmarksManager {
         `/api/bookmarks/deleted?${params.toString()}`,
       );
       if (!response.success) {
-        throw new Error(response.error || "Failed to load deleted bookmarks");
+        throw new Error(response.error || I18n.t("deleted.loadFailed"));
       }
 
       this.deletedRecords = response.data?.bookmarks || [];
@@ -145,7 +145,7 @@ class DeletedBookmarksManager {
       this.updateStats();
     } catch (error) {
       this.deletedRecords = [];
-      recordsList.innerHTML = `<div class="empty-state">Load failed: ${AdminUI.escapeHtml(error.message)}</div>`;
+      recordsList.innerHTML = `<div class="empty-state">${I18n.t("deleted.loadFailedWithError").replace("{error}", AdminUI.escapeHtml(error.message))}</div>`;
       this.updatePagination();
       this.updateStats();
     }
@@ -155,7 +155,7 @@ class DeletedBookmarksManager {
     const recordsList = document.getElementById("recordsList");
     if (!this.deletedRecords.length) {
       recordsList.innerHTML =
-        '<div class="empty-state">There are no deleted bookmark records.</div>';
+        `<div class="empty-state">${I18n.t("deleted.noDeletedRecords")}</div>`;
       return;
     }
 
@@ -238,14 +238,14 @@ class DeletedBookmarksManager {
 
     if (this.totalPages <= 1) {
       pagination.classList.add("hidden");
-      pageInfo.textContent = "Page 1 of 1";
+      pageInfo.textContent = I18n.t("deleted.pageOf").replace("{current}", "1").replace("{total}", "1");
       return;
     }
 
     pagination.classList.remove("hidden");
     prevBtn.disabled = this.currentPage <= 1;
     nextBtn.disabled = this.currentPage >= this.totalPages;
-    pageInfo.textContent = `Page ${this.currentPage} of ${this.totalPages}`;
+    pageInfo.textContent = I18n.t("deleted.pageOf").replace("{current}", this.currentPage).replace("{total}", this.totalPages);
   }
 
   updateStats() {
@@ -283,9 +283,9 @@ class DeletedBookmarksManager {
     this.pendingRestoreId = recordId;
     document.getElementById("restoreBookmarkInfo").innerHTML = `
       <div style="margin-bottom: 1rem;">
-        <strong>Title:</strong> ${AdminUI.escapeHtml(record.title || "Untitled bookmark")}<br>
-        <strong>URL:</strong> ${AdminUI.escapeHtml(record.url || "")}<br>
-        <strong>Deleted at:</strong> ${AdminUI.formatDate(record.deleted_at)}
+        <strong>${I18n.t("deleted.labelTitle")}</strong> ${AdminUI.escapeHtml(record.title || I18n.t("deleted.untitledBookmark"))}<br>
+        <strong>${I18n.t("deleted.labelUrl")}</strong> ${AdminUI.escapeHtml(record.url || "")}<br>
+        <strong>${I18n.t("deleted.labelDeletedAt")}</strong> ${AdminUI.formatDate(record.deleted_at)}
       </div>
     `;
     document.getElementById("restoreModal").classList.remove("hidden");
@@ -307,14 +307,14 @@ class DeletedBookmarksManager {
       });
 
       if (!response.success) {
-        throw new Error(response.error || "Failed to restore bookmark");
+        throw new Error(response.error || I18n.t("deleted.restoreFailed"));
       }
 
       this.hideRestoreModal();
-      AdminUI.showToast("Bookmark restored");
+      AdminUI.showToast(I18n.t("deleted.restoreSuccess"));
       await this.loadDeletedRecords();
     } catch (error) {
-      AdminUI.showToast(`Restore failed: ${error.message}`, "error");
+      AdminUI.showToast(`${I18n.t("deleted.restoreFailed")}: ${error.message}`, "error");
     }
   }
 
