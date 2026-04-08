@@ -1,8 +1,8 @@
 /* Wiki-style layout for bookmark knowledge base */
 :root {
-  --wiki-bg: #f8fafc;
-  --wiki-surface: #ffffff;
-  --wiki-border: #e2e8f0;
+  --wiki-bg: var(--bg-panel);
+  --wiki-surface: var(--bg-surface);
+  --wiki-border: var(--border-default);
   --wiki-sidebar-width: 320px;
   --wiki-radius: 14px;
 }
@@ -47,8 +47,8 @@
 
 .section-meta {
   font-size: 0.85rem;
-  color: #64748b;
-  background: #eff6ff;
+  color: var(--text-muted);
+  background: var(--info-bg);
   border-radius: 999px;
   padding: 2px 12px;
 }
@@ -69,7 +69,7 @@
 
 .sidebar-hint {
   font-size: 0.85rem;
-  color: #94a3b8;
+  color: var(--text-faint);
   margin: 6px 0 0;
 }
 
@@ -79,14 +79,14 @@
   border-radius: 999px;
   padding: 6px 12px;
   font-size: 0.8rem;
-  color: #475569;
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .ghost-btn:hover {
-  border-color: #94a3b8;
-  color: #0f172a;
+  border-color: var(--text-faint);
+  color: var(--text-primary);
 }
 
 .wiki-content-panel {
@@ -110,7 +110,7 @@
   font-size: 0.85rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #94a3b8;
+  color: var(--text-faint);
   margin: 0 0 4px;
 }
 
@@ -121,24 +121,24 @@
 
 .wiki-ai-status {
   font-size: 0.85rem;
-  color: #059669;
+  color: var(--success);
   margin: 6px 0 0;
 }
 
 .wiki-ai-status[data-tone="success"] {
-  color: #059669;
+  color: var(--success);
 }
 
 .wiki-ai-status[data-tone="warning"] {
-  color: #f97316;
+  color: var(--warning);
 }
 
 .wiki-ai-status[data-tone="error"] {
-  color: #dc2626;
+  color: var(--error);
 }
 
 .wiki-ai-status[data-tone="muted"] {
-  color: #94a3b8;
+  color: var(--text-faint);
 }
 
 .wiki-hero-actions {
@@ -154,7 +154,7 @@
 }
 
 .primary-btn {
-  background: #2563eb;
+  background: var(--info);
   color: #fff;
   border: none;
   border-radius: 999px;
@@ -165,7 +165,7 @@
 }
 
 .primary-btn:hover {
-  background: #1d4ed8;
+  background: var(--info);
 }
 
 .wiki-content {
@@ -203,7 +203,7 @@
 }
 
 .wiki-section-description {
-  color: #64748b;
+  color: var(--text-muted);
   margin: 0;
   font-size: 0.95rem;
 }
@@ -222,7 +222,7 @@
 }
 
 .wiki-bookmark:hover {
-  border-color: #93c5fd;
+  border-color: var(--info-bg);
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
 }
 
@@ -242,19 +242,19 @@
 }
 
 .wiki-bookmark-title a {
-  color: #0f172a;
+  color: var(--text-primary);
   text-decoration: none;
 }
 
 .wiki-bookmark-url {
   font-size: 0.9rem;
-  color: #64748b;
+  color: var(--text-muted);
   word-break: break-all;
 }
 
 .wiki-bookmark-description {
   margin: 10px 0 0;
-  color: #475569;
+  color: var(--text-muted);
   font-size: 0.95rem;
 }
 
@@ -263,14 +263,14 @@
   justify-content: space-between;
   margin-top: 12px;
   font-size: 0.85rem;
-  color: #94a3b8;
+  color: var(--text-faint);
   flex-wrap: wrap;
   gap: 12px;
 }
 
 .wiki-tag {
-  background: #eff6ff;
-  color: #2563eb;
+  background: var(--info-bg);
+  color: var(--info);
   border-radius: 999px;
   padding: 3px 10px;
   font-size: 0.8rem;
@@ -294,7 +294,7 @@
 }
 
 .wiki-bookmark-action:hover {
-  border-color: #cbd5f5;
+  border-color: var(--info-bg);
 }
 
 .wiki-toc {
@@ -309,12 +309,12 @@
   padding: 6px 0;
   text-align: left;
   font-size: 0.9rem;
-  color: #0f172a;
+  color: var(--text-primary);
   cursor: pointer;
 }
 
 .wiki-toc button span {
-  color: #94a3b8;
+  color: var(--text-faint);
   margin-left: 6px;
 }
 
@@ -338,7 +338,7 @@
 .wiki-pinned-card p {
   margin: 0;
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .wiki-empty {
@@ -347,7 +347,7 @@
   border: 1px dashed var(--wiki-border);
   border-radius: var(--wiki-radius);
   margin-top: 16px;
-  color: #94a3b8;
+  color: var(--text-faint);
 }
 
 .hidden {
@@ -368,8 +368,8 @@
 
 .command-panel {
   width: min(640px, 90vw);
-  background: #0f172a;
-  color: #e2e8f0;
+  background: var(--text-primary);
+  color: var(--border-default);
   border-radius: 16px;
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
 }
@@ -386,7 +386,7 @@
   flex: 1;
   background: transparent;
   border: none;
-  color: #f8fafc;
+  color: var(--bg-panel);
   font-size: 1rem;
 }
 
@@ -419,17 +419,17 @@
 .command-item h5 {
   margin: 0;
   font-size: 1rem;
-  color: #f1f5f9;
+  color: var(--bg-hover);
 }
 
 .command-item p {
   margin: 4px 0 0;
   font-size: 0.85rem;
-  color: #cbd5f5;
+  color: var(--info-bg);
 }
 
 .wiki-highlight mark {
-  background: #fef3c7;
+  background: var(--warning-bg);
   color: inherit;
 }
 

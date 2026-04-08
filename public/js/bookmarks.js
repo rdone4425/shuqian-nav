@@ -195,7 +195,7 @@ const BookmarkManager = {
     const categoryBadge = bookmark.category_name
       ? `
       <div class="bookmark-category">
-        <div class="category-dot" style="background-color: ${bookmark.category_color || "#3B82F6"}"></div>
+        <div class="category-dot" style="background-color: ${bookmark.category_color || "var(--accent)"}"></div>
         <span>${bookmark.category_name}</span>
       </div>
     `
