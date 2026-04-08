@@ -371,17 +371,16 @@ body {
   cursor: pointer;
   transition: all var(--transition-fast);
   position: relative;
-  background: rgba(255,255,255,0.04);
-  color: var(--text-primary);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(10px);
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
 }
 
 .action-btn-icon:hover {
-  background: rgba(255, 255, 255, 1);
+  background: var(--bg-active);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
-  border-color: var(--accent-bg);
+  border-color: var(--accent);
 }
 
 .action-btn-icon.primary {
@@ -408,7 +407,7 @@ body {
   right: 2px;
   font-size: var(--font-size-xs);
   transition: transform var(--transition-fast);
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--bg-hover);
   border-radius: 50%;
   width: 14px;
   height: 14px;
@@ -431,11 +430,10 @@ body {
   top: calc(100% + var(--spacing-sm));
   right: 0;
   min-width: 280px;
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(20px);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xl);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
   padding: var(--spacing-md);
   opacity: 0;
   visibility: hidden;
@@ -467,7 +465,7 @@ body {
 }
 
 .dropdown-item:hover {
-  background: rgba(102, 126, 234, 0.1);
+  background: var(--bg-hover);
   transform: translateX(4px);
 }
 
@@ -476,6 +474,7 @@ body {
   width: 24px;
   text-align: center;
   flex-shrink: 0;
+  color: var(--text-secondary);
 }
 
 .dropdown-item .item-content {
@@ -492,7 +491,7 @@ body {
 
 .dropdown-item .item-desc {
   font-size: var(--font-size-xs);
-  color: var(--text-secondary);
+  color: var(--text-muted);
   line-height: 1.2;
   margin-top: 2px;
 }
@@ -501,7 +500,6 @@ body {
   height: 1px;
   background: var(--border-default);
   margin: var(--spacing-sm) 0;
-  opacity: 0.5;
 }
 
 /* 响应式设计 */
@@ -675,7 +673,7 @@ body {
   width: 32px;
   height: 32px;
   border: none;
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--bg-hover);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -960,7 +958,7 @@ body {
   width: 24px;                                  /* 减小按钮尺寸 */
   height: 24px;                                 /* 减小按钮尺寸 */
   border: none;
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--bg-hover);
   border-radius: var(--radius-xs);              /* 减小圆角 */
   display: flex;
   align-items: center;
@@ -1259,7 +1257,7 @@ body {
 
 #changePasswordModal .modal-body {
   padding: 32px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--bg-panel);
 }
 
 #changePasswordModal .form-group {
@@ -1300,7 +1298,7 @@ body {
   outline: none;
   border-color: var(--accent-bg);
   box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-  background: rgba(255, 255, 255, 1);
+  background: var(--accent-bg);
   transform: translateY(-1px);
 }
 
