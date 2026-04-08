@@ -1,15 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bookmark Navigator - Modern bookmark manager</title>
-    <meta
-      name="description"
-      content="A modern bookmark navigator with categories, search, sorting, and AI-assisted views."
-    />
+    <title data-i18n="login.title">登录 - 书签导航</title>
+    <meta name="description" content="书签导航 - 现代书签管理器，支持分类、搜索、AI 辅助视图" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;590;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/styles.css" />
     <link rel="stylesheet" href="/css/bookmarks-enhanced.css" />
     <link rel="stylesheet" href="/css/wiki-layout.css" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -20,33 +17,33 @@
         <div class="header-content">
           <div class="logo">
             <span class="logo-icon">B</span>
-            <h1 class="logo-text">Bookmark Navigator</h1>
+            <h1 class="logo-text" data-i18n="common.appName">书签导航</h1>
           </div>
 
           <div class="header-actions">
             <div class="action-group primary-actions">
-              <button id="searchToggle" class="action-btn-icon" title="Search bookmarks">
+              <button id="searchToggle" class="action-btn-icon" data-i18n-title="header.searchTitle" title="搜索书签">
                 <span class="btn-icon">S</span>
               </button>
-              <button id="addBookmarkBtn" class="action-btn-icon primary" title="Add bookmark">
+              <button id="addBookmarkBtn" class="action-btn-icon primary" data-i18n-title="header.addTitle" title="添加书签">
                 <span class="btn-icon">+</span>
               </button>
             </div>
 
             <div class="action-group tools-menu">
-              <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" title="Tools menu">
+              <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" data-i18n-title="header.toolsTitle" title="工具菜单">
                 <span class="btn-icon">...</span>
                 <span class="dropdown-arrow">v</span>
               </button>
               <div id="toolsDropdown" class="dropdown-menu">
-                <a href="/token.html" class="dropdown-item"><span class="item-icon">API</span><div class="item-content"><span class="item-text">API Tokens</span><span class="item-desc">Manage access tokens</span></div></a>
-                <a href="/link-checker.html" class="dropdown-item"><span class="item-icon">CHK</span><div class="item-content"><span class="item-text">Link Checker</span><span class="item-desc">Check bookmark reachability</span></div></a>
-                <a href="/deleted-bookmarks.html" class="dropdown-item"><span class="item-icon">DEL</span><div class="item-content"><span class="item-text">Deleted</span><span class="item-desc">Review deleted bookmarks</span></div></a>
-                <a href="/notifications.html" class="dropdown-item"><span class="item-icon">MSG</span><div class="item-content"><span class="item-text">Notifications</span><span class="item-desc">View recent notices</span></div></a>
-                <a href="/ai-settings.html" class="dropdown-item"><span class="item-icon">AI</span><div class="item-content"><span class="item-text">AI Settings</span><span class="item-desc">Manage AI endpoint and model</span></div></a>
+                <a href="/token.html" class="dropdown-item"><span class="item-icon">API</span><div class="item-content"><span class="item-text" data-i18n="header.apiTokens">API 令牌</span><span class="item-desc" data-i18n="header.apiTokensDesc">管理访问令牌</span></div></a>
+                <a href="/link-checker.html" class="dropdown-item"><span class="item-icon">CHK</span><div class="item-content"><span class="item-text" data-i18n="header.linkChecker">链接检查</span><span class="item-desc" data-i18n="header.linkCheckerDesc">检查书签可访问性</span></div></a>
+                <a href="/deleted-bookmarks.html" class="dropdown-item"><span class="item-icon">DEL</span><div class="item-content"><span class="item-text" data-i18n="header.deleted">已删除书签</span><span class="item-desc" data-i18n="header.deletedDesc">查看已删除书签</span></div></a>
+                <a href="/notifications.html" class="dropdown-item"><span class="item-icon">MSG</span><div class="item-content"><span class="item-text" data-i18n="header.notifications">通知</span><span class="item-desc" data-i18n="header.notificationsDesc">查看最近通知</span></div></a>
+                <a href="/ai-settings.html" class="dropdown-item"><span class="item-icon">AI</span><div class="item-content"><span class="item-text" data-i18n="header.aiSettings">AI 设置</span><span class="item-desc" data-i18n="header.aiSettingsDesc">管理 AI 端点和模型</span></div></a>
                 <div class="dropdown-divider"></div>
-                <button id="changePasswordBtn" class="dropdown-item"><span class="item-icon">PWD</span><div class="item-content"><span class="item-text">Change Password</span><span class="item-desc">Update the admin password</span></div></button>
-                <button id="settingsToggle" class="dropdown-item"><span class="item-icon">CFG</span><div class="item-content"><span class="item-text">Settings</span><span class="item-desc">Open the settings panel</span></div></button>
+                <button id="changePasswordBtn" class="dropdown-item"><span class="item-icon">PWD</span><div class="item-content"><span class="item-text" data-i18n="header.changePassword">修改密码</span><span class="item-desc" data-i18n="header.changePasswordDesc">更新管理员密码</span></div></button>
+                <button id="settingsToggle" class="dropdown-item"><span class="item-icon">CFG</span><div class="item-content"><span class="item-text" data-i18n="header.settings">设置</span><span class="item-desc" data-i18n="header.settingsDesc">打开设置面板</span></div></button>
               </div>
             </div>
           </div>
@@ -55,7 +52,7 @@
 
       <div id="searchContainer" class="search-container hidden">
         <div class="search-box">
-          <input type="text" id="searchInput" placeholder="Search bookmark title, description, or URL..." class="search-input" />
+          <input type="text" id="searchInput" data-i18n-placeholder="search.placeholder" placeholder="搜索书签标题、描述或 URL..." class="search-input" />
           <button id="searchBtn" class="search-btn"><span class="icon">S</span></button>
           <button id="clearSearchBtn" class="search-btn clear-btn"><span class="icon">x</span></button>
         </div>
@@ -64,28 +61,28 @@
       <div class="controls-bar">
         <div class="filter-controls">
           <select id="categoryFilter" class="filter-select">
-            <option value="">All categories</option>
+            <option value="" data-i18n="filter.allCategories">全部分类</option>
           </select>
           <select id="sortSelect" class="filter-select">
-            <option value="created_at:desc">Newest first</option>
-            <option value="popularity:desc">Most popular</option>
-            <option value="visit_count:desc">Most visited</option>
-            <option value="last_visited:desc">Recently visited</option>
-            <option value="title:asc">Title A-Z</option>
-            <option value="title:desc">Title Z-A</option>
-            <option value="updated_at:desc">Recently updated</option>
-            <option value="created_at:asc">Oldest first</option>
+            <option value="created_at:desc" data-i18n="filter.newest">最新优先</option>
+            <option value="popularity:desc" data-i18n="filter.popular">最受欢迎</option>
+            <option value="visit_count:desc" data-i18n="filter.mostVisited">访问最多</option>
+            <option value="last_visited:desc" data-i18n="filter.recentVisited">最近访问</option>
+            <option value="title:asc" data-i18n="filter.titleAZ">标题 A-Z</option>
+            <option value="title:desc" data-i18n="filter.titleZA">标题 Z-A</option>
+            <option value="updated_at:desc" data-i18n="filter.recentUpdated">最近更新</option>
+            <option value="created_at:asc" data-i18n="filter.oldest">最早优先</option>
           </select>
         </div>
         <div class="view-controls">
-          <button id="gridViewBtn" class="view-btn active" title="Grid view"><span class="icon">#</span></button>
-          <button id="listViewBtn" class="view-btn" title="List view"><span class="icon">=</span></button>
+          <button id="gridViewBtn" class="view-btn active" data-i18n-title="filter.gridView" title="网格视图"><span class="icon">#</span></button>
+          <button id="listViewBtn" class="view-btn" data-i18n-title="filter.listView" title="列表视图"><span class="icon">=</span></button>
         </div>
       </div>
 
       <div class="stats-bar">
-        <div class="stats-item"><span class="stats-label">Total:</span><span id="totalCount" class="stats-value">0</span></div>
-        <div class="stats-item"><span class="stats-label">Current page:</span><span id="currentPageInfo" class="stats-value">0</span></div>
+        <div class="stats-item"><span class="stats-label" data-i18n="stats.total">总计</span><span id="totalCount" class="stats-value">0</span></div>
+        <div class="stats-item"><span class="stats-label" data-i18n="stats.currentPage">当前页</span><span id="currentPageInfo" class="stats-value">0</span></div>
       </div>
 
       <main class="main-content">
@@ -93,22 +90,22 @@
           <aside class="wiki-sidebar">
             <div class="sidebar-section sidebar-search-section">
               <div class="sidebar-search-box">
-                <input type="text" id="wikiSearchInput" placeholder="Search like a wiki..." />
-                <button id="openCommandPalette" class="ghost-btn" title="Command Palette">Ctrl + K</button>
+                <input type="text" id="wikiSearchInput" data-i18n-placeholder="search.palettePlaceholder" placeholder="搜索书签、分类或命令..." />
+                <button id="openCommandPalette" class="ghost-btn" data-i18n-title="search.paletteTitle" title="命令面板">Ctrl + K</button>
               </div>
-              <p class="sidebar-hint">Live filtering, command palette, and quick navigation.</p>
+              <p class="sidebar-hint" data-i18n="search.liveHint">实时筛选、命令面板和快速导航</p>
             </div>
 
             <div class="sidebar-section">
               <div class="section-heading">
-                <h3>Sections</h3>
+                <h3 data-i18n="wiki.sections">分类</h3>
                 <span id="wikiCategoryCount" class="section-meta">0</span>
               </div>
               <nav id="wikiToc" class="wiki-toc"></nav>
             </div>
 
             <div class="sidebar-section">
-              <div class="section-heading"><h3>Pinned</h3></div>
+              <div class="section-heading"><h3 data-i18n="wiki.pinned">置顶</h3></div>
               <div id="wikiPinned" class="wiki-pinned-list"></div>
             </div>
           </aside>
@@ -116,22 +113,22 @@
           <section class="wiki-content-panel">
             <header class="wiki-hero">
               <div>
-                <p class="hero-eyebrow">Bookmark knowledge base</p>
-                <h2>Browse your collection like a wiki</h2>
-                <p class="hero-subtitle"><span id="wikiSummaryCount">0</span> bookmarks | instant search | category sections and table of contents</p>
-                <p class="wiki-ai-status" id="wikiAiStatus">AI view: not generated yet</p>
+                <p class="hero-eyebrow" data-i18n="wiki.knowledgeBase">书签知识库</p>
+                <h2 data-i18n="wiki.browseTitle">像维基一样浏览你的收藏</h2>
+                <p class="hero-subtitle"><span id="wikiSummaryCount">0</span> <span data-i18n="wiki.bookmarkCount">个书签 | 实时搜索 | 分类导航</span></p>
+                <p class="wiki-ai-status" id="wikiAiStatus" data-i18n="wiki.aiStatus">AI 视图：未生成</p>
               </div>
               <div class="wiki-hero-actions">
-                <button id="generateAiWikiBtn" class="primary-btn">Generate AI view</button>
-                <button id="toggleWikiModeBtn" class="ghost-btn" type="button">Use local view</button>
-                <button id="openQuickSearch" class="ghost-btn" type="button">Open command palette</button>
-                <button id="scrollTopBtn" class="ghost-btn" type="button">Back to top</button>
+                <button id="generateAiWikiBtn" class="primary-btn" data-i18n="wiki.generateAi">生成 AI 视图</button>
+                <button id="toggleWikiModeBtn" class="ghost-btn" type="button" data-i18n="wiki.useLocal">使用本地视图</button>
+                <button id="openQuickSearch" class="ghost-btn" type="button" data-i18n="wiki.openPalette">打开命令面板</button>
+                <button id="scrollTopBtn" class="ghost-btn" type="button" data-i18n="common.backToTop">返回顶部</button>
               </div>
             </header>
 
             <div id="wikiContent" class="wiki-content"></div>
             <div id="wikiEmptyState" class="wiki-empty hidden">
-              <p>No bookmarks matched the current filter.</p>
+              <p data-i18n="common.noResults">没有匹配的书签</p>
             </div>
           </section>
         </div>
@@ -140,28 +137,28 @@
 
         <div id="loadingState" class="loading-state">
           <div class="loading-spinner"></div>
-          <p>Loading...</p>
+          <p data-i18n="common.loading">加载中...</p>
         </div>
 
         <div id="emptyState" class="empty-state hidden">
           <div class="empty-icon">B</div>
-          <h3>No bookmarks yet</h3>
-          <p>Use the plus button in the header to add your first bookmark.</p>
+          <h3 data-i18n="empty.noBookmarks">还没有书签</h3>
+          <p data-i18n="empty.noBookmarksHint">点击顶部 + 按钮添加你的第一个书签</p>
         </div>
 
         <div id="errorState" class="error-state hidden">
           <div class="error-icon">!</div>
-          <h3>Load failed</h3>
-          <p id="errorMessage">The bookmark list could not be loaded.</p>
-          <button id="retryBtn" class="btn btn-primary">Retry</button>
+          <h3 data-i18n="common.loadFailed">加载失败</h3>
+          <p id="errorMessage" data-i18n="common.loadFailed">书签列表加载失败。</p>
+          <button id="retryBtn" class="btn btn-primary" data-i18n="common.retry">重试</button>
         </div>
       </main>
 
       <div id="paginationContainer" class="pagination-container hidden" aria-hidden="true">
         <div class="pagination">
-          <button id="prevPageBtn" class="pagination-btn" disabled><span class="icon"><</span>Previous</button>
+          <button id="prevPageBtn" class="pagination-btn" disabled data-i18n="pagination.prev"><span class="icon"><</span>上一页</button>
           <div id="pageNumbers" class="page-numbers"></div>
-          <button id="nextPageBtn" class="pagination-btn" disabled>Next<span class="icon">></span></button>
+          <button id="nextPageBtn" class="pagination-btn" disabled data-i18n="pagination.next">下一页<span class="icon">></span></button>
         </div>
       </div>
     </div>
@@ -169,17 +166,17 @@
     <div id="bookmarkModal" class="modal hidden">
       <div class="modal-content">
         <div class="modal-header">
-          <h3 id="modalTitle">Add bookmark</h3>
+          <h3 id="modalTitle" data-i18n="bookmarkModal.addTitle">添加书签</h3>
           <button id="closeModalBtn" class="btn-close">x</button>
         </div>
         <form id="bookmarkForm" class="modal-body">
-          <div class="form-group"><label for="bookmarkTitle">Title *</label><input type="text" id="bookmarkTitle" required class="form-input" /></div>
-          <div class="form-group"><label for="bookmarkUrl">URL *</label><input type="url" id="bookmarkUrl" required class="form-input" /></div>
-          <div class="form-group"><label for="bookmarkDescription">Description</label><textarea id="bookmarkDescription" class="form-textarea" rows="3"></textarea></div>
-          <div class="form-group"><label for="bookmarkCategory">Category</label><select id="bookmarkCategory" class="form-select"><option value="">No category</option></select></div>
+          <div class="form-group"><label for="bookmarkTitle" data-i18n="bookmarkModal.title">标题 *</label><input type="text" id="bookmarkTitle" required class="form-input" /></div>
+          <div class="form-group"><label for="bookmarkUrl" data-i18n="bookmarkModal.url">URL *</label><input type="url" id="bookmarkUrl" required class="form-input" /></div>
+          <div class="form-group"><label for="bookmarkDescription" data-i18n="bookmarkModal.description">描述</label><textarea id="bookmarkDescription" data-i18n-placeholder="bookmarkModal.descriptionPlaceholder" placeholder="可选的描述..." class="form-textarea" rows="3"></textarea></div>
+          <div class="form-group"><label for="bookmarkCategory" data-i18n="bookmarkModal.category">分类</label><select id="bookmarkCategory" class="form-select"><option value="" data-i18n="bookmarkModal.noCategory">无分类</option></select></div>
           <div class="modal-actions">
-            <button type="button" id="cancelBtn" class="btn btn-secondary">Cancel</button>
-            <button type="submit" id="saveBtn" class="btn btn-primary">Save</button>
+            <button type="button" id="cancelBtn" class="btn btn-secondary" data-i18n="bookmarkModal.cancelBtn">取消</button>
+            <button type="submit" id="saveBtn" class="btn btn-primary" data-i18n="bookmarkModal.saveBtn">保存</button>
           </div>
         </form>
       </div>
@@ -187,41 +184,41 @@
 
     <div id="settingsPanel" class="settings-panel hidden">
       <div class="panel-header">
-        <h3>Settings</h3>
+        <h3 data-i18n="settings.title">设置</h3>
         <button id="settingsClose" class="btn-close">x</button>
       </div>
       <div class="panel-content">
         <div class="settings-section">
-          <h4>Account</h4>
-          <button id="logoutBtn" class="btn btn-outline">Log out</button>
+          <h4 data-i18n="settings.account">账户</h4>
+          <button id="logoutBtn" class="btn btn-outline" data-i18n="settings.logout">退出登录</button>
         </div>
         <div class="settings-section">
-          <h4>Data</h4>
+          <h4 data-i18n="settings.data">数据</h4>
           <div class="export-buttons">
-            <button id="exportBtn" class="btn btn-outline">Export HTML</button>
-            <button id="exportJSONBtn" class="btn btn-outline">Export JSON</button>
+            <button id="exportBtn" class="btn btn-outline" data-i18n="settings.exportHtml">导出 HTML</button>
+            <button id="exportJSONBtn" class="btn btn-outline" data-i18n="settings.exportJson">导出 JSON</button>
           </div>
           <div class="backup-buttons">
-            <button id="fullBackupJSONBtn" class="btn btn-primary">Full backup (JSON)</button>
-            <button id="fullBackupHTMLBtn" class="btn btn-primary">Full backup (HTML)</button>
+            <button id="fullBackupJSONBtn" class="btn btn-primary" data-i18n="settings.backupJson">完整备份 (JSON)</button>
+            <button id="fullBackupHTMLBtn" class="btn btn-primary" data-i18n="settings.backupHtml">完整备份 (HTML)</button>
           </div>
-          <button id="importBtn" class="btn btn-outline">Import bookmarks</button>
+          <button id="importBtn" class="btn btn-outline" data-i18n="settings.import">导入书签</button>
         </div>
         <div class="settings-section">
-          <h4>AI</h4>
-          <p class="settings-info">Update the AI endpoint and model used by the wiki view.</p>
+          <h4 data-i18n="settings.ai">AI</h4>
+          <p class="settings-info" data-i18n="settings.aiInfo">更新维基视图使用的 AI 端点和模型</p>
           <form id="aiSettingsForm" class="settings-form">
             <div class="form-group">
-              <label for="aiEndpointInput">AI endpoint URL</label>
-              <input type="url" id="aiEndpointInput" class="form-input" placeholder="https://api.openai.com/v1/chat/completions" />
-              <small>Leave empty to use AI_API_ENDPOINT.</small>
+              <label for="aiEndpointInput" data-i18n="settings.aiEndpoint">AI 端点 URL</label>
+              <input type="url" id="aiEndpointInput" data-i18n-placeholder="settings.aiEndpointPlaceholder" placeholder="https://api.openai.com/v1/chat/completions" class="form-input" />
+              <small data-i18n="settings.aiEndpointHint">留空则使用 AI_API_ENDPOINT</small>
             </div>
             <div class="form-group">
-              <label for="aiModelInput">Default model</label>
-              <input type="text" id="aiModelInput" class="form-input" placeholder="gpt-4o-mini" />
-              <small>Leave empty to use AI_MODEL.</small>
+              <label for="aiModelInput" data-i18n="settings.aiModel">默认模型</label>
+              <input type="text" id="aiModelInput" data-i18n-placeholder="settings.aiModelPlaceholder" placeholder="gpt-4o-mini" class="form-input" />
+              <small data-i18n="settings.aiModelHint">留空则使用 AI_MODEL</small>
             </div>
-            <button type="submit" class="btn btn-primary">Save AI config</button>
+            <button type="submit" class="btn btn-primary" data-i18n="settings.saveAiConfig">保存 AI 配置</button>
           </form>
         </div>
       </div>
@@ -232,17 +229,17 @@
     <div id="changePasswordModal" class="modal hidden">
       <div class="modal-content">
         <div class="modal-header">
-          <h3>Change password</h3>
+          <h3 data-i18n="password.title">修改密码</h3>
           <button id="closePasswordModal" class="btn-close">&times;</button>
         </div>
         <div class="modal-body">
           <form id="changePasswordForm">
-            <div class="form-group"><label for="currentPassword">Current password</label><input type="password" id="currentPassword" required /></div>
-            <div class="form-group"><label for="newPassword">New password</label><input type="password" id="newPassword" required minlength="6" /><small>Use at least 6 characters.</small></div>
-            <div class="form-group"><label for="confirmPassword">Confirm new password</label><input type="password" id="confirmPassword" required minlength="6" /></div>
+            <div class="form-group"><label for="currentPassword" data-i18n="password.current">当前密码</label><input type="password" id="currentPassword" required /></div>
+            <div class="form-group"><label for="newPassword" data-i18n="password.newPwd">新密码</label><input type="password" id="newPassword" required minlength="6" /><small data-i18n="password.minLength">至少 6 个字符</small></div>
+            <div class="form-group"><label for="confirmPassword" data-i18n="password.confirmPwd">确认新密码</label><input type="password" id="confirmPassword" required minlength="6" /></div>
             <div class="form-actions">
-              <button type="button" id="cancelPasswordChange" class="btn btn-secondary">Cancel</button>
-              <button type="submit" class="btn btn-primary">Update password</button>
+              <button type="button" id="cancelPasswordChange" class="btn btn-secondary" data-i18n="password.cancelBtn">取消</button>
+              <button type="submit" class="btn btn-primary" data-i18n="password.updateBtn">更新密码</button>
             </div>
           </form>
         </div>
@@ -253,13 +250,14 @@
       <div class="command-panel">
         <div class="command-header">
           <span class="command-icon">></span>
-          <input type="text" id="paletteInput" placeholder="Search bookmarks, categories, or commands..." autocomplete="off" />
+          <input type="text" id="paletteInput" data-i18n-placeholder="search.palettePlaceholder" placeholder="搜索书签、分类或命令..." autocomplete="off" />
           <button id="commandCloseBtn" class="ghost-btn" type="button">x</button>
         </div>
         <div id="paletteResults" class="command-results"></div>
       </div>
     </div>
 
+    <script src="/js/i18n.js"></script>
     <script src="/js/utils/storage.js"></script>
     <script src="/js/utils/api.js"></script>
     <script src="/js/utils/sorting.js"></script>
@@ -270,5 +268,10 @@
     <script src="/js/bookmarks.js"></script>
     <script src="/js/ui-enhancements.js"></script>
     <script src="/js/app.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        if (window.I18n) I18n.init();
+      });
+    </script>
   </body>
 </html>

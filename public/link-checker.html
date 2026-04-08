@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Link Checker - Bookmark Navigator</title>
+    <title>链接检查器 - 书签导航</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;590;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/styles.css" />
     <link rel="stylesheet" href="/css/link-checker-enhanced.css" />
@@ -14,23 +14,23 @@
         <div class="header-content">
           <div class="logo">
             <span class="logo-icon">CHK</span>
-            <h1 class="logo-text">Link Checker</h1>
+            <h1 class="logo-text" data-i18n="linkChecker.title">链接检查器</h1>
           </div>
           <div class="header-actions">
             <div class="action-group tools-menu">
-              <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" title="Tools menu">
+              <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" data-i18n-title="header.toolsTitle" title="工具菜单">
                 <span class="btn-icon">...</span>
                 <span class="dropdown-arrow">v</span>
               </button>
               <div id="toolsDropdown" class="dropdown-menu">
-                <a href="/" class="dropdown-item"><span class="item-icon">H</span><div class="item-content"><span class="item-text">Home</span><span class="item-desc">Back to the main bookmark page</span></div></a>
-                <a href="/token.html" class="dropdown-item"><span class="item-icon">API</span><div class="item-content"><span class="item-text">API Tokens</span><span class="item-desc">Manage access tokens</span></div></a>
-                <a href="/deleted-bookmarks.html" class="dropdown-item"><span class="item-icon">DEL</span><div class="item-content"><span class="item-text">Deleted</span><span class="item-desc">Review deleted bookmarks</span></div></a>
-                <a href="/notifications.html" class="dropdown-item"><span class="item-icon">MSG</span><div class="item-content"><span class="item-text">Notifications</span><span class="item-desc">View recent notices</span></div></a>
-                <a href="/import.html" class="dropdown-item"><span class="item-icon">IMP</span><div class="item-content"><span class="item-text">Import</span><span class="item-desc">Import from a file</span></div></a>
-                <a href="/ai-settings.html" class="dropdown-item"><span class="item-icon">AI</span><div class="item-content"><span class="item-text">AI Settings</span><span class="item-desc">Manage AI endpoint and model</span></div></a>
+                <a href="/" class="dropdown-item"><span class="item-icon">H</span><div class="item-content"><span class="item-text" data-i18n="linkChecker.home">首页</span><span class="item-desc" data-i18n="linkChecker.homeDesc">返回主书签页</span></div></a>
+                <a href="/token.html" class="dropdown-item"><span class="item-icon">API</span><div class="item-content"><span class="item-text" data-i18n="header.apiTokens">API 令牌</span><span class="item-desc" data-i18n="header.apiTokensDesc">管理访问令牌</span></div></a>
+                <a href="/deleted-bookmarks.html" class="dropdown-item"><span class="item-icon">DEL</span><div class="item-content"><span class="item-text" data-i18n="header.deleted">已删除书签</span><span class="item-desc" data-i18n="header.deletedDesc">查看已删除书签</span></div></a>
+                <a href="/notifications.html" class="dropdown-item"><span class="item-icon">MSG</span><div class="item-content"><span class="item-text" data-i18n="header.notifications">通知</span><span class="item-desc" data-i18n="header.notificationsDesc">查看最近通知</span></div></a>
+                <a href="/import.html" class="dropdown-item"><span class="item-icon">IMP</span><div class="item-content"><span class="item-text">导入</span><span class="item-desc">从文件导入书签</span></div></a>
+                <a href="/ai-settings.html" class="dropdown-item"><span class="item-icon">AI</span><div class="item-content"><span class="item-text" data-i18n="header.aiSettings">AI 设置</span><span class="item-desc" data-i18n="header.aiSettingsDesc">管理 AI 端点和模型</span></div></a>
                 <div class="dropdown-divider"></div>
-                <button id="changePasswordBtn" class="dropdown-item"><span class="item-icon">PWD</span><div class="item-content"><span class="item-text">Change Password</span><span class="item-desc">Jump back to the password flow</span></div></button>
+                <button id="changePasswordBtn" class="dropdown-item"><span class="item-icon">PWD</span><div class="item-content"><span class="item-text" data-i18n="header.changePassword">修改密码</span><span class="item-desc" data-i18n="header.changePasswordDesc">返回密码修改流程</span></div></button>
               </div>
             </div>
           </div>
@@ -40,21 +40,21 @@
       <main class="checker-container">
         <section class="controls-section">
           <div class="checker-header">
-            <h2>Check bookmark reachability</h2>
+            <h2 data-i18n="linkChecker.subtitle">检查所有书签的可访问性</h2>
           </div>
           <p class="bookmarks-stats">
-            This page checks links only. It does not run database initialization automatically.
+            本页面仅检查链接，不会自动初始化数据库。
           </p>
           <div class="btn-group">
-            <button id="reloadBookmarksBtn" class="btn btn-secondary" type="button">Refresh list</button>
-            <button id="startCheckBtn" class="btn btn-primary" type="button">Run checks</button>
-            <button id="stopCheckBtn" class="btn btn-secondary hidden" type="button">Stop</button>
+            <button id="reloadBookmarksBtn" class="btn btn-secondary" type="button">刷新列表</button>
+            <button id="startCheckBtn" class="btn btn-primary" type="button">开始检查</button>
+            <button id="stopCheckBtn" class="btn btn-secondary hidden" type="button">停止</button>
           </div>
         </section>
 
         <section class="progress-section">
           <div class="progress-header">
-            <span id="progressText" class="progress-text">Waiting to start</span>
+            <span id="progressText" class="progress-text">等待开始</span>
             <span id="progressPercent" class="progress-percent">0%</span>
           </div>
           <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
@@ -274,7 +274,7 @@
 
       function stopBatchCheck() {
         state.stopRequested = true;
-        document.getElementById("progressText").textContent = "Stopping checks...";
+        document.getElementById("progressText").textContent = "停止ping checks...";
       }
 
       async function updateKeepStatus(bookmarkId, keepStatus) {
@@ -371,6 +371,10 @@
 
         await Promise.all([loadBookmarks(), loadHistory()]);
       });
+    </script>
+      <script src="/js/i18n.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => { if (window.I18n) I18n.init(); });
     </script>
   </body>
 </html>

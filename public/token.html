@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>API Tokens - Bookmark Navigator</title>
+    <title>API 令牌 - 书签导航</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;590;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/styles.css" />
     <link rel="stylesheet" href="/css/token-enhanced.css" />
@@ -14,7 +14,7 @@
         <div class="header-content">
           <div class="logo">
             <span class="logo-icon">API</span>
-            <h1 class="logo-text">API Tokens</h1>
+            <h1 class="logo-text" data-i18n="token.title">API 令牌管理</h1>
           </div>
 
           <div class="header-actions">
@@ -31,51 +31,51 @@
                 <a href="/" class="dropdown-item">
                   <span class="item-icon">H</span>
                   <div class="item-content">
-                    <span class="item-text">Home</span>
-                    <span class="item-desc">Back to the main bookmark page</span>
+                    <span class="item-text">首页</span>
+                    <span class="item-desc">返回主书签页</span>
                   </div>
                 </a>
                 <a href="/link-checker.html" class="dropdown-item">
                   <span class="item-icon">CHK</span>
                   <div class="item-content">
-                    <span class="item-text">Link Checker</span>
-                    <span class="item-desc">Check whether bookmarks are reachable</span>
+                    <span class="item-text" data-i18n="header.linkChecker">链接检查</span>
+                    <span class="item-desc" data-i18n="header.linkCheckerDesc">检查书签可访问性</span>
                   </div>
                 </a>
                 <a href="/deleted-bookmarks.html" class="dropdown-item">
                   <span class="item-icon">DEL</span>
                   <div class="item-content">
-                    <span class="item-text">Deleted</span>
-                    <span class="item-desc">Review and restore deleted bookmarks</span>
+                    <span class="item-text" data-i18n="header.deleted">已删除书签</span>
+                    <span class="item-desc" data-i18n="header.deletedDesc">查看已删除书签</span>
                   </div>
                 </a>
                 <a href="/notifications.html" class="dropdown-item">
                   <span class="item-icon">MSG</span>
                   <div class="item-content">
-                    <span class="item-text">Notifications</span>
-                    <span class="item-desc">View recent system notices</span>
+                    <span class="item-text" data-i18n="header.notifications">通知</span>
+                    <span class="item-desc" data-i18n="header.notificationsDesc">查看最近通知</span>
                   </div>
                 </a>
                 <a href="/import.html" class="dropdown-item">
                   <span class="item-icon">IMP</span>
                   <div class="item-content">
-                    <span class="item-text">Import</span>
-                    <span class="item-desc">Import bookmarks from a file</span>
+                    <span class="item-text">导入</span>
+                    <span class="item-desc">从文件导入书签</span>
                   </div>
                 </a>
                 <a href="/ai-settings.html" class="dropdown-item">
                   <span class="item-icon">AI</span>
                   <div class="item-content">
-                    <span class="item-text">AI Settings</span>
-                    <span class="item-desc">Manage AI endpoint and model</span>
+                    <span class="item-text" data-i18n="header.aiSettings">AI 设置</span>
+                    <span class="item-desc" data-i18n="header.aiSettingsDesc">管理 AI 端点和模型</span>
                   </div>
                 </a>
                 <div class="dropdown-divider"></div>
                 <button id="changePasswordBtn" class="dropdown-item">
                   <span class="item-icon">PWD</span>
                   <div class="item-content">
-                    <span class="item-text">Change Password</span>
-                    <span class="item-desc">Jump back to the password update flow</span>
+                    <span class="item-text" data-i18n="header.changePassword">修改密码</span>
+                    <span class="item-desc" data-i18n="header.changePasswordDesc">返回密码修改流程</span>
                   </div>
                 </button>
               </div>
@@ -102,7 +102,7 @@
                 id="tokenName"
                 class="form-input"
                 type="text"
-                placeholder="Example: Chrome sync worker"
+                placeholder="例如：Chrome 同步 worker"
                 required
               />
               <div class="form-hint">Pick a clear label so it is easy to revoke later.</div>
@@ -114,7 +114,7 @@
                 id="tokenDescription"
                 class="form-input"
                 type="text"
-                placeholder="Optional note about where this token is used"
+                placeholder="可选的备注，说明令牌的用途"
               />
             </div>
 
@@ -366,6 +366,10 @@
 
         await loadTokens();
       });
+    </script>
+      <script src="/js/i18n.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => { if (window.I18n) I18n.init(); });
     </script>
   </body>
 </html>

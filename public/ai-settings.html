@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Settings - Bookmark Navigator</title>
+    <title>AI 设置 - 书签导航</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;590;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/styles.css" />
     <link rel="stylesheet" href="/css/ai-settings.css" />
@@ -14,7 +14,7 @@
         <div class="header-content">
           <div class="logo">
             <span class="logo-icon">AI</span>
-            <h1 class="logo-text">AI Settings</h1>
+            <h1 class="logo-text" data-i18n="aiSettings.title">AI 设置</h1>
           </div>
           <div class="header-actions">
             <div class="action-group tools-menu">
@@ -23,14 +23,14 @@
                 <span class="dropdown-arrow">v</span>
               </button>
               <div id="toolsDropdown" class="dropdown-menu">
-                <a href="/" class="dropdown-item"><span class="item-icon">H</span><div class="item-content"><span class="item-text">Home</span><span class="item-desc">Back to the main bookmark page</span></div></a>
-                <a href="/token.html" class="dropdown-item"><span class="item-icon">API</span><div class="item-content"><span class="item-text">API Tokens</span><span class="item-desc">Manage access tokens</span></div></a>
-                <a href="/link-checker.html" class="dropdown-item"><span class="item-icon">CHK</span><div class="item-content"><span class="item-text">Link Checker</span><span class="item-desc">Check bookmark reachability</span></div></a>
-                <a href="/deleted-bookmarks.html" class="dropdown-item"><span class="item-icon">DEL</span><div class="item-content"><span class="item-text">Deleted</span><span class="item-desc">Review deleted bookmarks</span></div></a>
-                <a href="/notifications.html" class="dropdown-item"><span class="item-icon">MSG</span><div class="item-content"><span class="item-text">Notifications</span><span class="item-desc">View recent notices</span></div></a>
-                <a href="/import.html" class="dropdown-item"><span class="item-icon">IMP</span><div class="item-content"><span class="item-text">Import</span><span class="item-desc">Import from a file</span></div></a>
+                <a href="/" class="dropdown-item"><span class="item-icon">H</span><div class="item-content"><span class="item-text">首页</span><span class="item-desc">返回主书签页</span></div></a>
+                <a href="/token.html" class="dropdown-item"><span class="item-icon">API</span><div class="item-content"><span class="item-text" data-i18n="header.apiTokens">API 令牌</span><span class="item-desc" data-i18n="header.apiTokensDesc">管理访问令牌</span></div></a>
+                <a href="/link-checker.html" class="dropdown-item"><span class="item-icon">CHK</span><div class="item-content"><span class="item-text" data-i18n="header.linkChecker">链接检查</span><span class="item-desc" data-i18n="header.linkCheckerDesc">检查书签可访问性</span></div></a>
+                <a href="/deleted-bookmarks.html" class="dropdown-item"><span class="item-icon">DEL</span><div class="item-content"><span class="item-text" data-i18n="header.deleted">已删除书签</span><span class="item-desc" data-i18n="header.deletedDesc">查看已删除书签</span></div></a>
+                <a href="/notifications.html" class="dropdown-item"><span class="item-icon">MSG</span><div class="item-content"><span class="item-text" data-i18n="header.notifications">通知</span><span class="item-desc" data-i18n="header.notificationsDesc">查看最近通知</span></div></a>
+                <a href="/import.html" class="dropdown-item"><span class="item-icon">IMP</span><div class="item-content"><span class="item-text">导入</span><span class="item-desc">从文件导入书签</span></div></a>
                 <div class="dropdown-divider"></div>
-                <button id="changePasswordBtn" class="dropdown-item"><span class="item-icon">PWD</span><div class="item-content"><span class="item-text">Change Password</span><span class="item-desc">Jump back to the password flow</span></div></button>
+                <button id="changePasswordBtn" class="dropdown-item"><span class="item-icon">PWD</span><div class="item-content"><span class="item-text" data-i18n="header.changePassword">修改密码</span><span class="item-desc" data-i18n="header.changePasswordDesc">返回密码修改流程</span></div></button>
               </div>
             </div>
           </div>
@@ -40,7 +40,7 @@
       <main class="ai-wrapper">
         <section class="ai-hero">
           <div>
-            <h1>Manage AI endpoint and default model</h1>
+            <h1>Manage AI 端点 and default model</h1>
             <p>
               Save the public AI settings used by the app without redeploying the site.
             </p>
@@ -63,18 +63,18 @@
           <p>Leave a field empty to fall back to environment defaults.</p>
           <form id="aiSettingsForm" class="form-grid">
             <div class="form-group">
-              <label for="aiEndpointInput">AI endpoint URL</label>
+              <label for="aiEndpointInput">AI 端点 URL</label>
               <input id="aiEndpointInput" class="form-input" type="url" placeholder="https://api.openai.com/v1/chat/completions" />
               <small>Use any endpoint that supports a chat-completions style API.</small>
             </div>
             <div class="form-group">
-              <label for="aiModelInput">Default model</label>
+              <label for="aiModelInput">默认模型</label>
               <input id="aiModelInput" class="form-input" type="text" placeholder="gpt-4o-mini" />
               <small>Example: gpt-4o-mini, gpt-4.1-mini, or any compatible model name.</small>
             </div>
             <div class="button-row">
               <button id="saveBtn" class="btn btn-primary" type="submit">Save config</button>
-              <button id="resetBtn" class="btn btn-outline" type="button">Reset to default</button>
+              <button id="resetBtn" class="btn btn-outline" type="button">重置 to default</button>
               <a class="btn btn-outline" href="/">Back home</a>
             </div>
             <div id="lastUpdated" class="status-pill warning">Loading config...</div>
@@ -178,6 +178,10 @@
         resetBtn.addEventListener("click", resetAiSettings);
         await loadAiSettings();
       });
+    </script>
+      <script src="/js/i18n.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => { if (window.I18n) I18n.init(); });
     </script>
   </body>
 </html>
