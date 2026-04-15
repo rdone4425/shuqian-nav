@@ -24,9 +24,9 @@ const BookmarkManager = {
   async init() {
     this.bindElements();
     this.bindEvents();
+    this.restoreUserPreferences();
     await this.loadCategories();
     await this.loadBookmarks();
-    this.restoreUserPreferences();
   },
 
   // 绑定DOM元素
@@ -141,7 +141,6 @@ const BookmarkManager = {
         this.updatePagination(response.data.pagination);
         this.renderBookmarks();
         this.updateStats();
-        this.refreshWikiView();
       } else {
         this.showError(response.error || "加载书签失败");
       }
@@ -158,7 +157,6 @@ const BookmarkManager = {
       if (response.success) {
         this.categories = response.data;
         this.renderCategoryFilter();
-        this.refreshWikiView();
       }
     } catch (error) {
       console.error("加载分类错误:", error);
@@ -321,6 +319,7 @@ const BookmarkManager = {
       <option value="">所有分类</option>
       ${optionsHTML}
     `;
+    this.elements.categoryFilter.value = this.currentFilters.category || "";
   },
 
   // 更新分页信息
@@ -432,20 +431,6 @@ const BookmarkManager = {
     DOMHelper.hide("loadingState", "emptyState", "errorState");
   },
 
-  refreshWikiView() {
-    if (!window.WikiView || typeof WikiView.update !== "function") return;
-    const snapshot = this.mergeVisitData(this.bookmarks || []);
-    WikiView.update({
-      bookmarks: snapshot,
-      categories: this.categories,
-      summary: {
-        total: this.totalCount,
-        search: this.currentFilters.search,
-        category: this.currentFilters.category,
-      },
-    });
-  },
-
   // 恢复用户偏好设置
   restoreUserPreferences() {
     // 恢复排序偏好
@@ -464,6 +449,10 @@ const BookmarkManager = {
       if (this.elements.searchInput) {
         this.elements.searchInput.value = lastSearch.query;
       }
+    }
+
+    if (lastSearch.category) {
+      this.currentFilters.category = lastSearch.category;
     }
   },
 

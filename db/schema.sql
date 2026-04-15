@@ -194,9 +194,7 @@ INSERT OR IGNORE INTO system_config (config_key, config_value, description) VALU
     ('initialized', 'true', 'Database schema has been applied'),
     ('admin_password', 'admin123', 'Default admin password, change after first login'),
     ('site_title', '书签导航', 'Site title'),
-    ('site_description', '现代化书签管理系统', 'Site description'),
-    ('ai_api_endpoint', '', 'AI API endpoint, can be overridden by env'),
-    ('ai_model', '', 'AI model name');
+    ('site_description', '现代化书签管理系统', 'Site description');
 
 INSERT OR IGNORE INTO categories (name, color, description) VALUES
     ('工具', '#10B981', '开发工具和实用工具'),

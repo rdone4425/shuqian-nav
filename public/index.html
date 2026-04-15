@@ -4,11 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title data-i18n="login.title">登录 - 书签导航</title>
-    <meta name="description" content="书签导航 - 现代书签管理器，支持分类、搜索、AI 辅助视图" />
+    <meta name="description" content="书签导航 - 现代书签管理器，支持分类、搜索和书签导入导出" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;590;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/styles.css" />
     <link rel="stylesheet" href="/css/bookmarks-enhanced.css" />
-    <link rel="stylesheet" href="/css/wiki-layout.css" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
   <body>
@@ -40,7 +39,6 @@
                 <a href="/link-checker.html" class="dropdown-item"><span class="item-icon">CHK</span><div class="item-content"><span class="item-text" data-i18n="header.linkChecker">链接检查</span><span class="item-desc" data-i18n="header.linkCheckerDesc">检查书签可访问性</span></div></a>
                 <a href="/deleted-bookmarks.html" class="dropdown-item"><span class="item-icon">DEL</span><div class="item-content"><span class="item-text" data-i18n="header.deleted">已删除书签</span><span class="item-desc" data-i18n="header.deletedDesc">查看已删除书签</span></div></a>
                 <a href="/notifications.html" class="dropdown-item"><span class="item-icon">MSG</span><div class="item-content"><span class="item-text" data-i18n="header.notifications">通知</span><span class="item-desc" data-i18n="header.notificationsDesc">查看最近通知</span></div></a>
-                <a href="/ai-settings.html" class="dropdown-item"><span class="item-icon">AI</span><div class="item-content"><span class="item-text" data-i18n="header.aiSettings">AI 设置</span><span class="item-desc" data-i18n="header.aiSettingsDesc">管理 AI 端点和模型</span></div></a>
                 <div class="dropdown-divider"></div>
                 <button id="changePasswordBtn" class="dropdown-item"><span class="item-icon">PWD</span><div class="item-content"><span class="item-text" data-i18n="header.changePassword">修改密码</span><span class="item-desc" data-i18n="header.changePasswordDesc">更新管理员密码</span></div></button>
                 <button id="settingsToggle" class="dropdown-item"><span class="item-icon">CFG</span><div class="item-content"><span class="item-text" data-i18n="header.settings">设置</span><span class="item-desc" data-i18n="header.settingsDesc">打开设置面板</span></div></button>
@@ -86,54 +84,7 @@
       </div>
 
       <main class="main-content">
-        <div class="wiki-layout" id="wikiLayout">
-          <aside class="wiki-sidebar">
-            <div class="sidebar-section sidebar-search-section">
-              <div class="sidebar-search-box">
-                <input type="text" id="wikiSearchInput" data-i18n-placeholder="search.palettePlaceholder" placeholder="搜索书签、分类或命令..." />
-                <button id="openCommandPalette" class="ghost-btn" data-i18n-title="search.paletteTitle" title="命令面板">Ctrl + K</button>
-              </div>
-              <p class="sidebar-hint" data-i18n="search.liveHint">实时筛选、命令面板和快速导航</p>
-            </div>
-
-            <div class="sidebar-section">
-              <div class="section-heading">
-                <h3 data-i18n="wiki.sections">分类</h3>
-                <span id="wikiCategoryCount" class="section-meta">0</span>
-              </div>
-              <nav id="wikiToc" class="wiki-toc"></nav>
-            </div>
-
-            <div class="sidebar-section">
-              <div class="section-heading"><h3 data-i18n="wiki.pinned">置顶</h3></div>
-              <div id="wikiPinned" class="wiki-pinned-list"></div>
-            </div>
-          </aside>
-
-          <section class="wiki-content-panel">
-            <header class="wiki-hero">
-              <div>
-                <p class="hero-eyebrow" data-i18n="wiki.knowledgeBase">书签知识库</p>
-                <h2 data-i18n="wiki.browseTitle">像维基一样浏览你的收藏</h2>
-                <p class="hero-subtitle"><span id="wikiSummaryCount">0</span> <span data-i18n="wiki.bookmarkCount">个书签 | 实时搜索 | 分类导航</span></p>
-                <p class="wiki-ai-status" id="wikiAiStatus" data-i18n="wiki.aiStatus">AI 视图：未生成</p>
-              </div>
-              <div class="wiki-hero-actions">
-                <button id="generateAiWikiBtn" class="primary-btn" data-i18n="wiki.generateAi">生成 AI 视图</button>
-                <button id="toggleWikiModeBtn" class="ghost-btn" type="button" data-i18n="wiki.useLocal">使用本地视图</button>
-                <button id="openQuickSearch" class="ghost-btn" type="button" data-i18n="wiki.openPalette">打开命令面板</button>
-                <button id="scrollTopBtn" class="ghost-btn" type="button" data-i18n="common.backToTop">返回顶部</button>
-              </div>
-            </header>
-
-            <div id="wikiContent" class="wiki-content"></div>
-            <div id="wikiEmptyState" class="wiki-empty hidden">
-              <p data-i18n="common.noResults">没有匹配的书签</p>
-            </div>
-          </section>
-        </div>
-
-        <div id="bookmarksGrid" class="bookmarks-grid hidden" aria-hidden="true"></div>
+        <div id="bookmarksGrid" class="bookmarks-grid"></div>
 
         <div id="loadingState" class="loading-state">
           <div class="loading-spinner"></div>
@@ -204,23 +155,6 @@
           </div>
           <button id="importBtn" class="btn btn-outline" data-i18n="settings.import">导入书签</button>
         </div>
-        <div class="settings-section">
-          <h4 data-i18n="settings.ai">AI</h4>
-          <p class="settings-info" data-i18n="settings.aiInfo">更新维基视图使用的 AI 端点和模型</p>
-          <form id="aiSettingsForm" class="settings-form">
-            <div class="form-group">
-              <label for="aiEndpointInput" data-i18n="settings.aiEndpoint">AI 端点 URL</label>
-              <input type="url" id="aiEndpointInput" data-i18n-placeholder="settings.aiEndpointPlaceholder" placeholder="https://api.openai.com/v1/chat/completions" class="form-input" />
-              <small data-i18n="settings.aiEndpointHint">留空则使用 AI_API_ENDPOINT</small>
-            </div>
-            <div class="form-group">
-              <label for="aiModelInput" data-i18n="settings.aiModel">默认模型</label>
-              <input type="text" id="aiModelInput" data-i18n-placeholder="settings.aiModelPlaceholder" placeholder="gpt-4o-mini" class="form-input" />
-              <small data-i18n="settings.aiModelHint">留空则使用 AI_MODEL</small>
-            </div>
-            <button type="submit" class="btn btn-primary" data-i18n="settings.saveAiConfig">保存 AI 配置</button>
-          </form>
-        </div>
       </div>
     </div>
 
@@ -246,24 +180,12 @@
       </div>
     </div>
 
-    <div id="commandPalette" class="command-palette hidden" role="dialog" aria-modal="true">
-      <div class="command-panel">
-        <div class="command-header">
-          <span class="command-icon">></span>
-          <input type="text" id="paletteInput" data-i18n-placeholder="search.palettePlaceholder" placeholder="搜索书签、分类或命令..." autocomplete="off" />
-          <button id="commandCloseBtn" class="ghost-btn" type="button">x</button>
-        </div>
-        <div id="paletteResults" class="command-results"></div>
-      </div>
-    </div>
-
     <script src="/js/i18n.js"></script>
     <script src="/js/utils/storage.js"></script>
     <script src="/js/utils/api.js"></script>
     <script src="/js/utils/sorting.js"></script>
     <script src="/js/utils/dom-helper.js"></script>
     <script src="/js/utils/ui-helper.js"></script>
-    <script src="/js/wiki-view.js"></script>
     <script src="/js/auth.js"></script>
     <script src="/js/bookmarks.js"></script>
     <script src="/js/ui-enhancements.js"></script>
