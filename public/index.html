@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title data-i18n="login.title">登录 - 书签导航</title>
+    <title data-i18n="common.appName">书签导航</title>
     <meta name="description" content="书签导航 - 现代书签管理器，支持分类、搜索和书签导入导出" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;590;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/styles.css" />
@@ -16,22 +16,28 @@
         <div class="header-content">
           <div class="logo">
             <span class="logo-icon">B</span>
-            <h1 class="logo-text" data-i18n="common.appName">书签导航</h1>
+            <div class="logo-copy">
+              <h1 class="logo-text" data-i18n="common.appName">书签导航</h1>
+              <p class="logo-subtitle" data-i18n="home.subtitle">更快搜索、整理和回访常用链接</p>
+            </div>
           </div>
 
           <div class="header-actions">
             <div class="action-group primary-actions">
-              <button id="searchToggle" class="action-btn-icon" data-i18n-title="header.searchTitle" title="搜索书签">
+              <button id="searchToggle" class="action-btn-icon has-label" data-i18n-title="header.searchTitle" title="搜索书签">
                 <span class="btn-icon">S</span>
+                <span class="action-btn-label" data-i18n="header.searchButton">搜索</span>
               </button>
-              <button id="addBookmarkBtn" class="action-btn-icon primary" data-i18n-title="header.addTitle" title="添加书签">
+              <button id="addBookmarkBtn" class="action-btn-icon primary has-label" data-i18n-title="header.addTitle" title="添加书签">
                 <span class="btn-icon">+</span>
+                <span class="action-btn-label" data-i18n="header.addButton">新增书签</span>
               </button>
             </div>
 
             <div class="action-group tools-menu">
-              <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" data-i18n-title="header.toolsTitle" title="工具菜单">
+              <button id="toolsMenuToggle" class="action-btn-icon menu-toggle has-label" data-i18n-title="header.toolsTitle" title="工具菜单">
                 <span class="btn-icon">...</span>
+                <span class="action-btn-label" data-i18n="header.toolsButton">工具</span>
                 <span class="dropdown-arrow">v</span>
               </button>
               <div id="toolsDropdown" class="dropdown-menu">
@@ -51,30 +57,48 @@
       <div id="searchContainer" class="search-container hidden">
         <div class="search-box">
           <input type="text" id="searchInput" data-i18n-placeholder="search.placeholder" placeholder="搜索书签标题、描述或 URL..." class="search-input" />
-          <button id="searchBtn" class="search-btn"><span class="icon">S</span></button>
-          <button id="clearSearchBtn" class="search-btn clear-btn"><span class="icon">x</span></button>
+          <button id="searchBtn" class="search-btn" data-i18n="search.action">搜索</button>
+          <button id="clearSearchBtn" class="search-btn clear-btn" data-i18n="common.clear">清除</button>
         </div>
       </div>
 
       <div class="controls-bar">
-        <div class="filter-controls">
-          <select id="categoryFilter" class="filter-select">
-            <option value="" data-i18n="filter.allCategories">全部分类</option>
-          </select>
-          <select id="sortSelect" class="filter-select">
-            <option value="created_at:desc" data-i18n="filter.newest">最新优先</option>
-            <option value="popularity:desc" data-i18n="filter.popular">最受欢迎</option>
-            <option value="visit_count:desc" data-i18n="filter.mostVisited">访问最多</option>
-            <option value="last_visited:desc" data-i18n="filter.recentVisited">最近访问</option>
-            <option value="title:asc" data-i18n="filter.titleAZ">标题 A-Z</option>
-            <option value="title:desc" data-i18n="filter.titleZA">标题 Z-A</option>
-            <option value="updated_at:desc" data-i18n="filter.recentUpdated">最近更新</option>
-            <option value="created_at:asc" data-i18n="filter.oldest">最早优先</option>
-          </select>
+        <div class="controls-copy">
+          <span class="controls-kicker" data-i18n="home.workspaceLabel">浏览工作台</span>
+          <p class="controls-text" data-i18n="home.controlsHint">按分类、热度和最近访问快速切换，找到常用链接会更快。</p>
         </div>
-        <div class="view-controls">
-          <button id="gridViewBtn" class="view-btn active" data-i18n-title="filter.gridView" title="网格视图"><span class="icon">#</span></button>
-          <button id="listViewBtn" class="view-btn" data-i18n-title="filter.listView" title="列表视图"><span class="icon">=</span></button>
+        <div class="controls-main">
+          <div class="filter-controls">
+            <label class="filter-group">
+              <span class="filter-label" data-i18n="filter.categoryLabel">分类</span>
+              <select id="categoryFilter" class="filter-select">
+                <option value="" data-i18n="filter.allCategories">全部分类</option>
+              </select>
+            </label>
+            <label class="filter-group">
+              <span class="filter-label" data-i18n="filter.sortLabel">排序</span>
+              <select id="sortSelect" class="filter-select">
+                <option value="created_at:desc" data-i18n="filter.newest">最新优先</option>
+                <option value="popularity:desc" data-i18n="filter.popular">最受欢迎</option>
+                <option value="visit_count:desc" data-i18n="filter.mostVisited">访问最多</option>
+                <option value="last_visited:desc" data-i18n="filter.recentVisited">最近访问</option>
+                <option value="title:asc" data-i18n="filter.titleAZ">标题 A-Z</option>
+                <option value="title:desc" data-i18n="filter.titleZA">标题 Z-A</option>
+                <option value="updated_at:desc" data-i18n="filter.recentUpdated">最近更新</option>
+                <option value="created_at:asc" data-i18n="filter.oldest">最早优先</option>
+              </select>
+            </label>
+          </div>
+          <div class="view-controls" role="group" aria-label="视图切换">
+            <button id="gridViewBtn" class="view-btn active" data-i18n-title="filter.gridView" title="网格视图">
+              <span class="icon">#</span>
+              <span class="view-label" data-i18n="filter.gridShort">网格</span>
+            </button>
+            <button id="listViewBtn" class="view-btn" data-i18n-title="filter.listView" title="列表视图">
+              <span class="icon">=</span>
+              <span class="view-label" data-i18n="filter.listShort">列表</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -83,7 +107,7 @@
         <div class="stats-item"><span class="stats-label" data-i18n="stats.currentPage">当前页</span><span id="currentPageInfo" class="stats-value">0</span></div>
       </div>
 
-      <main class="main-content">
+      <main class="main-content home-content">
         <div id="bookmarksGrid" class="bookmarks-grid"></div>
 
         <div id="loadingState" class="loading-state">
@@ -94,7 +118,7 @@
         <div id="emptyState" class="empty-state hidden">
           <div class="empty-icon">B</div>
           <h3 data-i18n="empty.noBookmarks">还没有书签</h3>
-          <p data-i18n="empty.noBookmarksHint">点击顶部 + 按钮添加你的第一个书签</p>
+          <p data-i18n="empty.noBookmarksHint">点击顶部“新增书签”按钮添加你的第一个书签</p>
         </div>
 
         <div id="errorState" class="error-state hidden">
@@ -197,3 +221,5 @@
     </script>
   </body>
 </html>
+
+

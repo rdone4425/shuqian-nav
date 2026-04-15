@@ -461,3 +461,115 @@
   transform: translateZ(0);
   will-change: transform;
 }
+/* Light workspace overrides */
+.bookmarks-grid {
+  margin-bottom: var(--spacing-lg);
+}
+
+.bookmark-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.bookmark-card:hover {
+  border-color: var(--border-medium);
+  background: var(--bg-elevated);
+}
+
+.bookmark-card::before {
+  background: linear-gradient(90deg, var(--accent-bg), var(--accent));
+}
+
+.bookmark-url {
+  background: var(--bg-soft);
+  border-color: var(--border-light);
+}
+
+.bookmark-url:hover {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  transform: translateX(2px);
+}
+
+.bookmark-description {
+  background: var(--accent-subtle);
+  border-left-color: var(--accent);
+}
+
+.bookmark-stats {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(14, 165, 233, 0.08));
+  border-color: rgba(37, 99, 235, 0.15);
+}
+
+.last-visited {
+  background: var(--bg-soft);
+}
+
+.bookmark-category {
+  background: var(--bg-secondary);
+  border-color: var(--border-light);
+}
+
+.bookmark-actions {
+  opacity: 1;
+}
+
+.action-btn {
+  width: auto;
+  height: auto;
+  min-height: 36px;
+  padding: 0 var(--spacing-sm);
+  border: 1px solid var(--border-light);
+  background: var(--bg-soft);
+}
+
+.action-text {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.action-btn:hover {
+  background: var(--accent-bg);
+  color: white;
+}
+
+.bookmark-card.featured {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+}
+
+.bookmark-card.new::after {
+  background: var(--success-color);
+}
+
+.loading-state,
+.empty-state,
+.error-state {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-md);
+}
+
+@media (max-width: 768px) {
+  .bookmark-card {
+    min-height: auto;
+  }
+
+  .bookmark-footer {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .bookmark-actions {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .action-btn {
+    width: auto;
+    height: auto;
+    min-height: 32px;
+  }
+}

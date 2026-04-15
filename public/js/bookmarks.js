@@ -185,6 +185,13 @@ const BookmarkManager = {
 
   // 创建书签卡片HTML
   createBookmarkCard(bookmark) {
+    const hotLabel = window.I18n?.t("bookmarkCard.hot") || "热门书签";
+    const visitCountLabel = window.I18n?.t("bookmarkCard.visitCount") || "访问次数";
+    const lastVisitedLabel =
+      window.I18n?.t("bookmarkCard.lastVisited") || "最后访问";
+    const editLabel = window.I18n?.t("bookmarkCard.edit") || "编辑";
+    const deleteLabel = window.I18n?.t("bookmarkCard.delete") || "删除";
+
     // 获取访问统计
     const localStats = this.getLocalVisitStats(bookmark.id);
     const visitCount = Math.max(bookmark.visit_count || 0, localStats.count);
@@ -210,8 +217,8 @@ const BookmarkManager = {
       visitCount > 0
         ? `
       <div class="bookmark-stats">
-        <span class="visit-count" title="访问次数">👁️ ${visitCount}</span>
-        ${lastVisited ? `<span class="last-visited" title="最后访问">${this.formatRelativeTime(lastVisited)}</span>` : ""}
+        <span class="visit-count" title="${this.escapeHtml(visitCountLabel)}">👁️ ${visitCount}</span>
+        ${lastVisited ? `<span class="last-visited" title="${this.escapeHtml(lastVisitedLabel)}">${this.formatRelativeTime(lastVisited)}</span>` : ""}
       </div>
     `
         : "";
@@ -220,7 +227,7 @@ const BookmarkManager = {
     const popularity = SimpleSorter.calculatePopularity(bookmark);
     const hotBadge =
       popularity > 50
-        ? `<span class="hot-badge" title="热门书签">🔥</span>`
+        ? `<span class="hot-badge" title="${this.escapeHtml(hotLabel)}">🔥</span>`
         : "";
 
     return `
@@ -245,11 +252,13 @@ const BookmarkManager = {
         <div class="bookmark-footer">
           ${categoryBadge}
           <div class="bookmark-actions">
-            <button class="action-btn edit-btn" data-id="${bookmark.id}" title="编辑">
-              ✏️
+            <button class="action-btn edit-btn" data-id="${bookmark.id}" title="${this.escapeHtml(editLabel)}">
+              <span class="action-icon">✏️</span>
+              <span class="action-text">${this.escapeHtml(editLabel)}</span>
             </button>
-            <button class="action-btn delete-btn" data-id="${bookmark.id}" title="删除">
-              🗑️
+            <button class="action-btn delete-btn" data-id="${bookmark.id}" title="${this.escapeHtml(deleteLabel)}">
+              <span class="action-icon">🗑️</span>
+              <span class="action-text">${this.escapeHtml(deleteLabel)}</span>
             </button>
           </div>
         </div>

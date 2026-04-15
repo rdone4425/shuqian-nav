@@ -1,4 +1,4 @@
-// i18n - Internationalization (Chinese primary, English fallback)
+﻿// i18n - Internationalization (Chinese primary, English fallback)
 // Default language: Chinese
 const I18n = {
   lang: localStorage.getItem("lang") || "zh",
@@ -18,6 +18,7 @@ const I18n = {
         delete: "删除",
         confirm: "确认",
         close: "关闭",
+        clear: "清除",
         backToTop: "返回顶部",
         search: "搜索",
         noResults: "没有匹配的书签",
@@ -88,6 +89,9 @@ const I18n = {
         searchTitle: "搜索书签",
         addTitle: "添加书签",
         toolsTitle: "工具菜单",
+        searchButton: "搜索",
+        addButton: "新增书签",
+        toolsButton: "工具",
         apiTokens: "API 令牌",
         apiTokensDesc: "管理访问令牌",
         linkChecker: "链接检查",
@@ -103,11 +107,14 @@ const I18n = {
       },
       search: {
         placeholder: "搜索书签标题、描述或 URL...",
+        action: "搜索",
         palettePlaceholder: "搜索书签、分类或命令...",
         paletteTitle: "命令面板",
         liveHint: "实时筛选、命令面板和快速导航",
       },
       filter: {
+        categoryLabel: "分类",
+        sortLabel: "排序",
         allCategories: "全部分类",
         newest: "最新优先",
         popular: "最受欢迎",
@@ -119,14 +126,28 @@ const I18n = {
         oldest: "最早优先",
         gridView: "网格视图",
         listView: "列表视图",
+        gridShort: "网格",
+        listShort: "列表",
       },
       stats: {
         total: "总计",
         currentPage: "当前页",
       },
+      home: {
+        subtitle: "更快搜索、整理和回访常用链接",
+        workspaceLabel: "浏览工作台",
+        controlsHint: "按分类、热度和最近访问快速切换，找到常用链接会更快。",
+      },
       empty: {
         noBookmarks: "还没有书签",
-        noBookmarksHint: "点击顶部 + 按钮添加你的第一个书签",
+        noBookmarksHint: "点击顶部“新增书签”按钮添加你的第一个书签",
+      },
+      bookmarkCard: {
+        hot: "热门书签",
+        visitCount: "访问次数",
+        lastVisited: "最后访问",
+        edit: "编辑",
+        delete: "删除",
       },
       bookmarkModal: {
         addTitle: "添加书签",
@@ -409,6 +430,7 @@ const I18n = {
         delete: "Delete",
         confirm: "Confirm",
         close: "Close",
+        clear: "Clear",
         backToTop: "Back to top",
         search: "Search",
         noResults: "No bookmarks matched the current filter.",
@@ -479,6 +501,9 @@ const I18n = {
         searchTitle: "Search bookmarks",
         addTitle: "Add bookmark",
         toolsTitle: "Tools menu",
+        searchButton: "Search",
+        addButton: "Add bookmark",
+        toolsButton: "Tools",
         apiTokens: "API Tokens",
         apiTokensDesc: "Manage access tokens",
         linkChecker: "Link Checker",
@@ -494,11 +519,14 @@ const I18n = {
       },
       search: {
         placeholder: "Search bookmark title, description, or URL...",
+        action: "Search",
         palettePlaceholder: "Search bookmarks, categories, or commands...",
         paletteTitle: "Command Palette",
         liveHint: "Live filtering, command palette, and quick navigation.",
       },
       filter: {
+        categoryLabel: "Category",
+        sortLabel: "Sort",
         allCategories: "All categories",
         newest: "Newest first",
         popular: "Most popular",
@@ -510,14 +538,28 @@ const I18n = {
         oldest: "Oldest first",
         gridView: "Grid view",
         listView: "List view",
+        gridShort: "Grid",
+        listShort: "List",
       },
       stats: {
         total: "Total:",
         currentPage: "Current page:",
       },
+      home: {
+        subtitle: "Search, sort, and revisit the links you use every day.",
+        workspaceLabel: "Workspace",
+        controlsHint: "Switch by category, popularity, and recent activity to find the right link faster.",
+      },
       empty: {
         noBookmarks: "No bookmarks yet",
-        noBookmarksHint: "Use the plus button in the header to add your first bookmark.",
+        noBookmarksHint: "Use the Add bookmark button in the header to add your first bookmark.",
+      },
+      bookmarkCard: {
+        hot: "Popular bookmark",
+        visitCount: "Visit count",
+        lastVisited: "Last visited",
+        edit: "Edit",
+        delete: "Delete",
       },
       bookmarkModal: {
         addTitle: "Add bookmark",
@@ -820,7 +862,12 @@ const I18n = {
       const text = this.t(key);
       if (text && text !== key) el.innerHTML = text;
     });
-    document.title = this.t("login.title") || document.title;
+    const titleEl = document.querySelector("title[data-i18n]");
+    if (titleEl) {
+      const key = titleEl.getAttribute("data-i18n");
+      const text = this.t(key);
+      if (text && text !== key) document.title = text;
+    }
   },
 
   updateToggle() {
@@ -849,3 +896,4 @@ const I18n = {
     this.apply();
   },
 };
+
