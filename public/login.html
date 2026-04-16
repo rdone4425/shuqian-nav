@@ -3,31 +3,73 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>公开工作区 - 书签导航</title>
-    <meta name="description" content="书签导航已切换为公开工作区模式，无需登录即可使用。" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <title>Public Workspace - Bookmark Navigator</title>
+    <meta
+      name="description"
+      content="Bookmark Navigator is currently running as a public workspace with no login gate."
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/workspace-refresh.css" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
   <body class="login-page public-gateway">
-    <div class="login-container">
-      <div class="login-card">
-        <div class="login-header">
+    <main class="login-container gateway-shell">
+      <section class="login-card gateway-card">
+        <div class="login-header gateway-header">
           <div class="logo">
             <span class="logo-icon">B</span>
-            <h1 class="logo-text">书签导航</h1>
+            <div class="logo-copy">
+              <h1 class="logo-text">Bookmark Navigator</h1>
+              <p class="logo-subtitle">Public bookmark workspace</p>
+            </div>
           </div>
-          <p class="login-subtitle">当前站点已切换为公开工作区模式</p>
+          <span class="hero-badge">Public Mode</span>
+          <p class="login-subtitle">
+            The login gate is gone. The home page is now the main entry.
+          </p>
           <p class="login-hint">
-            这里不再提供登录入口。你可以直接进入首页管理书签、导入数据、查看链接检查和通知记录。
+            Browse, search, maintain, and import from the main workspace. Use
+            tool pages only when you need deeper maintenance or sync setup.
           </p>
         </div>
 
-        <div class="public-actions">
-          <a href="/" class="btn btn-primary btn-full">进入首页</a>
-          <a href="/import.html" class="btn btn-secondary btn-full">打开导入页</a>
+        <div class="gateway-grid">
+          <a href="/" class="quick-action-card quick-action-primary">
+            <span class="quick-action-kicker">Home</span>
+            <strong class="quick-action-title"
+              >Open the bookmark workspace</strong
+            >
+            <span class="quick-action-copy"
+              >Search, filter, browse, and edit in one place.</span
+            >
+          </a>
+          <a href="/import.html" class="quick-action-card">
+            <span class="quick-action-kicker">Import</span>
+            <strong class="quick-action-title">Bring in bookmark files</strong>
+            <span class="quick-action-copy"
+              >Best for first migration, backup recovery, and cleanup.</span
+            >
+          </a>
+          <a href="/link-checker.html" class="quick-action-card">
+            <span class="quick-action-kicker">Maintain</span>
+            <strong class="quick-action-title">Review broken links</strong>
+            <span class="quick-action-copy"
+              >Handle reachability, keep flags, and removals in one pass.</span
+            >
+          </a>
+          <a href="/token.html" class="quick-action-card">
+            <span class="quick-action-kicker">Advanced</span>
+            <strong class="quick-action-title">Sync and token tooling</strong>
+            <span class="quick-action-copy"
+              >Only needed for Chrome sync or automation setup.</span
+            >
+          </a>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   </body>
 </html>

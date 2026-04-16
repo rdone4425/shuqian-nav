@@ -1,63 +1,97 @@
-// API访问令牌管理
-import { SignJWT, jwtVerify } from "jose";
+﻿import { SignJWT, jwtVerify } from "jose";
 import { authenticateRequest } from "./verify.js";
 
-// 生成API访问令牌
+function isTokenManagementEnabled(env = {}) {
+  return env.PUBLIC_API_TOKEN_MANAGEMENT === "enabled";
+}
+
+function createJsonResponse(body, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+function createDisabledResponse() {
+  return createJsonResponse(
+    {
+      success: false,
+      error:
+        "API token management is disabled in public mode. Set PUBLIC_API_TOKEN_MANAGEMENT=enabled to manage tokens from the web UI.",
+    },
+    403,
+  );
+}
+
+async function ensureTokenManagement(context) {
+  const { request, env } = context;
+
+  if (!isTokenManagementEnabled(env)) {
+    return createDisabledResponse();
+  }
+
+  const auth = await authenticateRequest(request, env);
+  if (!auth.authenticated) {
+    return createJsonResponse(
+      {
+        success: false,
+        error: "Administrator access is required.",
+      },
+      401,
+    );
+  }
+
+  if (!env.BOOKMARKS_DB) {
+    return createJsonResponse(
+      {
+        success: false,
+        error: "BOOKMARKS_DB binding is missing.",
+      },
+      503,
+    );
+  }
+
+  return null;
+}
+
 export async function onRequestPost(context) {
+  const guardResponse = await ensureTokenManagement(context);
+  if (guardResponse) {
+    return guardResponse;
+  }
+
   const { request, env } = context;
 
   try {
-    // 验证管理员权限
-    const auth = await authenticateRequest(request, env);
-    if (!auth.authenticated) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "需要管理员权限",
-        }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-    }
-
     const requestData = await request.json();
 
-    // 检查是否为删除操作
     if (requestData.action === "delete") {
       return await handleDeleteToken(requestData, env);
     }
 
-    // 处理创建token的逻辑
     const { name, description, expiresIn } = requestData;
 
     if (!name) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "令牌名称不能为空",
-        }),
+      return createJsonResponse(
         {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
+          success: false,
+          error: "Token name is required.",
         },
+        400,
       );
     }
 
-    // 计算过期时间（默认30天）
     const expireDays = expiresIn || 30;
     const expirationTime =
       Math.floor(Date.now() / 1000) + expireDays * 24 * 60 * 60;
 
-    // 生成API令牌
     const secret = new TextEncoder().encode(
       env.JWT_SECRET || "default-secret-key",
     );
     const token = await new SignJWT({
       sub: "api-access",
       type: "api-token",
-      name: name,
+      name,
       description: description || "",
       iat: Math.floor(Date.now() / 1000),
       exp: expirationTime,
@@ -65,11 +99,9 @@ export async function onRequestPost(context) {
       .setProtectedHeader({ alg: "HS256" })
       .sign(secret);
 
-    // 存储令牌信息到数据库（可选，用于管理）
     try {
       await env.BOOKMARKS_DB.prepare(
-        `INSERT INTO system_config (config_key, config_value, description) 
-                  VALUES (?, ?, ?)`,
+        "INSERT INTO system_config (config_key, config_value, description) VALUES (?, ?, ?)",
       )
         .bind(
           `api_token_${Date.now()}`,
@@ -79,48 +111,37 @@ export async function onRequestPost(context) {
             created: new Date().toISOString(),
             expires: new Date(expirationTime * 1000).toISOString(),
           }),
-          `API访问令牌: ${name}`,
+          `API token: ${name}`,
         )
         .run();
     } catch (dbError) {
-      console.error("保存令牌信息失败:", dbError);
-      // 不影响令牌生成
+      console.error("Failed to persist API token metadata:", dbError);
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        data: {
-          token,
-          name,
-          description: description || "",
-          expiresAt: new Date(expirationTime * 1000).toISOString(),
-          expiresIn: `${expireDays}天`,
-        },
-        message: "API访问令牌生成成功",
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
+    return createJsonResponse({
+      success: true,
+      data: {
+        token,
+        name,
+        description: description || "",
+        expiresAt: new Date(expirationTime * 1000).toISOString(),
+        expiresIn: `${expireDays} days`,
       },
-    );
+      message: "API token created successfully.",
+    });
   } catch (error) {
-    console.error("生成API令牌失败:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "生成API令牌失败",
-        message: error.message,
-      }),
+    console.error("Failed to create API token:", error);
+    return createJsonResponse(
       {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
+        success: false,
+        error: "Failed to create API token.",
+        message: error.message,
       },
+      500,
     );
   }
 }
 
-// 验证API访问令牌
 export async function verifyApiToken(token, env) {
   try {
     const secret = new TextEncoder().encode(
@@ -128,9 +149,8 @@ export async function verifyApiToken(token, env) {
     );
     const { payload } = await jwtVerify(token, secret);
 
-    // 检查令牌类型
     if (payload.type !== "api-token") {
-      return { valid: false, error: "无效的令牌类型" };
+      return { valid: false, error: "Invalid token type." };
     }
 
     return { valid: true, payload };
@@ -139,32 +159,17 @@ export async function verifyApiToken(token, env) {
   }
 }
 
-// 获取令牌列表
 export async function onRequestGet(context) {
-  const { request, env } = context;
+  const guardResponse = await ensureTokenManagement(context);
+  if (guardResponse) {
+    return guardResponse;
+  }
+
+  const { env } = context;
 
   try {
-    // 验证管理员权限
-    const auth = await authenticateRequest(request, env);
-    if (!auth.authenticated) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "需要管理员权限",
-        }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-    }
-
-    // 获取所有API令牌信息
     const tokens = await env.BOOKMARKS_DB.prepare(
-      `SELECT config_key, config_value, description, created_at 
-                FROM system_config 
-                WHERE config_key LIKE 'api_token_%' 
-                ORDER BY created_at DESC`,
+      "SELECT config_key, config_value, description, created_at FROM system_config WHERE config_key LIKE 'api_token_%' ORDER BY created_at DESC",
     ).all();
 
     const tokenList = tokens.results
@@ -179,145 +184,110 @@ export async function onRequestGet(context) {
             expires: tokenInfo.expires,
             createdAt: row.created_at,
           };
-        } catch (e) {
+        } catch {
           return null;
         }
       })
       .filter(Boolean);
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        data: tokenList,
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    return createJsonResponse({
+      success: true,
+      data: tokenList,
+    });
   } catch (error) {
-    console.error("获取令牌列表失败:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "获取令牌列表失败",
-        message: error.message,
-      }),
+    console.error("Failed to load API token metadata:", error);
+    return createJsonResponse(
       {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
+        success: false,
+        error: "Failed to load API token metadata.",
+        message: error.message,
       },
+      500,
     );
   }
 }
 
-// 处理删除token的函数
 async function handleDeleteToken(requestData, env) {
   try {
     const { tokenId } = requestData;
 
     if (!tokenId) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "缺少令牌ID参数",
-        }),
+      return createJsonResponse(
         {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
+          success: false,
+          error: "Token ID is required.",
         },
+        400,
       );
     }
 
-    // 验证tokenId格式（必须是api_token_开头）
     if (!tokenId.startsWith("api_token_")) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "无效的令牌ID",
-        }),
+      return createJsonResponse(
         {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
+          success: false,
+          error: "Invalid token ID.",
         },
+        400,
       );
     }
 
-    // 先获取令牌信息用于返回
     const tokenInfo = await env.BOOKMARKS_DB.prepare(
-      `SELECT config_value FROM system_config WHERE config_key = ?`,
+      "SELECT config_value FROM system_config WHERE config_key = ?",
     )
       .bind(tokenId)
       .first();
 
     if (!tokenInfo) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "令牌不存在",
-        }),
+      return createJsonResponse(
         {
-          status: 404,
-          headers: { "Content-Type": "application/json" },
+          success: false,
+          error: "Token not found.",
         },
+        404,
       );
     }
 
-    // 删除令牌
     const result = await env.BOOKMARKS_DB.prepare(
-      `DELETE FROM system_config WHERE config_key = ?`,
+      "DELETE FROM system_config WHERE config_key = ?",
     )
       .bind(tokenId)
       .run();
 
     if (result.changes === 0) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "删除失败，令牌可能不存在",
-        }),
+      return createJsonResponse(
         {
-          status: 404,
-          headers: { "Content-Type": "application/json" },
+          success: false,
+          error: "Token could not be deleted because it no longer exists.",
         },
+        404,
       );
     }
 
-    // 解析令牌信息用于日志
-    let deletedTokenName = "未知";
+    let deletedTokenName = "Unknown";
     try {
       const parsedInfo = JSON.parse(tokenInfo.config_value);
-      deletedTokenName = parsedInfo.name || "未知";
-    } catch (e) {
-      console.warn("解析令牌信息失败:", e);
+      deletedTokenName = parsedInfo.name || "Unknown";
+    } catch (error) {
+      console.warn("Failed to parse deleted token metadata:", error);
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: `API访问令牌 "${deletedTokenName}" 已删除`,
-        data: {
-          deletedTokenId: tokenId,
-          deletedTokenName: deletedTokenName,
-        },
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
+    return createJsonResponse({
+      success: true,
+      message: `API token "${deletedTokenName}" deleted successfully.`,
+      data: {
+        deletedTokenId: tokenId,
+        deletedTokenName,
       },
-    );
+    });
   } catch (error) {
-    console.error("删除API令牌失败:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "删除API令牌失败",
-        message: error.message,
-      }),
+    console.error("Failed to delete API token:", error);
+    return createJsonResponse(
       {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
+        success: false,
+        error: "Failed to delete API token.",
+        message: error.message,
       },
+      500,
     );
   }
 }

@@ -1,13 +1,21 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
+<!doctype html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>已删除书签 - 书签导航</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;590;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <title>Deleted Bookmarks - Bookmark Navigator</title>
+    <meta
+      name="description"
+      content="Review deleted bookmark records and restore mistakes inside the public workspace."
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/workspace-refresh.css" />
     <link rel="stylesheet" href="/css/deleted-bookmarks-enhanced.css" />
-    <link rel="icon" href="/favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
   <body>
     <div class="container">
@@ -15,61 +23,98 @@
         <div class="header-content">
           <div class="logo">
             <span class="logo-icon">DEL</span>
-            <h1 class="logo-text" data-i18n="deleted.title">已删除书签</h1>
+            <div class="logo-copy">
+              <h1 class="logo-text">Deleted Records</h1>
+              <p class="logo-subtitle">
+                Review mistakes and restore bookmarks when needed
+              </p>
+            </div>
           </div>
           <div class="header-actions">
-            <div class="action-group tools-menu">
-              <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" data-i18n-title="header.toolsTitle" title="工具菜单">
-                <span class="btn-icon">...</span>
-                <span class="dropdown-arrow">v</span>
-              </button>
-              <div id="toolsDropdown" class="dropdown-menu">
-                <a href="/" class="dropdown-item"><span class="item-icon">H</span><div class="item-content"><span class="item-text">首页</span><span class="item-desc">返回主书签页</span></div></a>
-                <a href="/token.html" class="dropdown-item"><span class="item-icon">API</span><div class="item-content"><span class="item-text" data-i18n="header.apiTokens">API 令牌</span><span class="item-desc" data-i18n="header.apiTokensDesc">管理访问令牌</span></div></a>
-                <a href="/link-checker.html" class="dropdown-item"><span class="item-icon">CHK</span><div class="item-content"><span class="item-text" data-i18n="header.linkChecker">链接检查</span><span class="item-desc" data-i18n="header.linkCheckerDesc">检查书签可访问性</span></div></a>
-                <a href="/notifications.html" class="dropdown-item"><span class="item-icon">MSG</span><div class="item-content"><span class="item-text" data-i18n="header.notifications">通知</span><span class="item-desc" data-i18n="header.notificationsDesc">查看最近通知</span></div></a>
-                <a href="/import.html" class="dropdown-item"><span class="item-icon">IMP</span><div class="item-content"><span class="item-text">导入</span><span class="item-desc">从文件导入书签</span></div></a>
-                <div class="dropdown-divider"></div>
-              </div>
-            </div>
+            <a class="action-btn-icon has-label" href="/">
+              <span class="btn-icon">H</span>
+              <span class="action-btn-label">Home</span>
+            </a>
           </div>
         </div>
       </header>
 
+      <section class="workspace-section-heading">
+        <div>
+          <span class="section-kicker">Restore</span>
+          <h2 class="section-title">Keep deletion history visible and reversible</h2>
+        </div>
+        <p class="section-copy">
+          This page is the safety net for cleanup work. Review manual deletes,
+          failed-link removals, and recover mistakes before they become
+          permanent.
+        </p>
+      </section>
+
       <main class="main-content">
         <section class="stats-section">
           <div class="stats-grid">
-            <div class="stat-card"><div class="stat-value" id="totalDeleted">0</div><div class="stat-label" data-i18n="deleted.statVisible">可见记录</div></div>
-            <div class="stat-card"><div class="stat-value" id="manualDeleted">0</div><div class="stat-label" data-i18n="deleted.statManual">手动删除</div></div>
-            <div class="stat-card"><div class="stat-value" id="autoDeleted">0</div><div class="stat-label" data-i18n="deleted.statFailedLink">链接检查失败</div></div>
-            <div class="stat-card"><div class="stat-value" id="todayDeleted">0</div><div class="stat-label" data-i18n="deleted.statToday">今日删除</div></div>
+            <div class="stat-card">
+              <div class="stat-value" id="totalDeleted">0</div>
+              <div class="stat-label">Visible records</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="manualDeleted">0</div>
+              <div class="stat-label">Manual delete</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="autoDeleted">0</div>
+              <div class="stat-label">Maintenance delete</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="todayDeleted">0</div>
+              <div class="stat-label">Deleted today</div>
+            </div>
           </div>
         </section>
 
         <section class="actions-section">
           <div class="actions-left">
-            <button id="refreshBtn" class="btn btn-primary" data-i18n="deleted.btnRefresh">刷新列表</button>
-            <button id="clearAllBtn" class="btn btn-danger" type="button" disabled data-i18n="deleted.btnBulkClear">批量清除（不支持）</button>
+            <button id="refreshBtn" class="btn btn-primary" type="button">
+              Refresh list
+            </button>
+            <button
+              id="clearAllBtn"
+              class="btn btn-danger"
+              type="button"
+              disabled
+            >
+              Bulk clear not supported
+            </button>
           </div>
           <div class="actions-right">
             <select id="filterSelect" class="filter-select">
-              <option value="all" data-i18n="deleted.filterAll">全部</option>
-              <option value="manual_delete" data-i18n="deleted.filterManual">手动删除</option>
-              <option value="link_check_failed" data-i18n="deleted.filterLinkFailed">链接检查失败</option>
-              <option value="batch_delete_inaccessible" data-i18n="deleted.filterBatchDelete">批量删除</option>
+              <option value="all">All records</option>
+              <option value="manual_delete">Manual delete</option>
+              <option value="link_check_failed">Link check failed</option>
+              <option value="batch_delete_inaccessible">Batch delete</option>
             </select>
-            <input type="search" id="searchInput" placeholder="搜索标题或 URL" class="search-input" />
+            <input
+              type="search"
+              id="searchInput"
+              placeholder="Search title or URL"
+              class="search-input"
+            />
           </div>
         </section>
 
         <section class="records-section">
           <div id="recordsList" class="records-list">
-            <div class="loading" data-i18n="deleted.loadingDeleted">正在加载已删除书签...</div>
+            <div class="loading">Loading deleted bookmarks...</div>
           </div>
           <div id="pagination" class="pagination hidden">
-            <button id="prevPage" class="btn btn-secondary" data-i18n="deleted.btnPrevious">上一页</button>
-            <span id="pageInfo" class="page-info" data-i18n="deleted.pageOf">第 1 页，共 1 页</span>
-            <button id="nextPage" class="btn btn-secondary" data-i18n="deleted.btnNext">下一页</button>
+            <button id="prevPage" class="btn btn-secondary" type="button">
+              Previous
+            </button>
+            <span id="pageInfo" class="page-info">Page 1 of 1</span>
+            <button id="nextPage" class="btn btn-secondary" type="button">
+              Next
+            </button>
           </div>
         </section>
       </main>
@@ -78,15 +123,19 @@
     <div id="restoreModal" class="modal hidden">
       <div class="modal-content">
         <div class="modal-header">
-          <h3 data-i18n="deleted.modalRestoreTitle">恢复书签</h3>
+          <h3>Restore bookmark</h3>
           <button id="closeRestoreModal" class="btn-close">&times;</button>
         </div>
         <div class="modal-body">
           <div id="restoreBookmarkInfo"></div>
-          <p data-i18n="deleted.modalRestoreBody">确定要恢复此书签吗？</p>
+          <p>Restore this bookmark now?</p>
           <div class="modal-actions">
-            <button id="cancelRestore" class="btn btn-secondary" data-i18n="deleted.btnCancel">取消</button>
-            <button id="confirmRestore" class="btn btn-primary" data-i18n="deleted.restoreBtn">恢复</button>
+            <button id="cancelRestore" class="btn btn-secondary" type="button">
+              Cancel
+            </button>
+            <button id="confirmRestore" class="btn btn-primary" type="button">
+              Restore
+            </button>
           </div>
         </div>
       </div>
@@ -95,7 +144,7 @@
     <div id="detailModal" class="modal hidden">
       <div class="modal-content modal-large">
         <div class="modal-header">
-          <h3 data-i18n="deleted.modalDetailsTitle">删除详情</h3>
+          <h3>Delete details</h3>
           <button id="closeDetailModal" class="btn-close">&times;</button>
         </div>
         <div class="modal-body">
@@ -108,9 +157,5 @@
     <script src="/js/auth.js"></script>
     <script src="/js/admin-common.js"></script>
     <script src="/js/deleted-bookmarks.js"></script>
-      <script src="/js/i18n.js"></script>
-    <script>
-      document.addEventListener("DOMContentLoaded", () => { if (window.I18n) I18n.init(); });
-    </script>
   </body>
 </html>

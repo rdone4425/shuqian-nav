@@ -194,7 +194,10 @@ const App = {
       const response = await BookmarkAPI.getCategories();
       if (response.success && this.elements.bookmarkCategory) {
         const optionsHTML = response.data
-          .map((category) => `<option value="${category.id}">${category.name}</option>`)
+          .map(
+            (category) =>
+              `<option value="${category.id}">${category.name}</option>`,
+          )
           .join("");
 
         this.elements.bookmarkCategory.innerHTML = `
@@ -227,7 +230,10 @@ const App = {
       this.elements.saveBtn.textContent = "保存中...";
 
       if (this.currentBookmark) {
-        response = await BookmarkAPI.updateBookmark(this.currentBookmark.id, formData);
+        response = await BookmarkAPI.updateBookmark(
+          this.currentBookmark.id,
+          formData,
+        );
       } else {
         response = await BookmarkAPI.createBookmark(formData);
       }
@@ -236,7 +242,10 @@ const App = {
         throw new Error(response.error || "保存失败");
       }
 
-      this.showMessage(this.currentBookmark ? "书签更新成功" : "书签创建成功", "success");
+      this.showMessage(
+        this.currentBookmark ? "书签更新成功" : "书签创建成功",
+        "success",
+      );
       this.hideBookmarkModal();
       await BookmarkManager.refresh();
     } catch (error) {
@@ -265,7 +274,9 @@ const App = {
   },
 
   async deleteBookmark(bookmarkId) {
-    const bookmark = BookmarkManager.bookmarks.find((item) => item.id == bookmarkId);
+    const bookmark = BookmarkManager.bookmarks.find(
+      (item) => item.id == bookmarkId,
+    );
     const bookmarkTitle = bookmark ? bookmark.title : "该书签";
 
     if (!confirm(`确定要删除书签“${bookmarkTitle}”吗？此操作不可撤销。`)) {
@@ -382,7 +393,10 @@ const App = {
       }
 
       page += 1;
-      this.showMessage(`正在获取书签... 已获取 ${allBookmarks.length} 个`, "info");
+      this.showMessage(
+        `正在获取书签... 已获取 ${allBookmarks.length} 个`,
+        "info",
+      );
     }
 
     return allBookmarks;
@@ -421,7 +435,9 @@ const App = {
       html += "        <DL><p>\n";
 
       bookmarksByCategory[categoryName].forEach((bookmark) => {
-        const addDate = Math.floor(new Date(bookmark.created_at).getTime() / 1000);
+        const addDate = Math.floor(
+          new Date(bookmark.created_at).getTime() / 1000,
+        );
         html += `            <DT><A HREF="${this.escapeHtml(bookmark.url)}" ADD_DATE="${addDate}"`;
         if (bookmark.favicon_url) {
           html += ` ICON="${this.escapeHtml(bookmark.favicon_url)}"`;
@@ -440,7 +456,9 @@ const App = {
       html += "        <DL><p>\n";
 
       uncategorized.forEach((bookmark) => {
-        const addDate = Math.floor(new Date(bookmark.created_at).getTime() / 1000);
+        const addDate = Math.floor(
+          new Date(bookmark.created_at).getTime() / 1000,
+        );
         html += `            <DT><A HREF="${this.escapeHtml(bookmark.url)}" ADD_DATE="${addDate}"`;
         if (bookmark.favicon_url) {
           html += ` ICON="${this.escapeHtml(bookmark.favicon_url)}"`;
@@ -541,7 +559,10 @@ const App = {
 
   async createFullBackup(format) {
     try {
-      this.showMessage(`正在创建 ${format.toUpperCase()} 格式的完整备份...`, "info");
+      this.showMessage(
+        `正在创建 ${format.toUpperCase()} 格式的完整备份...`,
+        "info",
+      );
       const response = await SystemAPI.createBackup(format);
       const contentDisposition = response.headers.get("Content-Disposition");
       let filename = `bookmarks-backup-${new Date().toISOString().split("T")[0]}.${format}`;

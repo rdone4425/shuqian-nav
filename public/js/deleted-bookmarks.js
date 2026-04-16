@@ -10,11 +10,6 @@ class DeletedBookmarksManager {
   }
 
   async init() {
-    if (!(await AdminUI.requireAuth())) {
-      return;
-    }
-
-    AdminUI.initToolsMenu("/deleted-bookmarks.html");
     this.bindEvents();
     await this.loadDeletedRecords();
   }
@@ -25,24 +20,20 @@ class DeletedBookmarksManager {
     });
 
     document.getElementById("clearAllBtn").addEventListener("click", () => {
-      AdminUI.showToast(I18n.t("deleted.bulkClearNotImplemented"), "error");
+      AdminUI.showToast("Bulk clear is not implemented.", "error");
     });
 
-    document
-      .getElementById("filterSelect")
-      .addEventListener("change", (event) => {
-        this.currentFilter = event.target.value;
-        this.currentPage = 1;
-        this.loadDeletedRecords();
-      });
+    document.getElementById("filterSelect").addEventListener("change", (event) => {
+      this.currentFilter = event.target.value;
+      this.currentPage = 1;
+      this.loadDeletedRecords();
+    });
 
-    document
-      .getElementById("searchInput")
-      .addEventListener("input", (event) => {
-        this.searchQuery = event.target.value.trim();
-        this.currentPage = 1;
-        this.loadDeletedRecords();
-      });
+    document.getElementById("searchInput").addEventListener("input", (event) => {
+      this.searchQuery = event.target.value.trim();
+      this.currentPage = 1;
+      this.loadDeletedRecords();
+    });
 
     document.getElementById("prevPage").addEventListener("click", () => {
       if (this.currentPage > 1) {
@@ -58,37 +49,29 @@ class DeletedBookmarksManager {
       }
     });
 
-    document
-      .getElementById("closeRestoreModal")
-      .addEventListener("click", () => {
-        this.hideRestoreModal();
-      });
+    document.getElementById("closeRestoreModal").addEventListener("click", () => {
+      this.hideRestoreModal();
+    });
     document.getElementById("cancelRestore").addEventListener("click", () => {
       this.hideRestoreModal();
     });
     document.getElementById("confirmRestore").addEventListener("click", () => {
       this.confirmRestore();
     });
-    document
-      .getElementById("closeDetailModal")
-      .addEventListener("click", () => {
-        this.hideDetailModal();
-      });
+    document.getElementById("closeDetailModal").addEventListener("click", () => {
+      this.hideDetailModal();
+    });
 
-    document
-      .getElementById("restoreModal")
-      .addEventListener("click", (event) => {
-        if (event.target.id === "restoreModal") {
-          this.hideRestoreModal();
-        }
-      });
-    document
-      .getElementById("detailModal")
-      .addEventListener("click", (event) => {
-        if (event.target.id === "detailModal") {
-          this.hideDetailModal();
-        }
-      });
+    document.getElementById("restoreModal").addEventListener("click", (event) => {
+      if (event.target.id === "restoreModal") {
+        this.hideRestoreModal();
+      }
+    });
+    document.getElementById("detailModal").addEventListener("click", (event) => {
+      if (event.target.id === "detailModal") {
+        this.hideDetailModal();
+      }
+    });
 
     document.addEventListener("click", (event) => {
       const restoreButton = event.target.closest(".restore-btn");
@@ -113,8 +96,7 @@ class DeletedBookmarksManager {
 
   async loadDeletedRecords() {
     const recordsList = document.getElementById("recordsList");
-    recordsList.innerHTML =
-      `<div class="loading">${I18n.t("deleted.loadingDeleted")}</div>`;
+    recordsList.innerHTML = '<div class="loading">Loading deleted bookmarks...</div>';
 
     try {
       const params = new URLSearchParams({
@@ -130,11 +112,9 @@ class DeletedBookmarksManager {
         params.set("search", this.searchQuery);
       }
 
-      const response = await API.get(
-        `/api/bookmarks/deleted?${params.toString()}`,
-      );
+      const response = await API.get(`/api/bookmarks/deleted?${params.toString()}`);
       if (!response.success) {
-        throw new Error(response.error || I18n.t("deleted.loadFailed"));
+        throw new Error(response.error || "Failed to load deleted bookmarks");
       }
 
       this.deletedRecords = response.data?.bookmarks || [];
@@ -145,7 +125,7 @@ class DeletedBookmarksManager {
       this.updateStats();
     } catch (error) {
       this.deletedRecords = [];
-      recordsList.innerHTML = `<div class="empty-state">${I18n.t("deleted.loadFailedWithError").replace("{error}", AdminUI.escapeHtml(error.message))}</div>`;
+      recordsList.innerHTML = `<div class="empty-state">Load failed: ${AdminUI.escapeHtml(error.message)}</div>`;
       this.updatePagination();
       this.updateStats();
     }
@@ -155,7 +135,7 @@ class DeletedBookmarksManager {
     const recordsList = document.getElementById("recordsList");
     if (!this.deletedRecords.length) {
       recordsList.innerHTML =
-        `<div class="empty-state">${I18n.t("deleted.noDeletedRecords")}</div>`;
+        '<div class="empty-state">There are no deleted bookmark records.</div>';
       return;
     }
 
@@ -238,14 +218,14 @@ class DeletedBookmarksManager {
 
     if (this.totalPages <= 1) {
       pagination.classList.add("hidden");
-      pageInfo.textContent = I18n.t("deleted.pageOf").replace("{current}", "1").replace("{total}", "1");
+      pageInfo.textContent = "Page 1 of 1";
       return;
     }
 
     pagination.classList.remove("hidden");
     prevBtn.disabled = this.currentPage <= 1;
     nextBtn.disabled = this.currentPage >= this.totalPages;
-    pageInfo.textContent = I18n.t("deleted.pageOf").replace("{current}", this.currentPage).replace("{total}", this.totalPages);
+    pageInfo.textContent = `Page ${this.currentPage} of ${this.totalPages}`;
   }
 
   updateStats() {
@@ -283,9 +263,9 @@ class DeletedBookmarksManager {
     this.pendingRestoreId = recordId;
     document.getElementById("restoreBookmarkInfo").innerHTML = `
       <div style="margin-bottom: 1rem;">
-        <strong>${I18n.t("deleted.labelTitle")}</strong> ${AdminUI.escapeHtml(record.title || I18n.t("deleted.untitledBookmark"))}<br>
-        <strong>${I18n.t("deleted.labelUrl")}</strong> ${AdminUI.escapeHtml(record.url || "")}<br>
-        <strong>${I18n.t("deleted.labelDeletedAt")}</strong> ${AdminUI.formatDate(record.deleted_at)}
+        <strong>Title:</strong> ${AdminUI.escapeHtml(record.title || "Untitled bookmark")}<br>
+        <strong>URL:</strong> ${AdminUI.escapeHtml(record.url || "")}<br>
+        <strong>Deleted at:</strong> ${AdminUI.formatDate(record.deleted_at)}
       </div>
     `;
     document.getElementById("restoreModal").classList.remove("hidden");
@@ -307,14 +287,14 @@ class DeletedBookmarksManager {
       });
 
       if (!response.success) {
-        throw new Error(response.error || I18n.t("deleted.restoreFailed"));
+        throw new Error(response.error || "Restore failed");
       }
 
       this.hideRestoreModal();
-      AdminUI.showToast(I18n.t("deleted.restoreSuccess"));
+      AdminUI.showToast("Bookmark restored");
       await this.loadDeletedRecords();
     } catch (error) {
-      AdminUI.showToast(`${I18n.t("deleted.restoreFailed")}: ${error.message}`, "error");
+      AdminUI.showToast(`Restore failed: ${error.message}`, "error");
     }
   }
 
@@ -362,9 +342,7 @@ class DeletedBookmarksManager {
     }
 
     try {
-      const response = await API.delete(
-        `/api/bookmarks/deleted?id=${recordId}`,
-      );
+      const response = await API.delete(`/api/bookmarks/deleted?id=${recordId}`);
       if (!response.success) {
         throw new Error(response.error || "Failed to delete record forever");
       }

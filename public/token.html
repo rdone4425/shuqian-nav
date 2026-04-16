@@ -1,12 +1,20 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>API 令牌 - 书签导航</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;590;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <title>Advanced Sync Tools - Bookmark Navigator</title>
+    <meta
+      name="description"
+      content="Advanced sync tools for Chrome extension setup and automation. Web token management stays disabled by default in public mode."
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/css/styles.css" />
-    <link rel="stylesheet" href="/css/token-enhanced.css" />
+    <link rel="stylesheet" href="/css/workspace-refresh.css" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
   <body>
     <div class="container">
@@ -14,349 +22,159 @@
         <div class="header-content">
           <div class="logo">
             <span class="logo-icon">API</span>
-            <h1 class="logo-text" data-i18n="token.title">API 令牌管理</h1>
+            <div class="logo-copy">
+              <h1 class="logo-text">Advanced Sync Tools</h1>
+              <p class="logo-subtitle">Chrome extension and automation setup</p>
+            </div>
           </div>
 
           <div class="header-actions">
-            <div class="action-group tools-menu">
-              <button
-                id="toolsMenuToggle"
-                class="action-btn-icon menu-toggle"
-                data-i18n-title="header.toolsTitle"
-                title="工具菜单"
-              >
-                <span class="btn-icon">...</span>
-                <span class="dropdown-arrow">v</span>
-              </button>
-              <div id="toolsDropdown" class="dropdown-menu">
-                <a href="/" class="dropdown-item">
-                  <span class="item-icon">H</span>
-                  <div class="item-content">
-                    <span class="item-text">首页</span>
-                    <span class="item-desc">返回主书签页</span>
-                  </div>
-                </a>
-                <a href="/link-checker.html" class="dropdown-item">
-                  <span class="item-icon">CHK</span>
-                  <div class="item-content">
-                    <span class="item-text" data-i18n="header.linkChecker">链接检查</span>
-                    <span class="item-desc" data-i18n="header.linkCheckerDesc">检查书签可访问性</span>
-                  </div>
-                </a>
-                <a href="/deleted-bookmarks.html" class="dropdown-item">
-                  <span class="item-icon">DEL</span>
-                  <div class="item-content">
-                    <span class="item-text" data-i18n="header.deleted">已删除书签</span>
-                    <span class="item-desc" data-i18n="header.deletedDesc">查看已删除书签</span>
-                  </div>
-                </a>
-                <a href="/notifications.html" class="dropdown-item">
-                  <span class="item-icon">MSG</span>
-                  <div class="item-content">
-                    <span class="item-text" data-i18n="header.notifications">通知</span>
-                    <span class="item-desc" data-i18n="header.notificationsDesc">查看最近通知</span>
-                  </div>
-                </a>
-                <a href="/import.html" class="dropdown-item">
-                  <span class="item-icon">IMP</span>
-                  <div class="item-content">
-                    <span class="item-text">导入</span>
-                    <span class="item-desc">从文件导入书签</span>
-                  </div>
-                </a>
-                <div class="dropdown-divider"></div>
-              </div>
+            <div class="action-group">
+              <a class="action-btn-icon has-label" href="/">
+                <span class="btn-icon">H</span>
+                <span class="action-btn-label">Home</span>
+              </a>
             </div>
           </div>
         </div>
       </header>
 
-      <main class="token-container">
-        <section class="token-card">
-          <div class="token-header">
-            <div>
-              <h2 class="token-title" data-i18n="token.createNewToken">创建新令牌</h2>
-              <p class="token-subtitle" data-i18n="token.createDesc">
-                为脚本、扩展程序和自动化工具使用专用令牌。
-              </p>
-            </div>
+      <main class="token-container token-page-shell">
+        <section class="token-intro-card">
+          <div class="token-title-block">
+            <span class="token-kicker">Advanced</span>
+            <h2 class="token-page-title">
+              This page is for sync integration, not the main public workspace
+              flow.
+            </h2>
+            <p class="token-page-copy">
+              Keep everyday browsing, search, import, and maintenance on the
+              home page. Use this page only when Chrome sync or automation
+              requires a token-backed integration.
+            </p>
           </div>
 
-          <form id="tokenForm" class="token-form">
-            <div class="form-group">
-              <label class="form-label" for="tokenName" data-i18n="token.labelTokenName">令牌名称</label>
-              <input
-                id="tokenName"
-                class="form-input"
-                type="text"
-                placeholder="例如：Chrome 同步 worker"
-                required
-              />
-              <div class="form-hint" data-i18n="token.hintName">选择一个清晰的标签，便于以后撤销。</div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="tokenDescription" data-i18n="token.labelDescription">描述</label>
-              <input
-                id="tokenDescription"
-                class="form-input"
-                type="text"
-                placeholder="可选的备注，说明令牌的用途"
-              />
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label" for="tokenExpires" data-i18n="token.labelExpires">有效期</label>
-                <select id="tokenExpires" class="form-select">
-                  <option value="7" data-i18n="token.days7">7 天</option>
-                  <option value="30" selected data-i18n="token.days30">30 天</option>
-                  <option value="90" data-i18n="token.days90">90 天</option>
-                  <option value="365" data-i18n="token.days365">365 天</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="token-actions">
-              <button type="submit" id="createTokenBtn" class="btn btn-primary" data-i18n="token.btnCreateToken">
-                创建令牌
-              </button>
-            </div>
-          </form>
-
-          <section id="tokenResult" class="token-display hidden">
-            <div class="token-display-header">
-              <div class="token-display-title" data-i18n="token.newToken">新令牌</div>
-              <button id="copyTokenBtn" class="btn btn-outline" type="button" data-i18n="token.btnCopy">
-                复制
-              </button>
-            </div>
-            <div id="generatedToken" class="token-value"></div>
-            <div class="form-hint" data-i18n="token.newTokenWarning">
-              完整值仅显示一次，请立即复制并妥善保存。
-            </div>
-          </section>
+          <div class="token-intro-grid">
+            <article class="token-mini-card">
+              <strong>Chrome extension</strong>
+              <span
+                >The extension still sends <code>X-API-Token</code> to
+                <code>/api/bookmarks/sync</code>, so token support remains part
+                of the backend contract.</span
+              >
+            </article>
+            <article class="token-mini-card">
+              <strong>Public mode guardrail</strong>
+              <span
+                >To avoid exposing token creation to all visitors, web token
+                management is disabled by default and this page focuses on
+                status and guidance.</span
+              >
+            </article>
+          </div>
         </section>
 
-        <section class="token-card">
-          <div class="token-header">
-            <div>
-              <h2 class="token-title" data-i18n="token.existingTokens">现有令牌</h2>
-              <p class="token-subtitle" data-i18n="token.existingTokensDesc">以下列表显示已保存的令牌记录。</p>
-            </div>
-            <button id="refreshTokensBtn" class="btn btn-outline" type="button" data-i18n="token.btnRefresh">
-              刷新
+        <section class="token-guard-card">
+          <span class="token-kicker">Status</span>
+          <h3 class="section-title">Current web token management status</h3>
+          <p id="tokenGuardStatus" class="token-guard-copy">
+            Checking current configuration...
+          </p>
+          <div class="token-actions-inline">
+            <button
+              id="checkTokenGuardBtn"
+              class="btn btn-primary"
+              type="button"
+            >
+              Refresh status
             </button>
-          </div>
-
-          <div id="tokenList" class="tokens-list">
-            <div class="tokens-header">
-              <p class="token-subtitle" data-i18n="token.loadingTokens">正在加载令牌列表...</p>
-            </div>
+            <a href="/" class="btn btn-soft">Back to home</a>
           </div>
         </section>
 
-        <section class="api-docs">
-          <div class="api-docs-header">
-            <h2 class="api-docs-title" data-i18n="token.usageNotes">使用说明</h2>
-            <p class="api-docs-subtitle" data-i18n="token.usageNotesDesc">在 API 请求头中发送令牌。</p>
+        <section class="token-guide-card">
+          <span class="token-kicker">Guide</span>
+          <h3 class="section-title">How to enable sync tokens safely</h3>
+          <div class="token-guide-grid">
+            <article class="token-mini-card">
+              <strong>1. Keep it off by default</strong>
+              <span
+                >A public bookmark site should not expose token creation to
+                every visitor.</span
+              >
+            </article>
+            <article class="token-mini-card">
+              <strong>2. Opt in explicitly</strong>
+              <span
+                >Only in a controlled environment, set
+                <code>PUBLIC_API_TOKEN_MANAGEMENT</code> to
+                <code>enabled</code>.</span
+              >
+            </article>
+            <article class="token-mini-card">
+              <strong>3. Scope tokens per tool</strong>
+              <span
+                >Create separate tokens for separate automations so revocation
+                stays simple.</span
+              >
+            </article>
+            <article class="token-mini-card">
+              <strong>4. Configure the extension here</strong>
+              <span
+                >The Chrome popup still points users to this page for service
+                URL and token setup guidance.</span
+              >
+            </article>
           </div>
-
-          <div class="api-section">
-            <h3 class="api-section-title" data-i18n="token.header">请求头</h3>
-            <div class="api-endpoint">
-              <code>X-API-Token: your-token-here</code>
-            </div>
-          </div>
-
-          <div class="api-section">
-            <h3 class="api-section-title" data-i18n="token.safetyTips">安全提示</h3>
-            <ul>
-              <li data-i18n="token.safetyTip1">尽可能为不同的工具使用不同的令牌。</li>
-              <li data-i18n="token.safetyTip2">如果怀疑泄露，立即删除并重新创建令牌。</li>
-              <li data-i18n="token.safetyTip3">请勿在公共前端代码中暴露管理令牌。</li>
-            </ul>
+          <div class="token-actions-inline">
+            <a class="btn btn-primary" href="/import.html">Import bookmarks</a>
+            <a class="btn btn-soft" href="/link-checker.html">Check links</a>
           </div>
         </section>
       </main>
     </div>
 
-    <script src="/js/utils/storage.js"></script>
-    <script src="/js/utils/api.js"></script>
-    <script src="/js/auth.js"></script>
-    <script src="/js/admin-common.js"></script>
     <script>
-      const state = {
-        latestToken: "",
-      };
-
-      function renderTokens(tokens) {
-        const tokenList = document.getElementById("tokenList");
-
-        if (!tokens.length) {
-          tokenList.innerHTML = `
-            <div class="tokens-header">
-              <p class="token-subtitle">${I18n.t("token.noTokensYet")}</p>
-            </div>
-          `;
-          return;
-        }
-
-        tokenList.innerHTML = tokens
-          .map((token) => {
-            const isExpired = new Date(token.expires) <= new Date();
-            const safeName = AdminUI.escapeHtml(token.name || I18n.t("token.unnamedToken"));
-            const safeDescription = AdminUI.escapeHtml(token.description || I18n.t("token.noDescription"));
-            const safeId = AdminUI.escapeHtml(token.id);
-
-            return `
-              <article class="token-item" data-token-id="${safeId}" data-token-name="${safeName}">
-                <div class="token-item-header">
-                  <div class="token-info">
-                    <h3 class="token-name">${safeName}</h3>
-                    <p class="token-description">${safeDescription}</p>
-                    <div class="token-meta">
-                      <span class="token-meta-item">${I18n.t("token.created")}: ${AdminUI.formatDate(token.created)}</span>
-                      <span class="token-meta-item">${I18n.t("token.expires")}: ${AdminUI.formatDate(token.expires)}</span>
-                    </div>
-                  </div>
-                  <div class="token-item-actions">
-                    <span class="token-status ${isExpired ? "expired" : "active"}">
-                      ${isExpired ? I18n.t("token.expired") : I18n.t("token.active")}
-                    </span>
-                    <button class="btn btn-outline delete-token-btn" type="button">${I18n.t("token.delete")}</button>
-                  </div>
-                </div>
-              </article>
-            `;
-          })
-          .join("");
-      }
-
-      async function loadTokens() {
-        const tokenList = document.getElementById("tokenList");
-        tokenList.innerHTML = `
-          <div class="tokens-header">
-            <p class="token-subtitle">${I18n.t("token.loadingTokens")}</p>
-          </div>
-        `;
+      async function refreshTokenGuardStatus() {
+        const statusEl = document.getElementById("tokenGuardStatus");
+        statusEl.textContent = "Checking current configuration...";
 
         try {
-          const response = await API.get("/api/auth/token");
-          if (!response.success) {
-            throw new Error(response.error || I18n.t("token.loadFailed"));
-          }
-
-          renderTokens(response.data || []);
-        } catch (error) {
-          tokenList.innerHTML = `
-            <div class="tokens-header">
-              <p class="token-subtitle">${I18n.t("token.loadFailedWithError").replace("{error}", AdminUI.escapeHtml(error.message))}</p>
-            </div>
-          `;
-        }
-      }
-
-      async function createToken(event) {
-        event.preventDefault();
-
-        const createTokenBtn = document.getElementById("createTokenBtn");
-        const tokenName = document.getElementById("tokenName");
-        const tokenDescription = document.getElementById("tokenDescription");
-        const tokenExpires = document.getElementById("tokenExpires");
-
-        createTokenBtn.disabled = true;
-        createTokenBtn.textContent = I18n.t("token.creating");
-
-        try {
-          const response = await API.post("/api/auth/token", {
-            name: tokenName.value.trim(),
-            description: tokenDescription.value.trim(),
-            expiresIn: Number.parseInt(tokenExpires.value, 10),
+          const response = await fetch("/api/auth/token", {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+            },
           });
 
-          if (!response.success) {
-            throw new Error(response.error || I18n.t("token.createFailed"));
-          }
+          const data = await response.json().catch(() => ({}));
 
-          state.latestToken = response.data.token;
-          document.getElementById("generatedToken").textContent = state.latestToken;
-          document.getElementById("tokenResult").classList.remove("hidden");
-          document.getElementById("tokenForm").reset();
-          AdminUI.showToast(I18n.t("token.tokenCreated"));
-          await loadTokens();
-        } catch (error) {
-          AdminUI.showToast(`${I18n.t("token.createFailed")}: ${error.message}`, "error");
-        } finally {
-          createTokenBtn.disabled = false;
-          createTokenBtn.textContent = I18n.t("token.btnCreateToken");
-        }
-      }
-
-      async function deleteToken(tokenId, tokenName) {
-        const confirmed = window.confirm(
-          I18n.t("token.deleteConfirm").replace("{name}", tokenName),
-        );
-        if (!confirmed) {
-          return;
-        }
-
-        try {
-          const response = await API.post("/api/auth/token", {
-            action: "delete",
-            tokenId,
-          });
-
-          if (!response.success) {
-            throw new Error(response.error || I18n.t("token.deleteFailed"));
-          }
-
-          AdminUI.showToast(I18n.t("token.tokenDeleted").replace("{name}", tokenName));
-          await loadTokens();
-        } catch (error) {
-          AdminUI.showToast(`${I18n.t("token.deleteFailed")}: ${error.message}`, "error");
-        }
-      }
-
-      async function copyLatestToken() {
-        if (!state.latestToken) {
-          AdminUI.showToast(I18n.t("token.noTokenToCopy"), "error");
-          return;
-        }
-
-        await navigator.clipboard.writeText(state.latestToken);
-        AdminUI.showToast(I18n.t("token.tokenCopied"));
-      }
-
-      document.addEventListener("DOMContentLoaded", async () => {
-        if (!(await AdminUI.requireAuth())) {
-          return;
-        }
-
-        AdminUI.initToolsMenu("/token.html");
-        document.getElementById("tokenForm").addEventListener("submit", createToken);
-        document
-          .getElementById("refreshTokensBtn")
-          .addEventListener("click", loadTokens);
-        document
-          .getElementById("copyTokenBtn")
-          .addEventListener("click", copyLatestToken);
-        document.getElementById("tokenList").addEventListener("click", (event) => {
-          const button = event.target.closest(".delete-token-btn");
-          if (!button) {
+          if (response.status === 403) {
+            statusEl.textContent =
+              "Public mode protection is active. Web token management is disabled until PUBLIC_API_TOKEN_MANAGEMENT=enabled is set.";
             return;
           }
 
-          const tokenItem = button.closest("[data-token-id]");
-          deleteToken(tokenItem.dataset.tokenId, tokenItem.dataset.tokenName);
-        });
+          if (response.ok) {
+            statusEl.textContent =
+              "Web token management is enabled for this environment. Make sure only trusted operators can access this deployment.";
+            return;
+          }
 
-        await loadTokens();
+          statusEl.textContent =
+            data.error ||
+            "Token status check failed with HTTP " + response.status;
+        } catch (error) {
+          statusEl.textContent = "Token status check failed: " + error.message;
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        document
+          .getElementById("checkTokenGuardBtn")
+          .addEventListener("click", refreshTokenGuardStatus);
+        refreshTokenGuardStatus();
       });
-    </script>
-      <script src="/js/i18n.js"></script>
-    <script>
-      document.addEventListener("DOMContentLoaded", () => { if (window.I18n) I18n.init(); });
     </script>
   </body>
 </html>

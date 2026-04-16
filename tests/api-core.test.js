@@ -5,6 +5,10 @@ import { onRequestPost as loginHandler } from "../pages/functions/api/auth/login
 import { onRequestPost as changePasswordHandler } from "../pages/functions/api/auth/change-password.js";
 import { onRequestGet as healthHandler } from "../pages/functions/api/health.js";
 import { verifyToken as verifyPublicToken } from "../pages/functions/api/auth/verify.js";
+import {
+  onRequestGet as tokenListHandler,
+  onRequestPost as tokenCreateHandler,
+} from "../pages/functions/api/auth/token.js";
 import { JWTKeyManager } from "../pages/functions/utils/jwt-manager.js";
 
 function createDbMock({ firstResult, firstError, runResult, runError } = {}) {
@@ -71,7 +75,10 @@ test("change-password endpoint stays disabled in public mode", async () => {
   const request = new Request("https://example.com/api/auth/change-password", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ currentPassword: "admin123", newPassword: "new-pass" }),
+    body: JSON.stringify({
+      currentPassword: "admin123",
+      newPassword: "new-pass",
+    }),
   });
 
   const response = await changePasswordHandler({
@@ -161,4 +168,36 @@ test("JWT secret falls back to a cached in-memory value when D1 is unavailable",
   assert.equal(typeof firstSecret, "string");
   assert.equal(firstSecret, secondSecret);
   assert.equal(firstSecret.length > 20, true);
+});
+
+test("token management stays disabled by default in public mode", async () => {
+  const listResponse = await tokenListHandler({
+    request: new Request("https://example.com/api/auth/token"),
+    env: {
+      JWT_SECRET: "test-secret-with-safe-length-1234567890",
+      BOOKMARKS_DB: createDbMock(),
+    },
+  });
+
+  assert.equal(listResponse.status, 403);
+  const listBody = await listResponse.json();
+  assert.equal(listBody.success, false);
+  assert.match(listBody.error, /disabled in public mode/i);
+
+  const createResponse = await tokenCreateHandler({
+    request: new Request("https://example.com/api/auth/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "Chrome Sync" }),
+    }),
+    env: {
+      JWT_SECRET: "test-secret-with-safe-length-1234567890",
+      BOOKMARKS_DB: createDbMock(),
+    },
+  });
+
+  assert.equal(createResponse.status, 403);
+  const createBody = await createResponse.json();
+  assert.equal(createBody.success, false);
+  assert.match(createBody.error, /disabled in public mode/i);
 });

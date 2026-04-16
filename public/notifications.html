@@ -1,12 +1,21 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
+<!doctype html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>通知 - 书签导航</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;590;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <title>Notifications - Bookmark Navigator</title>
+    <meta
+      name="description"
+      content="Review recent maintenance summaries and link-check notifications in the public workspace."
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/workspace-refresh.css" />
     <link rel="stylesheet" href="/css/notifications-enhanced.css" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
   <body>
     <div class="container">
@@ -14,46 +23,70 @@
         <div class="header-content">
           <div class="logo">
             <span class="logo-icon">MSG</span>
-            <h1 class="logo-text" data-i18n="notifications.title">通知</h1>
+            <div class="logo-copy">
+              <h1 class="logo-text">Notifications</h1>
+              <p class="logo-subtitle">
+                Read recent maintenance summaries and system notices
+              </p>
+            </div>
           </div>
           <div class="header-actions">
-            <div class="action-group tools-menu">
-              <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" data-i18n-title="header.toolsTitle" title="工具菜单">
-                <span class="btn-icon">...</span>
-                <span class="dropdown-arrow">v</span>
-              </button>
-              <div id="toolsDropdown" class="dropdown-menu">
-                <a href="/" class="dropdown-item"><span class="item-icon">H</span><div class="item-content"><span class="item-text">首页</span><span class="item-desc">返回主书签页</span></div></a>
-                <a href="/token.html" class="dropdown-item"><span class="item-icon">API</span><div class="item-content"><span class="item-text" data-i18n="header.apiTokens">API 令牌</span><span class="item-desc" data-i18n="header.apiTokensDesc">管理访问令牌</span></div></a>
-                <a href="/link-checker.html" class="dropdown-item"><span class="item-icon">CHK</span><div class="item-content"><span class="item-text" data-i18n="header.linkChecker">链接检查</span><span class="item-desc" data-i18n="header.linkCheckerDesc">检查书签可访问性</span></div></a>
-                <a href="/deleted-bookmarks.html" class="dropdown-item"><span class="item-icon">DEL</span><div class="item-content"><span class="item-text" data-i18n="header.deleted">已删除书签</span><span class="item-desc" data-i18n="header.deletedDesc">查看已删除书签</span></div></a>
-                <a href="/import.html" class="dropdown-item"><span class="item-icon">IMP</span><div class="item-content"><span class="item-text">导入</span><span class="item-desc">从文件导入书签</span></div></a>
-                <div class="dropdown-divider"></div>
-              </div>
-            </div>
+            <a class="action-btn-icon has-label" href="/">
+              <span class="btn-icon">H</span>
+              <span class="action-btn-label">Home</span>
+            </a>
           </div>
         </div>
       </header>
 
+      <section class="workspace-section-heading">
+        <div>
+          <span class="section-kicker">Signals</span>
+          <h2 class="section-title">
+            Keep maintenance output visible instead of hidden
+          </h2>
+        </div>
+        <p class="section-copy">
+          Link checks, scheduled cleanup, and health signals should leave a
+          readable trail so the public workspace stays understandable.
+        </p>
+      </section>
+
       <main class="notifications-container">
         <section class="notification-card">
           <div class="notification-card-header">
-            <h2 class="notification-card-title" data-i18n="notifications.summary">摘要</h2>
-            <button id="refreshBtn" class="btn btn-secondary" type="button">刷新</button>
+            <h2 class="notification-card-title">Summary</h2>
+            <button id="refreshBtn" class="btn btn-secondary" type="button">
+              Refresh
+            </button>
           </div>
           <div class="notification-stats">
-            <div class="stat-group"><span class="stat-icon">ALL</span><span class="stat-text" data-i18n="notifications.totalRecords">总记录数</span><span id="totalChecks" class="stat-value">0</span></div>
-            <div class="stat-group"><span class="stat-icon">BAD</span><span class="stat-text" data-i18n="notifications.totalUnreachable">不可访问总数</span><span id="totalInaccessible" class="stat-value">0</span></div>
-            <div class="stat-group"><span class="stat-icon">TIME</span><span class="stat-text" data-i18n="notifications.lastCheck">最近检查</span><span id="lastCheckTime" class="stat-value">-</span></div>
+            <div class="stat-group">
+              <span class="stat-icon">ALL</span>
+              <span class="stat-text">Total records</span>
+              <span id="totalChecks" class="stat-value">0</span>
+            </div>
+            <div class="stat-group">
+              <span class="stat-icon">BAD</span>
+              <span class="stat-text">Total unreachable</span>
+              <span id="totalInaccessible" class="stat-value">0</span>
+            </div>
+            <div class="stat-group">
+              <span class="stat-icon">TIME</span>
+              <span class="stat-text">Last check</span>
+              <span id="lastCheckTime" class="stat-value">-</span>
+            </div>
           </div>
         </section>
 
         <section class="notification-card">
           <div class="notification-card-header">
-            <h2 class="notification-card-title" data-i18n="notifications.recentRecords">最近记录</h2>
+            <h2 class="notification-card-title">Recent records</h2>
           </div>
           <div id="notificationsList">
-            <div class="notification-description" data-i18n="notifications.loadingNotifications">正在加载通知记录...</div>
+            <div class="notification-description">
+              Loading notification records...
+            </div>
           </div>
         </section>
       </main>
@@ -65,18 +98,28 @@
     <script src="/js/admin-common.js"></script>
     <script>
       function getNotificationLabel(type) {
-        if (type === "weekly_check_notification") return I18n.t("notifications.typeAutoNotice");
-        if (type === "weekly_auto_check") return I18n.t("notifications.typeAutoCheck");
-        return I18n.t("notifications.typeSystemRecord");
+        if (type === "weekly_check_notification") return "Auto notice";
+        if (type === "weekly_auto_check") return "Auto check";
+        return "System record";
       }
 
       function renderNotificationItem(item) {
         const typeLabel = getNotificationLabel(item.type);
         const sample = item.inaccessibleBookmarks || [];
-        const total = typeof item.total === "number" ? item.total : item.inaccessibleCount || 0;
-        const inaccessible = typeof item.inaccessible === "number" ? item.inaccessible : item.inaccessibleCount || 0;
-        const deleted = typeof item.deleted === "number" ? item.deleted : item.deletedCount || 0;
-        const statusClass = inaccessible > 0 ? "critical" : item.type === "weekly_auto_check" ? "important" : "unread";
+        const total =
+          typeof item.total === "number" ? item.total : item.inaccessibleCount || 0;
+        const inaccessible =
+          typeof item.inaccessible === "number"
+            ? item.inaccessible
+            : item.inaccessibleCount || 0;
+        const deleted =
+          typeof item.deleted === "number" ? item.deleted : item.deletedCount || 0;
+        const statusClass =
+          inaccessible > 0
+            ? "critical"
+            : item.type === "weekly_auto_check"
+              ? "important"
+              : "unread";
 
         return `
           <article class="notification-item ${statusClass}">
@@ -88,7 +131,11 @@
             </div>
             <div class="notification-content">
               <p class="notification-description">
-                ${inaccessible > 0 ? I18n.t("notifications.foundUnreachable").replace("{count}", inaccessible) : I18n.t("notifications.noUnreachable")}
+                ${
+                  inaccessible > 0
+                    ? `Found ${inaccessible} unreachable links.`
+                    : "No unreachable links were reported in this run."
+                }
               </p>
             </div>
             <div class="notification-stats">
@@ -101,7 +148,14 @@
               sample.length
                 ? `<div class="notification-content"><div class="notification-description"><strong>Examples:</strong><ul>${sample
                     .slice(0, 5)
-                    .map((bookmark) => `<li>${AdminUI.escapeHtml(bookmark.title || bookmark.url || I18n.t("common.untitled"))}${bookmark.url ? ` - ${AdminUI.escapeHtml(bookmark.url)}` : ""}</li>`)
+                    .map(
+                      (bookmark) =>
+                        `<li>${AdminUI.escapeHtml(bookmark.title || bookmark.url || "Untitled")}${
+                          bookmark.url
+                            ? ` - ${AdminUI.escapeHtml(bookmark.url)}`
+                            : ""
+                        }</li>`,
+                    )
                     .join("")}</ul></div></div>`
                 : ""
             }
@@ -111,47 +165,54 @@
 
       function updateSummary(items) {
         const totalChecks = items.length;
-        const totalInaccessible = items.reduce((sum, item) => sum + (item.inaccessible ?? item.inaccessibleCount ?? 0), 0);
+        const totalInaccessible = items.reduce(
+          (sum, item) => sum + (item.inaccessible ?? item.inaccessibleCount ?? 0),
+          0,
+        );
         const lastItem = items[0];
         document.getElementById("totalChecks").textContent = totalChecks;
-        document.getElementById("totalInaccessible").textContent = totalInaccessible;
+        document.getElementById("totalInaccessible").textContent =
+          totalInaccessible;
         document.getElementById("lastCheckTime").textContent = lastItem
-          ? AdminUI.formatDate(lastItem.checkedAt || lastItem.timestamp || lastItem.createdAt)
+          ? AdminUI.formatDate(
+              lastItem.checkedAt || lastItem.timestamp || lastItem.createdAt,
+            )
           : "-";
       }
 
       async function loadNotifications() {
         const container = document.getElementById("notificationsList");
-        container.innerHTML = `<div class="notification-description">${I18n.t("notifications.loadingNotifications")}</div>`;
+        container.innerHTML =
+          '<div class="notification-description">Loading notification records...</div>';
 
         try {
           const response = await API.get("/api/cron/weekly-check");
-          if (!response.success) throw new Error(response.error || "Failed to load records");
+          if (!response.success) {
+            throw new Error(response.error || "Failed to load records");
+          }
 
           const items = response.data || [];
           updateSummary(items);
 
           if (!items.length) {
-            container.innerHTML = `<div class="notification-description">${I18n.t("notifications.noNotifications")}</div>`;
+            container.innerHTML =
+              '<div class="notification-description">There are no notification records yet.</div>';
             return;
           }
 
           container.innerHTML = items.map(renderNotificationItem).join("");
         } catch (error) {
-          container.innerHTML = `<div class="notification-description">${I18n.t("notifications.loadFailedWithError").replace("{error}", AdminUI.escapeHtml(error.message))}</div>`;
+          container.innerHTML =
+            `<div class="notification-description">Load failed: ${AdminUI.escapeHtml(error.message)}</div>`;
         }
       }
 
       document.addEventListener("DOMContentLoaded", async () => {
-        if (!(await AdminUI.requireAuth())) return;
-        AdminUI.initToolsMenu("/notifications.html");
-        document.getElementById("refreshBtn").addEventListener("click", loadNotifications);
+        document
+          .getElementById("refreshBtn")
+          .addEventListener("click", loadNotifications);
         await loadNotifications();
       });
-    </script>
-      <script src="/js/i18n.js"></script>
-    <script>
-      document.addEventListener("DOMContentLoaded", () => { if (window.I18n) I18n.init(); });
     </script>
   </body>
 </html>

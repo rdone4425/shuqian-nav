@@ -1,313 +1,257 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>导入书签 - 书签导航</title>
-    <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/import-enhanced.css">
-</head>
-<body class="import-page">
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Import Bookmarks - Bookmark Navigator</title>
+    <meta
+      name="description"
+      content="Import bookmark exports or backups into the public workspace."
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/workspace-refresh.css" />
+    <link rel="stylesheet" href="/css/import-enhanced.css" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  </head>
+  <body class="import-page">
     <div class="container">
-        <header class="header">
-            <div class="header-content">
-                <div class="logo">
-                    <span class="logo-icon">IMP</span>
-                    <h1 class="logo-text">导入书签</h1>
-                </div>
+      <header class="header">
+        <div class="header-content">
+          <div class="logo">
+            <span class="logo-icon">IMP</span>
+            <div class="logo-copy">
+              <h1 class="logo-text">Import Bookmarks</h1>
+              <p class="logo-subtitle">
+                Bring exports and backups into the workspace
+              </p>
+            </div>
+          </div>
 
-                <div class="header-actions">
-                    <div class="action-group tools-menu">
-                        <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" title="工具菜单">
-                            <span class="btn-icon">...</span>
-                            <span class="dropdown-arrow">v</span>
-                        </button>
-                        <div id="toolsDropdown" class="dropdown-menu">
-                            <a href="/" class="dropdown-item">
-                                <span class="item-icon">H</span>
-                                <div class="item-content">
-                                    <span class="item-text">首页</span>
-                                    <span class="item-desc">返回书签首页</span>
-                                </div>
-                            </a>
-                            <a href="/token.html" class="dropdown-item">
-                                <span class="item-icon">API</span>
-                                <div class="item-content">
-                                    <span class="item-text">API 令牌</span>
-                                    <span class="item-desc">管理访问令牌</span>
-                                </div>
-                            </a>
-                            <a href="/link-checker.html" class="dropdown-item">
-                                <span class="item-icon">CHK</span>
-                                <div class="item-content">
-                                    <span class="item-text">链接检查</span>
-                                    <span class="item-desc">检查链接是否可访问</span>
-                                </div>
-                            </a>
-                            <a href="/deleted-bookmarks.html" class="dropdown-item">
-                                <span class="item-icon">DEL</span>
-                                <div class="item-content">
-                                    <span class="item-text">删除记录</span>
-                                    <span class="item-desc">查看和恢复已删除书签</span>
-                                </div>
-                            </a>
-                            <a href="/notifications.html" class="dropdown-item">
-                                <span class="item-icon">MSG</span>
-                                <div class="item-content">
-                                    <span class="item-text">通知中心</span>
-                                    <span class="item-desc">查看系统通知</span>
-                                </div>
-                            </a>
-                            <a href="/import.html" class="dropdown-item">
-                                <span class="item-icon">IMP</span>
-                                <div class="item-content">
-                                    <span class="item-text">导入书签</span>
-                                    <span class="item-desc">从文件导入书签数据</span>
-                                </div>
-                            </a>
-                            <div class="dropdown-divider"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </header>
+          <div class="header-actions">
+            <a class="action-btn-icon has-label" href="/">
+              <span class="btn-icon">H</span>
+              <span class="action-btn-label">Home</span>
+            </a>
+          </div>
+        </div>
+      </header>
 
-        <div class="steps-indicator">
-            <div class="step active" data-step="1">
-                <div class="step-number">1</div>
-                <div class="step-label">选择文件</div>
+      <section class="workspace-section-heading">
+        <div>
+          <span class="section-kicker">Import</span>
+          <h2 class="section-title">Move bookmark data in without losing control</h2>
+        </div>
+        <p class="section-copy">
+          Use this flow for migration, recovery, or bulk refresh. Everyday
+          browsing still belongs on the home page.
+        </p>
+      </section>
+
+      <div class="steps-indicator">
+        <div class="step active" data-step="1">
+          <div class="step-number">1</div>
+          <div class="step-label">Choose file</div>
+        </div>
+        <div class="step" data-step="2">
+          <div class="step-number">2</div>
+          <div class="step-label">Preview</div>
+        </div>
+        <div class="step" data-step="3">
+          <div class="step-number">3</div>
+          <div class="step-label">Options</div>
+        </div>
+        <div class="step" data-step="4">
+          <div class="step-number">4</div>
+          <div class="step-label">Import</div>
+        </div>
+      </div>
+
+      <main class="main-content">
+        <div class="import-step active" id="step1">
+          <div class="step-content">
+            <h2>Choose an import file</h2>
+            <p class="step-description">
+              Supported types: HTML export, HTM export, and JSON backup.
+            </p>
+
+            <div class="file-upload-area">
+              <div class="upload-area" id="fileDropZone">
+                <div class="upload-content">
+                  <div class="upload-icon">FILE</div>
+                  <h3>Drop a bookmark file here</h3>
+                  <p>Or choose one from disk.</p>
+                  <button class="btn btn-primary" id="selectFileBtn" type="button">
+                    Choose file
+                  </button>
+                  <input
+                    type="file"
+                    id="fileInput"
+                    accept=".html,.htm,.json"
+                    style="display: none"
+                  />
+                </div>
+              </div>
+
+              <div class="file-info">
+                <h4>Import notes</h4>
+                <ul>
+                  <li><strong>HTML:</strong> Standard browser export files.</li>
+                  <li><strong>JSON:</strong> Structured backup data from scripts or this app.</li>
+                  <li>Recommended max file size: 10 MB.</li>
+                  <li>Preview first if you expect more than 1000 bookmarks.</li>
+                </ul>
+              </div>
             </div>
-            <div class="step" data-step="2">
-                <div class="step-number">2</div>
-                <div class="step-label">预览数据</div>
-            </div>
-            <div class="step" data-step="3">
-                <div class="step-number">3</div>
-                <div class="step-label">导入设置</div>
-            </div>
-            <div class="step" data-step="4">
-                <div class="step-number">4</div>
-                <div class="step-label">完成导入</div>
-            </div>
+          </div>
         </div>
 
-        <div id="helpSection" class="help-section hidden">
-            <div class="help-content">
-                <h3>导入帮助</h3>
-                <div class="help-grid">
-                    <div class="help-item">
-                        <h4>HTML 格式</h4>
-                        <p>浏览器导出的标准书签文件，适合从 Chrome、Edge、Firefox 等浏览器迁移。</p>
-                        <ul>
-                            <li>保留基础分类结构</li>
-                            <li>支持标题、URL 和描述</li>
-                            <li>兼容主流浏览器导出文件</li>
-                        </ul>
-                    </div>
-                    <div class="help-item">
-                        <h4>JSON 格式</h4>
-                        <p>结构化书签数据，适合程序导出或本站备份文件重新导入。</p>
-                        <ul>
-                            <li>支持更完整的元数据</li>
-                            <li>便于批量迁移</li>
-                            <li>适合自动化场景</li>
-                        </ul>
-                    </div>
-                    <div class="help-item">
-                        <h4>注意事项</h4>
-                        <ul>
-                            <li>单个文件建议不超过 10MB</li>
-                            <li>建议一次导入不超过 1000 条书签</li>
-                            <li>无效 URL 会被自动跳过</li>
-                            <li>重复书签会按导入设置处理</li>
-                        </ul>
-                    </div>
-                    <div class="help-item">
-                        <h4>导入模式</h4>
-                        <ul>
-                            <li><strong>合并导入：</strong>保留现有书签，只导入新的条目</li>
-                            <li><strong>替换导入：</strong>清空现有书签，仅保留导入内容</li>
-                            <li>首次迁移建议先导出一份本地备份</li>
-                        </ul>
-                    </div>
+        <div class="import-step" id="step2">
+          <div class="step-content">
+            <h2>Review the preview</h2>
+            <p class="step-description">
+              Confirm the count, category shape, and sample rows before import.
+            </p>
+
+            <div class="summary-cards">
+              <div class="summary-card">
+                <div class="card-icon">BM</div>
+                <div class="card-content">
+                  <div class="card-number" id="previewBookmarkCount">0</div>
+                  <div class="card-label">Bookmarks</div>
                 </div>
+              </div>
+              <div class="summary-card">
+                <div class="card-icon">CAT</div>
+                <div class="card-content">
+                  <div class="card-number" id="previewCategoryCount">0</div>
+                  <div class="card-label">Categories</div>
+                </div>
+              </div>
+              <div class="summary-card">
+                <div class="card-icon">SIZE</div>
+                <div class="card-content">
+                  <div class="card-number" id="previewFileSize">0 KB</div>
+                  <div class="card-label">File size</div>
+                </div>
+              </div>
             </div>
+
+            <div class="preview-details">
+              <h3>Sample rows</h3>
+              <div class="preview-list" id="previewList"></div>
+            </div>
+          </div>
         </div>
 
-        <main class="main-content">
-            <div class="import-step active" id="step1">
-                <div class="step-content">
-                    <h2>选择导入文件</h2>
-                    <p class="step-description">支持 HTML 和 JSON 两种格式。</p>
+        <div class="import-step" id="step3">
+          <div class="step-content">
+            <h2>Choose import options</h2>
+            <p class="step-description">
+              Decide whether to merge into the current workspace or replace it.
+            </p>
 
-                    <div class="file-upload-area">
-                        <div class="upload-area" id="fileDropZone">
-                            <div class="upload-content">
-                                <div class="upload-icon">FILE</div>
-                                <h3>拖拽文件到这里</h3>
-                                <p>或者点击下方按钮选择文件</p>
-                                <button class="btn btn-primary" id="selectFileBtn">
-                                    <span class="btn-icon">+</span>
-                                    选择文件
-                                </button>
-                                <input type="file" id="fileInput" accept=".html,.htm,.json" style="display: none;">
-                            </div>
-                        </div>
-
-                        <div class="file-info">
-                            <h4>支持的格式</h4>
-                            <ul>
-                                <li><strong>HTML：</strong>浏览器标准书签导出文件</li>
-                                <li><strong>JSON：</strong>结构化书签数据文件</li>
-                                <li>文件大小上限：10MB</li>
-                                <li>建议导入数量：1000 条以内</li>
-                            </ul>
-                        </div>
+            <div class="import-options">
+              <div class="option-group">
+                <h3>Import mode</h3>
+                <div class="radio-group">
+                  <label class="radio-option">
+                    <input type="radio" name="importMode" value="merge" checked />
+                    <span class="radio-mark"></span>
+                    <div class="option-content">
+                      <div class="option-title">Merge import</div>
+                      <div class="option-desc">
+                        Keep existing bookmarks and add the new set on top.
+                      </div>
                     </div>
+                  </label>
+                  <label class="radio-option">
+                    <input type="radio" name="importMode" value="replace" />
+                    <span class="radio-mark"></span>
+                    <div class="option-content">
+                      <div class="option-title">Replace import</div>
+                      <div class="option-desc">
+                        Clear the current library first, then import only the new file.
+                      </div>
+                    </div>
+                  </label>
                 </div>
-            </div>
+              </div>
 
-            <div class="import-step" id="step2">
-                <div class="step-content">
-                    <h2>预览导入数据</h2>
-                    <p class="step-description">确认书签数量、分类数量和文件大小。</p>
-
-                    <div class="preview-summary">
-                        <div class="summary-cards">
-                            <div class="summary-card">
-                                <div class="card-icon">BM</div>
-                                <div class="card-content">
-                                    <div class="card-number" id="previewBookmarkCount">0</div>
-                                    <div class="card-label">书签数量</div>
-                                </div>
-                            </div>
-                            <div class="summary-card">
-                                <div class="card-icon">CAT</div>
-                                <div class="card-content">
-                                    <div class="card-number" id="previewCategoryCount">0</div>
-                                    <div class="card-label">分类数量</div>
-                                </div>
-                            </div>
-                            <div class="summary-card">
-                                <div class="card-icon">SIZE</div>
-                                <div class="card-content">
-                                    <div class="card-number" id="previewFileSize">0 KB</div>
-                                    <div class="card-label">文件大小</div>
-                                </div>
-                            </div>
-                        </div>
+              <div class="option-group">
+                <h3>Import handling</h3>
+                <div class="checkbox-group">
+                  <label class="checkbox-option">
+                    <input type="checkbox" id="skipDuplicates" checked />
+                    <span class="checkbox-mark"></span>
+                    <div class="option-content">
+                      <div class="option-title">Skip duplicate bookmarks</div>
+                      <div class="option-desc">
+                        Prefer existing entries when duplicate URLs appear.
+                      </div>
                     </div>
-
-                    <div class="preview-details">
-                        <h3>书签预览</h3>
-                        <div class="preview-list" id="previewList"></div>
+                  </label>
+                  <label class="checkbox-option">
+                    <input type="checkbox" id="createCategories" checked />
+                    <span class="checkbox-mark"></span>
+                    <div class="option-content">
+                      <div class="option-title">Create categories automatically</div>
+                      <div class="option-desc">
+                        Create any new categories found in the file.
+                      </div>
                     </div>
+                  </label>
                 </div>
+              </div>
             </div>
+          </div>
+        </div>
 
-            <div class="import-step" id="step3">
-                <div class="step-content">
-                    <h2>导入设置</h2>
-                    <p class="step-description">选择导入方式和冲突处理策略。</p>
+        <div class="import-step" id="step4">
+          <div class="step-content">
+            <h2>Import progress</h2>
+            <p class="step-description">
+              Keep this page open until the result panel is complete.
+            </p>
 
-                    <div class="import-options">
-                        <div class="option-group">
-                            <h3>数据处理方式</h3>
-                            <div class="radio-group">
-                                <label class="radio-option">
-                                    <input type="radio" name="importMode" value="merge" checked>
-                                    <span class="radio-mark"></span>
-                                    <div class="option-content">
-                                        <div class="option-title">合并导入</div>
-                                        <div class="option-desc">保留现有书签，仅导入新的条目</div>
-                                    </div>
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="importMode" value="replace">
-                                    <span class="radio-mark"></span>
-                                    <div class="option-content">
-                                        <div class="option-title">替换导入</div>
-                                        <div class="option-desc">清空现有书签，仅保留导入内容</div>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="option-group">
-                            <h3>重复项处理</h3>
-                            <div class="checkbox-group">
-                                <label class="checkbox-option">
-                                    <input type="checkbox" id="skipDuplicates" checked>
-                                    <span class="checkbox-mark"></span>
-                                    <div class="option-content">
-                                        <div class="option-title">跳过重复书签</div>
-                                        <div class="option-desc">基于 URL 判断并跳过已存在书签</div>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="option-group">
-                            <h3>分类处理</h3>
-                            <div class="checkbox-group">
-                                <label class="checkbox-option">
-                                    <input type="checkbox" id="createCategories" checked>
-                                    <span class="checkbox-mark"></span>
-                                    <div class="option-content">
-                                        <div class="option-title">自动创建分类</div>
-                                        <div class="option-desc">为导入数据中的新分类自动建档</div>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
+            <div class="progress-section">
+              <div class="progress-container">
+                <div class="progress-bar">
+                  <div class="progress-fill" id="progressFill"></div>
                 </div>
+                <div class="progress-text" id="progressText">Preparing import...</div>
+              </div>
             </div>
 
-            <div class="import-step" id="step4">
-                <div class="step-content">
-                    <h2>导入进度</h2>
-                    <p class="step-description">导入过程中请不要关闭页面。</p>
+            <div class="import-result hidden" id="importResult"></div>
+          </div>
+        </div>
+      </main>
 
-                    <div class="progress-section">
-                        <div class="progress-container">
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="progressFill"></div>
-                            </div>
-                            <div class="progress-text" id="progressText">准备导入...</div>
-                        </div>
-                    </div>
-
-                    <div class="import-result hidden" id="importResult"></div>
-                </div>
-            </div>
-        </main>
-
-        <footer class="page-footer">
-            <div class="footer-actions">
-                <button class="btn btn-secondary" id="prevBtn" style="display: none;">
-                    <span class="btn-icon">&lt;</span>
-                    上一步
-                </button>
-                <button class="btn btn-primary" id="nextBtn" disabled>
-                    下一步
-                    <span class="btn-icon">&gt;</span>
-                </button>
-                <button class="btn btn-primary" id="importBtn" style="display: none;">
-                    <span class="btn-icon">IMP</span>
-                    开始导入
-                </button>
-                <button class="btn btn-success" id="finishBtn" style="display: none;">
-                    <span class="btn-icon">OK</span>
-                    完成
-                </button>
-            </div>
-        </footer>
+      <footer class="page-footer">
+        <div class="footer-actions">
+          <button class="btn btn-secondary" id="prevBtn" style="display: none" type="button">
+            Previous
+          </button>
+          <button class="btn btn-primary" id="nextBtn" disabled type="button">
+            Next
+          </button>
+          <button class="btn btn-primary" id="importBtn" style="display: none" type="button">
+            Start import
+          </button>
+          <button class="btn btn-success" id="finishBtn" style="display: none" type="button">
+            Finish
+          </button>
+        </div>
+      </footer>
     </div>
 
     <script src="/js/utils/storage.js"></script>
     <script src="/js/utils/api.js"></script>
     <script src="/js/auth.js"></script>
     <script src="/js/import.js"></script>
-</body>
+  </body>
 </html>

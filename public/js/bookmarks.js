@@ -186,7 +186,8 @@ const BookmarkManager = {
   // 创建书签卡片HTML
   createBookmarkCard(bookmark) {
     const hotLabel = window.I18n?.t("bookmarkCard.hot") || "热门书签";
-    const visitCountLabel = window.I18n?.t("bookmarkCard.visitCount") || "访问次数";
+    const visitCountLabel =
+      window.I18n?.t("bookmarkCard.visitCount") || "访问次数";
     const lastVisitedLabel =
       window.I18n?.t("bookmarkCard.lastVisited") || "最后访问";
     const editLabel = window.I18n?.t("bookmarkCard.edit") || "编辑";
@@ -418,6 +419,11 @@ const BookmarkManager = {
       this.elements.totalCount.textContent = String(this.totalCount);
     }
     if (this.elements.currentPageInfo) {
+      if (this.totalCount === 0) {
+        this.elements.currentPageInfo.textContent = "0";
+        return;
+      }
+
       const start = (this.currentPage - 1) * 20 + 1;
       const end = Math.min(this.currentPage * 20, this.totalCount);
       this.elements.currentPageInfo.textContent = `${start}-${end}`;

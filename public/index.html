@@ -1,13 +1,20 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title data-i18n="common.appName">书签导航</title>
-    <meta name="description" content="书签导航 - 一个更轻、更快的公开工作台，用于搜索、整理、导入和检查常用链接。" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <title data-i18n="common.appName">Bookmark Navigator</title>
+    <meta
+      name="description"
+      content="Bookmark Navigator is a public workspace for search, import, maintenance, and backup."
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/css/styles.css" />
     <link rel="stylesheet" href="/css/bookmarks-enhanced.css" />
+    <link rel="stylesheet" href="/css/workspace-refresh.css" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
   <body>
@@ -17,64 +24,78 @@
           <div class="logo">
             <span class="logo-icon">B</span>
             <div class="logo-copy">
-              <h1 class="logo-text" data-i18n="common.appName">书签导航</h1>
-              <p class="logo-subtitle" data-i18n="home.subtitle">更快搜索、整理和回访常用链接</p>
+              <h1 class="logo-text" data-i18n="common.appName">
+                Bookmark Navigator
+              </h1>
+              <p class="logo-subtitle">Public bookmark workspace</p>
             </div>
           </div>
-
           <div class="header-actions">
             <div class="action-group primary-actions">
-              <button id="searchToggle" class="action-btn-icon has-label" data-i18n-title="header.searchTitle" title="搜索书签">
+              <button
+                id="searchToggle"
+                class="action-btn-icon has-label"
+                title="Search bookmarks"
+              >
                 <span class="btn-icon">S</span>
-                <span class="action-btn-label" data-i18n="header.searchButton">搜索</span>
+                <span class="action-btn-label">Search</span>
               </button>
-              <button id="addBookmarkBtn" class="action-btn-icon primary has-label" data-i18n-title="header.addTitle" title="新增书签">
+              <button
+                id="addBookmarkBtn"
+                class="action-btn-icon primary has-label"
+                title="Add bookmark"
+              >
                 <span class="btn-icon">+</span>
-                <span class="action-btn-label" data-i18n="header.addButton">新增书签</span>
+                <span class="action-btn-label">Add</span>
               </button>
             </div>
-
             <div class="action-group tools-menu">
-              <button id="toolsMenuToggle" class="action-btn-icon menu-toggle has-label" data-i18n-title="header.toolsTitle" title="工具菜单">
+              <button
+                id="toolsMenuToggle"
+                class="action-btn-icon menu-toggle has-label"
+                title="Tools menu"
+              >
                 <span class="btn-icon">...</span>
-                <span class="action-btn-label" data-i18n="header.toolsButton">工具</span>
+                <span class="action-btn-label">Tools</span>
                 <span class="dropdown-arrow">v</span>
               </button>
               <div id="toolsDropdown" class="dropdown-menu">
-                <a href="/token.html" class="dropdown-item">
-                  <span class="item-icon">API</span>
+                <a href="/link-checker.html" class="dropdown-item"
+                  ><span class="item-icon">CHK</span>
                   <div class="item-content">
-                    <span class="item-text" data-i18n="header.apiTokens">API 令牌</span>
-                    <span class="item-desc" data-i18n="header.apiTokensDesc">管理访问令牌</span>
-                  </div>
-                </a>
-                <a href="/link-checker.html" class="dropdown-item">
-                  <span class="item-icon">CHK</span>
+                    <span class="item-text">Link Checker</span
+                    ><span class="item-desc">Check bookmark reachability</span>
+                  </div></a
+                >
+                <a href="/deleted-bookmarks.html" class="dropdown-item"
+                  ><span class="item-icon">DEL</span>
                   <div class="item-content">
-                    <span class="item-text" data-i18n="header.linkChecker">链接检查</span>
-                    <span class="item-desc" data-i18n="header.linkCheckerDesc">检查书签可访问性</span>
-                  </div>
-                </a>
-                <a href="/deleted-bookmarks.html" class="dropdown-item">
-                  <span class="item-icon">DEL</span>
+                    <span class="item-text">Deleted</span
+                    ><span class="item-desc">Review deleted records</span>
+                  </div></a
+                >
+                <a href="/notifications.html" class="dropdown-item"
+                  ><span class="item-icon">MSG</span>
                   <div class="item-content">
-                    <span class="item-text" data-i18n="header.deleted">已删除书签</span>
-                    <span class="item-desc" data-i18n="header.deletedDesc">查看已删除记录</span>
-                  </div>
-                </a>
-                <a href="/notifications.html" class="dropdown-item">
-                  <span class="item-icon">MSG</span>
+                    <span class="item-text">Notifications</span
+                    ><span class="item-desc">View recent notices</span>
+                  </div></a
+                >
+                <a href="/token.html" class="dropdown-item"
+                  ><span class="item-icon">API</span>
                   <div class="item-content">
-                    <span class="item-text" data-i18n="header.notifications">通知</span>
-                    <span class="item-desc" data-i18n="header.notificationsDesc">查看最近通知</span>
-                  </div>
-                </a>
+                    <span class="item-text">Advanced Sync</span
+                    ><span class="item-desc"
+                      >Chrome sync and token tooling</span
+                    >
+                  </div></a
+                >
                 <div class="dropdown-divider"></div>
                 <button id="settingsToggle" class="dropdown-item">
                   <span class="item-icon">CFG</span>
                   <div class="item-content">
-                    <span class="item-text" data-i18n="header.settings">设置</span>
-                    <span class="item-desc" data-i18n="header.settingsDesc">打开工作台设置</span>
+                    <span class="item-text">Settings</span
+                    ><span class="item-desc">Open workspace settings</span>
                   </div>
                 </button>
               </div>
@@ -86,91 +107,160 @@
       <main class="main-content home-content">
         <section class="workspace-hero">
           <div class="hero-copy">
-            <span class="hero-badge">公开工作区</span>
-            <h2 class="hero-title">把常用链接放在一个更清爽的地方。</h2>
+            <span class="hero-badge">Public Workspace</span>
+            <h2 class="hero-title">
+              Keep search, import, maintenance, and backup in one clean
+              workspace.
+            </h2>
             <p class="hero-description">
-              搜索、筛选、导入、检查和备份都收在同一页，少一点层级，多一点节奏。
+              The home page is the main path. Search stays primary, and heavier
+              tools stay secondary until you need them.
             </p>
             <div class="hero-actions">
-              <a class="hero-link primary" href="#searchContainer">快速搜索</a>
-              <a class="hero-link" href="#bookmarksGrid">浏览书签</a>
-              <a class="hero-link" href="/import.html">导入数据</a>
+              <a class="hero-link primary" href="#searchContainer"
+                >Start Search</a
+              >
+              <a class="hero-link" href="#bookmarksGrid">Browse Library</a>
+              <a class="hero-link" href="/import.html">Import Data</a>
             </div>
             <div class="hero-notes">
-              <span class="hero-note">Ctrl / Cmd + K 打开搜索</span>
-              <span class="hero-note">Ctrl / Cmd + N 新建书签</span>
-              <span class="hero-note">网格 / 列表视图切换</span>
+              <span class="hero-note">Ctrl / Cmd + K focuses search</span>
+              <span class="hero-note">Ctrl / Cmd + N opens add bookmark</span>
+              <span class="hero-note"
+                >Grid and list view are both available</span
+              >
             </div>
           </div>
-
           <div class="hero-panel">
             <div class="hero-panel-card">
-              <span class="hero-panel-label">工作台状态</span>
-              <strong class="hero-panel-value">公开访问 · 无需登录</strong>
+              <span class="hero-panel-label">Mode</span>
+              <strong class="hero-panel-value"
+                >Public access, ready to use</strong
+              >
               <p class="hero-panel-text">
-                头部工具菜单、搜索和数据面板都保持在同一层级，常用操作可以一步到位。
+                This layout works as a shared start page, a local bookmark
+                station, or a controlled public workspace.
               </p>
             </div>
             <div class="hero-metrics">
               <div class="hero-metric">
-                <span>搜索</span>
-                <strong>实时过滤</strong>
+                <span>Search</span><strong>Live filtering</strong>
               </div>
               <div class="hero-metric">
-                <span>操作</span>
-                <strong>新增 / 导入</strong>
+                <span>Manage</span><strong>Add, edit, and remove</strong>
               </div>
               <div class="hero-metric">
-                <span>视图</span>
-                <strong>网格 / 列表</strong>
+                <span>Maintain</span><strong>Check, import, and backup</strong>
               </div>
             </div>
           </div>
         </section>
 
+        <section
+          class="workspace-quick-actions"
+          aria-label="Workspace shortcuts"
+        >
+          <a class="quick-action-card quick-action-primary" href="/import.html"
+            ><span class="quick-action-kicker">Import</span
+            ><strong class="quick-action-title"
+              >Bring bookmarks in from export or backup</strong
+            ><span class="quick-action-copy"
+              >Best for migration, first-time setup, and recovery.</span
+            ></a
+          >
+          <a class="quick-action-card" href="/link-checker.html"
+            ><span class="quick-action-kicker">Maintain</span
+            ><strong class="quick-action-title"
+              >Check broken links in batches</strong
+            ><span class="quick-action-copy"
+              >Review unreachable items, keep decisions, and pending removals in
+              one place.</span
+            ></a
+          >
+          <a class="quick-action-card" href="/deleted-bookmarks.html"
+            ><span class="quick-action-kicker">Restore</span
+            ><strong class="quick-action-title">Review deleted records</strong
+            ><span class="quick-action-copy"
+              >Recover mistakes quickly and keep deletion history visible.</span
+            ></a
+          >
+          <a class="quick-action-card" href="/notifications.html"
+            ><span class="quick-action-kicker">Signals</span
+            ><strong class="quick-action-title"
+              >Read recent checks and notices</strong
+            ><span class="quick-action-copy"
+              >Background maintenance should leave visible evidence instead of
+              going silent.</span
+            ></a
+          >
+        </section>
+
         <div id="searchContainer" class="search-container hidden">
           <div class="search-box">
-            <input type="text" id="searchInput" data-i18n-placeholder="search.placeholder" placeholder="搜索书签标题、描述或 URL..." class="search-input" />
-            <button id="searchBtn" class="search-btn" data-i18n="search.action">搜索</button>
-            <button id="clearSearchBtn" class="search-btn clear-btn" data-i18n="common.clear">清除</button>
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="Search bookmark title, description, or URL..."
+              class="search-input"
+            />
+            <button id="searchBtn" class="search-btn">Search</button>
+            <button id="clearSearchBtn" class="search-btn clear-btn">
+              Clear
+            </button>
           </div>
         </div>
 
+        <section class="workspace-section-heading">
+          <div>
+            <span class="section-kicker">Bookmarks</span>
+            <h3 class="section-title">Current library</h3>
+          </div>
+          <p class="section-copy">
+            Search first, then filter. Move into deeper maintenance pages only
+            when the task needs them.
+          </p>
+        </section>
+
         <div class="controls-bar">
           <div class="controls-copy">
-            <span class="controls-kicker" data-i18n="home.workspaceLabel">浏览工作台</span>
-            <p class="controls-text" data-i18n="home.controlsHint">按分类、热度和最近访问快速切换，找到常用链接会更快。</p>
+            <span class="controls-kicker">Workspace</span>
+            <p class="controls-text">
+              Switch by category, popularity, and recent activity to find the
+              right link faster.
+            </p>
           </div>
           <div class="controls-main">
             <div class="filter-controls">
-              <label class="filter-group">
-                <span class="filter-label" data-i18n="filter.categoryLabel">分类</span>
-                <select id="categoryFilter" class="filter-select">
-                  <option value="" data-i18n="filter.allCategories">全部分类</option>
-                </select>
-              </label>
-              <label class="filter-group">
-                <span class="filter-label" data-i18n="filter.sortLabel">排序</span>
-                <select id="sortSelect" class="filter-select">
-                  <option value="created_at:desc" data-i18n="filter.newest">最新优先</option>
-                  <option value="popularity:desc" data-i18n="filter.popular">最受欢迎</option>
-                  <option value="visit_count:desc" data-i18n="filter.mostVisited">访问最多</option>
-                  <option value="last_visited:desc" data-i18n="filter.recentVisited">最近访问</option>
-                  <option value="title:asc" data-i18n="filter.titleAZ">标题 A-Z</option>
-                  <option value="title:desc" data-i18n="filter.titleZA">标题 Z-A</option>
-                  <option value="updated_at:desc" data-i18n="filter.recentUpdated">最近更新</option>
-                  <option value="created_at:asc" data-i18n="filter.oldest">最早优先</option>
-                </select>
-              </label>
+              <label class="filter-group"
+                ><span class="filter-label">Category</span
+                ><select id="categoryFilter" class="filter-select">
+                  <option value="">All categories</option>
+                </select></label
+              >
+              <label class="filter-group"
+                ><span class="filter-label">Sort</span
+                ><select id="sortSelect" class="filter-select">
+                  <option value="created_at:desc">Newest first</option>
+                  <option value="popularity:desc">Most popular</option>
+                  <option value="visit_count:desc">Most visited</option>
+                  <option value="last_visited:desc">Recently visited</option>
+                  <option value="title:asc">Title A-Z</option>
+                  <option value="title:desc">Title Z-A</option>
+                  <option value="updated_at:desc">Recently updated</option>
+                  <option value="created_at:asc">Oldest first</option>
+                </select></label
+              >
             </div>
-            <div class="view-controls" role="group" aria-label="视图切换">
-              <button id="gridViewBtn" class="view-btn active" data-i18n-title="filter.gridView" title="网格视图">
-                <span class="icon">#</span>
-                <span class="view-label" data-i18n="filter.gridShort">网格</span>
+            <div class="view-controls" role="group" aria-label="View switcher">
+              <button
+                id="gridViewBtn"
+                class="view-btn active"
+                title="Grid view"
+              >
+                <span class="icon">#</span><span class="view-label">Grid</span>
               </button>
-              <button id="listViewBtn" class="view-btn" data-i18n-title="filter.listView" title="列表视图">
-                <span class="icon">=</span>
-                <span class="view-label" data-i18n="filter.listShort">列表</span>
+              <button id="listViewBtn" class="view-btn" title="List view">
+                <span class="icon">=</span><span class="view-label">List</span>
               </button>
             </div>
           </div>
@@ -178,43 +268,49 @@
 
         <div class="stats-bar">
           <div class="stats-item">
-            <span class="stats-label" data-i18n="stats.total">总计</span>
-            <span id="totalCount" class="stats-value">0</span>
+            <span class="stats-label">Total</span
+            ><span id="totalCount" class="stats-value">0</span>
           </div>
           <div class="stats-item">
-            <span class="stats-label" data-i18n="stats.currentPage">当前页</span>
-            <span id="currentPageInfo" class="stats-value">0</span>
+            <span class="stats-label">Current page</span
+            ><span id="currentPageInfo" class="stats-value">0</span>
+          </div>
+          <div class="stats-item stats-item-accent">
+            <span class="stats-label">Shortcut lane</span
+            ><span class="stats-value">Search, filter, maintain</span>
           </div>
         </div>
 
         <div id="bookmarksGrid" class="bookmarks-grid"></div>
-
         <div id="loadingState" class="loading-state">
           <div class="loading-spinner"></div>
-          <p data-i18n="common.loading">加载中...</p>
+          <p>Loading...</p>
         </div>
-
         <div id="emptyState" class="empty-state hidden">
           <div class="empty-icon">B</div>
-          <h3 data-i18n="empty.noBookmarks">还没有书签</h3>
-          <p data-i18n="empty.noBookmarksHint">点击顶部“新增书签”按钮添加你的第一个书签。</p>
+          <h3>No bookmarks yet</h3>
+          <p>
+            Use the add bookmark button in the header to create the first entry.
+          </p>
         </div>
-
         <div id="errorState" class="error-state hidden">
           <div class="error-icon">!</div>
-          <h3 data-i18n="common.loadFailed">加载失败</h3>
-          <p id="errorMessage" data-i18n="common.loadFailed">书签列表加载失败。</p>
-          <button id="retryBtn" class="btn btn-primary" data-i18n="common.retry">重试</button>
+          <h3>Load failed</h3>
+          <p id="errorMessage">The bookmark list could not be loaded.</p>
+          <button id="retryBtn" class="btn btn-primary">Retry</button>
         </div>
-
-        <div id="paginationContainer" class="pagination-container hidden" aria-hidden="true">
+        <div
+          id="paginationContainer"
+          class="pagination-container hidden"
+          aria-hidden="true"
+        >
           <div class="pagination">
-            <button id="prevPageBtn" class="pagination-btn" disabled data-i18n="pagination.prev">
-              <span class="icon">&lt;</span>上一页
+            <button id="prevPageBtn" class="pagination-btn" disabled>
+              <span class="icon">&lt;</span>Previous
             </button>
             <div id="pageNumbers" class="page-numbers"></div>
-            <button id="nextPageBtn" class="pagination-btn" disabled data-i18n="pagination.next">
-              下一页 <span class="icon">&gt;</span>
+            <button id="nextPageBtn" class="pagination-btn" disabled>
+              Next <span class="icon">&gt;</span>
             </button>
           </div>
         </div>
@@ -224,31 +320,44 @@
     <div id="bookmarkModal" class="modal hidden">
       <div class="modal-content">
         <div class="modal-header">
-          <h3 id="modalTitle" data-i18n="bookmarkModal.addTitle">添加书签</h3>
+          <h3 id="modalTitle">Add bookmark</h3>
           <button id="closeModalBtn" class="btn-close">x</button>
         </div>
         <form id="bookmarkForm" class="modal-body">
           <div class="form-group">
-            <label for="bookmarkTitle" data-i18n="bookmarkModal.title">标题 *</label>
-            <input type="text" id="bookmarkTitle" required class="form-input" />
+            <label for="bookmarkTitle">Title *</label
+            ><input
+              type="text"
+              id="bookmarkTitle"
+              required
+              class="form-input"
+            />
           </div>
           <div class="form-group">
-            <label for="bookmarkUrl" data-i18n="bookmarkModal.url">URL *</label>
-            <input type="url" id="bookmarkUrl" required class="form-input" />
+            <label for="bookmarkUrl">URL *</label
+            ><input type="url" id="bookmarkUrl" required class="form-input" />
           </div>
           <div class="form-group">
-            <label for="bookmarkDescription" data-i18n="bookmarkModal.description">描述</label>
-            <textarea id="bookmarkDescription" data-i18n-placeholder="bookmarkModal.descriptionPlaceholder" placeholder="可选的描述..." class="form-textarea" rows="3"></textarea>
+            <label for="bookmarkDescription">Description</label
+            ><textarea
+              id="bookmarkDescription"
+              placeholder="Optional description..."
+              class="form-textarea"
+              rows="3"
+            ></textarea>
           </div>
           <div class="form-group">
-            <label for="bookmarkCategory" data-i18n="bookmarkModal.category">分类</label>
-            <select id="bookmarkCategory" class="form-select">
-              <option value="" data-i18n="bookmarkModal.noCategory">无分类</option>
+            <label for="bookmarkCategory">Category</label
+            ><select id="bookmarkCategory" class="form-select">
+              <option value="">No category</option>
             </select>
           </div>
           <div class="modal-actions">
-            <button type="button" id="cancelBtn" class="btn btn-secondary" data-i18n="bookmarkModal.cancelBtn">取消</button>
-            <button type="submit" id="saveBtn" class="btn btn-primary" data-i18n="bookmarkModal.saveBtn">保存</button>
+            <button type="button" id="cancelBtn" class="btn btn-secondary">
+              Cancel</button
+            ><button type="submit" id="saveBtn" class="btn btn-primary">
+              Save
+            </button>
           </div>
         </form>
       </div>
@@ -256,24 +365,34 @@
 
     <div id="settingsPanel" class="settings-panel hidden">
       <div class="panel-header">
-        <h3 data-i18n="settings.title">设置</h3>
+        <h3>Settings</h3>
         <button id="settingsClose" class="btn-close">x</button>
       </div>
       <div class="panel-content">
         <div class="settings-section">
-          <h4 data-i18n="settings.data">数据</h4>
+          <h4>Data</h4>
           <div class="export-buttons">
-            <button id="exportBtn" class="btn btn-outline" data-i18n="settings.exportHtml">导出 HTML</button>
-            <button id="exportJSONBtn" class="btn btn-outline" data-i18n="settings.exportJson">导出 JSON</button>
+            <button id="exportBtn" class="btn btn-outline">Export HTML</button
+            ><button id="exportJSONBtn" class="btn btn-outline">
+              Export JSON
+            </button>
           </div>
           <div class="backup-buttons">
-            <button id="fullBackupJSONBtn" class="btn btn-primary" data-i18n="settings.backupJson">完整备份 (JSON)</button>
-            <button id="fullBackupHTMLBtn" class="btn btn-primary" data-i18n="settings.backupHtml">完整备份 (HTML)</button>
+            <button id="fullBackupJSONBtn" class="btn btn-primary">
+              Full backup (JSON)</button
+            ><button id="fullBackupHTMLBtn" class="btn btn-primary">
+              Full backup (HTML)
+            </button>
           </div>
-          <button id="importBtn" class="btn btn-outline" data-i18n="settings.import">导入书签</button>
+          <button id="importBtn" class="btn btn-outline">
+            Import bookmarks
+          </button>
         </div>
         <div class="settings-section settings-note">
-          <p>公开工作区默认无需登录，适合在本地或受控环境中直接使用。</p>
+          <p>
+            This workspace runs in public mode and is best used locally or
+            inside a controlled environment.
+          </p>
         </div>
       </div>
     </div>

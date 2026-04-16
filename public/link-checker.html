@@ -1,12 +1,21 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
+<!doctype html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>链接检查器 - 书签导航</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;590;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <title>Link Checker - Bookmark Navigator</title>
+    <meta
+      name="description"
+      content="Run reachability checks across the bookmark workspace and keep decisions visible."
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/workspace-refresh.css" />
     <link rel="stylesheet" href="/css/link-checker-enhanced.css" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
   <body>
     <div class="container">
@@ -14,81 +23,120 @@
         <div class="header-content">
           <div class="logo">
             <span class="logo-icon">CHK</span>
-            <h1 class="logo-text" data-i18n="linkChecker.title">链接检查器</h1>
+            <div class="logo-copy">
+              <h1 class="logo-text">Link Checker</h1>
+              <p class="logo-subtitle">
+                Verify bookmark reachability before cleanup
+              </p>
+            </div>
           </div>
           <div class="header-actions">
-            <div class="action-group tools-menu">
-              <button id="toolsMenuToggle" class="action-btn-icon menu-toggle" data-i18n-title="header.toolsTitle" title="工具菜单">
-                <span class="btn-icon">...</span>
-                <span class="dropdown-arrow">v</span>
-              </button>
-              <div id="toolsDropdown" class="dropdown-menu">
-                <a href="/" class="dropdown-item"><span class="item-icon">H</span><div class="item-content"><span class="item-text" data-i18n="linkChecker.home">首页</span><span class="item-desc" data-i18n="linkChecker.homeDesc">返回主书签页</span></div></a>
-                <a href="/token.html" class="dropdown-item"><span class="item-icon">API</span><div class="item-content"><span class="item-text" data-i18n="header.apiTokens">API 令牌</span><span class="item-desc" data-i18n="header.apiTokensDesc">管理访问令牌</span></div></a>
-                <a href="/deleted-bookmarks.html" class="dropdown-item"><span class="item-icon">DEL</span><div class="item-content"><span class="item-text" data-i18n="header.deleted">已删除书签</span><span class="item-desc" data-i18n="header.deletedDesc">查看已删除书签</span></div></a>
-                <a href="/notifications.html" class="dropdown-item"><span class="item-icon">MSG</span><div class="item-content"><span class="item-text" data-i18n="header.notifications">通知</span><span class="item-desc" data-i18n="header.notificationsDesc">查看最近通知</span></div></a>
-                <a href="/import.html" class="dropdown-item"><span class="item-icon">IMP</span><div class="item-content"><span class="item-text">导入</span><span class="item-desc">从文件导入书签</span></div></a>
-                <div class="dropdown-divider"></div>
-              </div>
-            </div>
+            <a class="action-btn-icon has-label" href="/">
+              <span class="btn-icon">H</span>
+              <span class="action-btn-label">Home</span>
+            </a>
           </div>
         </div>
       </header>
 
+      <section class="workspace-section-heading">
+        <div>
+          <span class="section-kicker">Maintain</span>
+          <h2 class="section-title">Check the workspace before deleting anything</h2>
+        </div>
+        <p class="section-copy">
+          This page loads the current bookmark set, checks links one by one, and
+          keeps the results visible while you decide what to keep or remove.
+        </p>
+      </section>
+
       <main class="checker-container">
         <section class="controls-section">
           <div class="checker-header">
-            <h2 data-i18n="linkChecker.subtitle">检查所有书签的可访问性</h2>
+            <h2>Run a reachability pass across saved bookmarks</h2>
           </div>
           <p class="bookmarks-stats">
-            本页面仅检查链接，不会自动初始化数据库。
+            This tool reviews existing bookmarks only. It does not create or
+            import new data.
           </p>
           <div class="btn-group">
-            <button id="reloadBookmarksBtn" class="btn btn-secondary" type="button">刷新列表</button>
-            <button id="startCheckBtn" class="btn btn-primary" type="button">开始检查</button>
-            <button id="stopCheckBtn" class="btn btn-secondary hidden" type="button">停止</button>
+            <button id="reloadBookmarksBtn" class="btn btn-secondary" type="button">
+              Refresh list
+            </button>
+            <button id="startCheckBtn" class="btn btn-primary" type="button">
+              Start checks
+            </button>
+            <button
+              id="stopCheckBtn"
+              class="btn btn-secondary hidden"
+              type="button"
+            >
+              Stop
+            </button>
           </div>
         </section>
 
         <section class="progress-section">
           <div class="progress-header">
-            <span id="progressText" class="progress-text">等待开始</span>
+            <span id="progressText" class="progress-text">Waiting to start</span>
             <span id="progressPercent" class="progress-percent">0%</span>
           </div>
-          <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+          <div class="progress-bar">
+            <div id="progressFill" class="progress-fill"></div>
+          </div>
           <div class="stats-grid">
-            <div class="stat-item"><span class="stat-value" id="totalBookmarks">0</span><span class="stat-label" data-i18n="linkChecker.statTotal">总计</span></div>
-            <div class="stat-item"><span class="stat-value" id="checkedCount">0</span><span class="stat-label" data-i18n="linkChecker.statChecked">已检查</span></div>
-            <div class="stat-item"><span class="stat-value" id="accessibleCount">0</span><span class="stat-label" data-i18n="linkChecker.statReachable">可访问</span></div>
-            <div class="stat-item"><span class="stat-value" id="inaccessibleCount">0</span><span class="stat-label" data-i18n="linkChecker.statUnreachable">不可访问</span></div>
-            <div class="stat-item"><span class="stat-value" id="keptCount">0</span><span class="stat-label" data-i18n="linkChecker.statKept">已保留</span></div>
-            <div class="stat-item"><span class="stat-value" id="deletedCount">0</span><span class="stat-label" data-i18n="linkChecker.statDeleted">已删除</span></div>
+            <div class="stat-item">
+              <span class="stat-value" id="totalBookmarks">0</span>
+              <span class="stat-label">Total</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" id="checkedCount">0</span>
+              <span class="stat-label">Checked</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" id="accessibleCount">0</span>
+              <span class="stat-label">Reachable</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" id="inaccessibleCount">0</span>
+              <span class="stat-label">Unreachable</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" id="keptCount">0</span>
+              <span class="stat-label">Kept</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" id="deletedCount">0</span>
+              <span class="stat-label">Deleted</span>
+            </div>
           </div>
         </section>
 
         <section class="details-section">
           <div class="details-content">
-            <h4 data-i18n="linkChecker.howThisWorks">工作原理</h4>
+            <h4>How this works</h4>
             <ul>
-              <li data-i18n="linkChecker.howThisWorksLine1">本页面从 /api/system/check-links-stream 加载当前书签列表。</li>
-              <li data-i18n="linkChecker.howThisWorksLine2">点击开始后，逐个检查每个链接的可访问性。</li>
-              <li data-i18n="linkChecker.howThisWorksLine3">你可以保留某个链接、重新检查单个链接，或手动删除。</li>
+              <li>The page loads the current bookmark library from the backend.</li>
+              <li>Each check updates status in place so you can review it as it runs.</li>
+              <li>You can keep an item, re-check a single item, or delete it from the list.</li>
             </ul>
           </div>
         </section>
 
         <section id="bookmarksCard" class="bookmarks-section">
           <div class="bookmarks-header">
-            <h2 data-i18n="linkChecker.bookmarkList">书签列表</h2>
-            <span id="filterStatus" class="bookmarks-stats" data-i18n="linkChecker.waitingToLoad">等待加载</span>
+            <h2>Bookmark list</h2>
+            <span id="filterStatus" class="bookmarks-stats">Waiting to load</span>
           </div>
-          <div id="bookmarksList"><div class="bookmarks-stats" data-i18n="linkChecker.loadingBookmarks">正在加载书签...</div></div>
+          <div id="bookmarksList">
+            <div class="bookmarks-stats">Loading bookmarks...</div>
+          </div>
         </section>
 
         <section class="details-section">
           <div class="details-content">
-            <h4 data-i18n="linkChecker.recentRuns">最近运行记录</h4>
-            <div id="historyList" data-i18n="linkChecker.loadingHistory">正在加载历史记录...</div>
+            <h4>Recent runs</h4>
+            <div id="historyList">Loading history...</div>
           </div>
         </section>
       </main>
@@ -122,8 +170,12 @@
       function getResultText(bookmark) {
         if (bookmark.deleted) return "Deleted";
         if (bookmark.status === "checking") return "Checking...";
-        if (bookmark.status === "accessible") return `HTTP ${bookmark.statusCode || 200} reachable`;
-        if (bookmark.status === "inaccessible") return bookmark.error || `${bookmark.statusCode || 0} unreachable`;
+        if (bookmark.status === "accessible") {
+          return `HTTP ${bookmark.statusCode || 200} reachable`;
+        }
+        if (bookmark.status === "inaccessible") {
+          return bookmark.error || `${bookmark.statusCode || 0} unreachable`;
+        }
         if (bookmark.keepStatus === "keep") return "Marked as keep";
         return "Pending";
       }
@@ -132,20 +184,23 @@
         const list = document.getElementById("bookmarksList");
 
         if (!state.bookmarks.length) {
-          list.innerHTML = `<div class="bookmarks-stats">${I18n.t("linkChecker.noBookmarks")}</div>`;
-          document.getElementById("filterStatus").textContent = I18n.t("linkChecker.noData");
+          list.innerHTML =
+            '<div class="bookmarks-stats">There are no bookmarks to check.</div>';
+          document.getElementById("filterStatus").textContent = "No data";
           updateStats();
           return;
         }
 
-        document.getElementById("filterStatus").textContent = I18n.t("linkChecker.bookmarksLoaded").replace("{count}", state.bookmarks.length);
+        document.getElementById("filterStatus").textContent =
+          `${state.bookmarks.length} bookmarks loaded`;
+
         list.innerHTML = state.bookmarks
           .map((bookmark) => {
             const bookmarkClass = getBookmarkClass(bookmark);
             const keepAction =
               bookmark.keepStatus === "keep"
-                ? `<button class="unkeep-btn" type="button" data-action="unkeep" data-id="${bookmark.id}">${I18n.t("linkChecker.clearKeep")}</button>`
-                : `<button class="keep-btn" type="button" data-action="keep" data-id="${bookmark.id}">${I18n.t("linkChecker.keep")}</button>`;
+                ? `<button class="unkeep-btn" type="button" data-action="unkeep" data-id="${bookmark.id}">Clear keep</button>`
+                : `<button class="keep-btn" type="button" data-action="keep" data-id="${bookmark.id}">Keep</button>`;
 
             return `
               <article class="bookmark-item ${bookmarkClass}">
@@ -179,10 +234,21 @@
 
       function updateStats() {
         const total = state.bookmarks.length;
-        const checked = state.bookmarks.filter((bookmark) => bookmark.status === "accessible" || bookmark.status === "inaccessible" || bookmark.deleted).length;
-        const accessible = state.bookmarks.filter((bookmark) => bookmark.status === "accessible").length;
-        const inaccessible = state.bookmarks.filter((bookmark) => bookmark.status === "inaccessible" && !bookmark.deleted).length;
-        const kept = state.bookmarks.filter((bookmark) => bookmark.keepStatus === "keep" && !bookmark.deleted).length;
+        const checked = state.bookmarks.filter(
+          (bookmark) =>
+            bookmark.status === "accessible" ||
+            bookmark.status === "inaccessible" ||
+            bookmark.deleted,
+        ).length;
+        const accessible = state.bookmarks.filter(
+          (bookmark) => bookmark.status === "accessible",
+        ).length;
+        const inaccessible = state.bookmarks.filter(
+          (bookmark) => bookmark.status === "inaccessible" && !bookmark.deleted,
+        ).length;
+        const kept = state.bookmarks.filter(
+          (bookmark) => bookmark.keepStatus === "keep" && !bookmark.deleted,
+        ).length;
         const deleted = state.bookmarks.filter((bookmark) => bookmark.deleted).length;
         const percent = total ? Math.round((checked / total) * 100) : 0;
 
@@ -197,11 +263,14 @@
       }
 
       async function loadBookmarks() {
-        document.getElementById("bookmarksList").innerHTML = `<div class="bookmarks-stats">${I18n.t("linkChecker.loadingBookmarks")}</div>`;
+        document.getElementById("bookmarksList").innerHTML =
+          '<div class="bookmarks-stats">Loading bookmarks...</div>';
 
         try {
           const response = await API.get("/api/system/check-links-stream");
-          if (!response.success) throw new Error(response.error || "Failed to load bookmarks");
+          if (!response.success) {
+            throw new Error(response.error || "Failed to load bookmarks");
+          }
 
           state.bookmarks = (response.data || []).map((bookmark) => ({
             ...bookmark,
@@ -212,21 +281,26 @@
             error: "",
           }));
 
-          document.getElementById("progressText").textContent = I18n.t("linkChecker.bookmarkListLoaded");
+          document.getElementById("progressText").textContent =
+            "Bookmark list loaded";
           renderBookmarks();
         } catch (error) {
-          document.getElementById("bookmarksList").innerHTML = `<div class="bookmarks-stats">${I18n.t("linkChecker.loadFailedWithError").replace("{error}", AdminUI.escapeHtml(error.message))}</div>`;
+          document.getElementById("bookmarksList").innerHTML =
+            `<div class="bookmarks-stats">Load failed: ${AdminUI.escapeHtml(error.message)}</div>`;
         }
       }
 
       async function checkBookmark(bookmarkId) {
-        const bookmark = state.bookmarks.find((item) => String(item.id) === String(bookmarkId));
+        const bookmark = state.bookmarks.find(
+          (item) => String(item.id) === String(bookmarkId),
+        );
         if (!bookmark || bookmark.deleted) return;
 
         bookmark.status = "checking";
         bookmark.error = "";
         renderBookmarks();
-        document.getElementById("progressText").textContent = `${I18n.t("linkChecker.checking")} ${bookmark.title}`;
+        document.getElementById("progressText").textContent =
+          `Checking ${bookmark.title}`;
 
         try {
           const response = await API.post("/api/system/check-links-stream", {
@@ -235,7 +309,9 @@
             autoDelete: false,
           });
 
-          if (!response.success) throw new Error(response.error || "Failed to check bookmark");
+          if (!response.success) {
+            throw new Error(response.error || "Failed to check bookmark");
+          }
 
           const result = response.data;
           bookmark.checked = true;
@@ -267,12 +343,12 @@
         state.stopRequested = false;
         document.getElementById("startCheckBtn").classList.remove("hidden");
         document.getElementById("stopCheckBtn").classList.add("hidden");
-        document.getElementById("progressText").textContent = I18n.t("linkChecker.checksCompleted");
+        document.getElementById("progressText").textContent = "Checks completed";
       }
 
       function stopBatchCheck() {
         state.stopRequested = true;
-        document.getElementById("progressText").textContent = I18n.t("linkChecker.stopping");
+        document.getElementById("progressText").textContent = "Stopping checks...";
       }
 
       async function updateKeepStatus(bookmarkId, keepStatus) {
@@ -282,49 +358,68 @@
             keepStatus,
           });
 
-          if (!response.success) throw new Error(response.error || "Failed to update keep status");
+          if (!response.success) {
+            throw new Error(response.error || "Failed to update keep status");
+          }
 
-          const bookmark = state.bookmarks.find((item) => String(item.id) === String(bookmarkId));
+          const bookmark = state.bookmarks.find(
+            (item) => String(item.id) === String(bookmarkId),
+          );
           if (bookmark) bookmark.keepStatus = keepStatus;
 
           renderBookmarks();
-          AdminUI.showToast(keepStatus === "keep" ? I18n.t("linkChecker.bookmarkMarkedKeep") : I18n.t("linkChecker.keepMarkCleared"));
+          AdminUI.showToast(
+            keepStatus === "keep"
+              ? "Bookmark marked as keep"
+              : "Keep mark cleared",
+          );
         } catch (error) {
-          AdminUI.showToast(`${I18n.t("linkChecker.updateFailed")}: ${error.message}`, "error");
+          AdminUI.showToast(`Update failed: ${error.message}`, "error");
         }
       }
 
       async function deleteBookmark(bookmarkId) {
-        const bookmark = state.bookmarks.find((item) => String(item.id) === String(bookmarkId));
+        const bookmark = state.bookmarks.find(
+          (item) => String(item.id) === String(bookmarkId),
+        );
         if (!bookmark) return;
 
-        const confirmed = window.confirm(`Delete bookmark "${bookmark.title}" now?`);
+        const confirmed = window.confirm(
+          `Delete bookmark "${bookmark.title}" now?`,
+        );
         if (!confirmed) return;
 
         try {
           const response = await BookmarkAPI.deleteBookmark(bookmark.id, {
-            reason: bookmark.status === "inaccessible" ? "link_check_failed" : "manual_delete",
+            reason:
+              bookmark.status === "inaccessible"
+                ? "link_check_failed"
+                : "manual_delete",
             checkStatus: bookmark.status,
             statusCode: bookmark.statusCode,
             errorMessage: bookmark.error,
             keepStatus: bookmark.keepStatus,
           });
 
-          if (!response.success) throw new Error(response.error || "Failed to delete bookmark");
+          if (!response.success) {
+            throw new Error(response.error || "Failed to delete bookmark");
+          }
 
           bookmark.deleted = true;
           bookmark.status = "deleted";
           renderBookmarks();
-          AdminUI.showToast(`${I18n.t("linkChecker.deleted")}: ${bookmark.title}`);
+          AdminUI.showToast(`Deleted: ${bookmark.title}`);
         } catch (error) {
-          AdminUI.showToast(`${I18n.t("linkChecker.deleteFailed")}: ${error.message}`, "error");
+          AdminUI.showToast(`Delete failed: ${error.message}`, "error");
         }
       }
 
       async function loadHistory() {
         try {
           const response = await API.get("/api/system/check-links");
-          if (!response.success) throw new Error(response.error || I18n.t("linkChecker.historyLoadFailed"));
+          if (!response.success) {
+            throw new Error(response.error || "Failed to load history");
+          }
 
           const history = response.data || [];
           const historyList = document.getElementById("historyList");
@@ -339,26 +434,29 @@
             .map(
               (item) => `
                 <div class="bookmarks-stats" style="margin-bottom: 8px;">
-                  ${AdminUI.formatDate(item.checkedAt || item.createdAt)}: ${I18n.t("linkChecker.historyItem")
-                    .replace("{total}", item.total ?? 0)
-                    .replace("{accessible}", item.accessible ?? 0)
-                    .replace("{inaccessible}", item.inaccessible ?? 0)}
+                  ${AdminUI.formatDate(item.checkedAt || item.createdAt)}:
+                  total ${item.total ?? 0}, reachable ${item.accessible ?? 0},
+                  unreachable ${item.inaccessible ?? 0}
                 </div>
               `,
             )
             .join("");
         } catch (error) {
-          document.getElementById("historyList").textContent = `${I18n.t("linkChecker.historyLoadFailed")}: ${error.message}`;
+          document.getElementById("historyList").textContent =
+            `Failed to load history: ${error.message}`;
         }
       }
 
       document.addEventListener("DOMContentLoaded", async () => {
-        if (!(await AdminUI.requireAuth())) return;
-
-        AdminUI.initToolsMenu("/link-checker.html");
-        document.getElementById("reloadBookmarksBtn").addEventListener("click", loadBookmarks);
-        document.getElementById("startCheckBtn").addEventListener("click", startBatchCheck);
-        document.getElementById("stopCheckBtn").addEventListener("click", stopBatchCheck);
+        document
+          .getElementById("reloadBookmarksBtn")
+          .addEventListener("click", loadBookmarks);
+        document
+          .getElementById("startCheckBtn")
+          .addEventListener("click", startBatchCheck);
+        document
+          .getElementById("stopCheckBtn")
+          .addEventListener("click", stopBatchCheck);
         document.getElementById("bookmarksList").addEventListener("click", (event) => {
           const button = event.target.closest("[data-action]");
           if (!button) return;
@@ -372,10 +470,6 @@
 
         await Promise.all([loadBookmarks(), loadHistory()]);
       });
-    </script>
-      <script src="/js/i18n.js"></script>
-    <script>
-      document.addEventListener("DOMContentLoaded", () => { if (window.I18n) I18n.init(); });
     </script>
   </body>
 </html>
