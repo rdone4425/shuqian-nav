@@ -2,3 +2,8 @@ node_modules/
 pages/node_modules/
 .dev.vars
 .wrangler/
+
+# Dev temp files
+.codex-dev*.log
+.codex-dev*.err.log
+.tmp_apply_patch_test.txt

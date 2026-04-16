@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>shuqian-nav 项目脑图</title>
+  <style>
+    :root {
+      --bg: #07111d;
+      --panel: rgba(10, 20, 34, 0.92);
+      --panel-soft: rgba(13, 26, 43, 0.84);
+      --border: rgba(255, 255, 255, 0.09);
+      --text: #edf4fc;
+      --muted: #9fb2c8;
+      --accent: #f0b90b;
+      --accent-soft: rgba(240, 185, 11, 0.16);
+      --green: #25c2a0;
+      --blue: #5ba6ff;
+      --pink: #f472b6;
+      --shadow: 0 18px 42px rgba(0, 0, 0, 0.26);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(240, 185, 11, 0.12), transparent 24%),
+        radial-gradient(circle at top right, rgba(91, 166, 255, 0.09), transparent 20%),
+        linear-gradient(180deg, #06101b 0%, #091423 100%);
+    }
+
+    code {
+      font-family: "Cascadia Code", "Consolas", monospace;
+      color: #fff1b6;
+      font-size: 0.94em;
+    }
+
+    .page {
+      width: min(1560px, calc(100vw - 24px));
+      margin: 0 auto;
+      padding: 24px 0 44px;
+    }
+
+    .hero,
+    .section {
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .hero {
+      padding: 24px 28px;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: 34px;
+      line-height: 1.15;
+    }
+
+    .subtitle {
+      margin: 0;
+      max-width: 1100px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.8;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .chip {
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--panel-soft);
+      font-size: 13px;
+    }
+
+    .chip strong {
+      color: var(--accent);
+      margin-right: 6px;
+    }
+
+    .section {
+      margin-top: 18px;
+      padding: 20px;
+    }
+
+    .section h2 {
+      margin: 0 0 8px;
+      font-size: 22px;
+    }
+
+    .section p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.8;
+      font-size: 14px;
+    }
+
+    .root {
+      margin-top: 18px;
+      border: 1px solid rgba(240, 185, 11, 0.18);
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(22, 38, 61, 0.96), rgba(11, 22, 37, 0.96));
+      padding: 18px;
+    }
+
+    .root-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff1be;
+    }
+
+    .root-meta {
+      margin-top: 8px;
+      color: var(--muted);
+      line-height: 1.75;
+      font-size: 14px;
+    }
+
+    .branches {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .branch {
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: var(--panel-soft);
+      padding: 16px;
+      min-width: 0;
+    }
+
+    .branch-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .badge {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      flex: 0 0 auto;
+    }
+
+    .branch-meta {
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.75;
+    }
+
+    .item-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .item {
+      border-left: 3px solid var(--accent);
+      border-radius: 14px;
+      background: rgba(9, 19, 33, 0.9);
+      padding: 12px 12px 12px 14px;
+    }
+
+    .item.blue {
+      border-left-color: var(--blue);
+    }
+
+    .item.green {
+      border-left-color: var(--green);
+    }
+
+    .item.pink {
+      border-left-color: var(--pink);
+    }
+
+    .item-title {
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.5;
+    }
+
+    .item-meta {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+      word-break: break-word;
+    }
+
+    .sub-list {
+      margin-top: 10px;
+      padding-left: 12px;
+      border-left: 1px dashed rgba(255, 255, 255, 0.08);
+      display: grid;
+      gap: 8px;
+    }
+
+    .sub-node {
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 9px 10px;
+    }
+
+    .sub-node strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .sub-node span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .flow-step {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--panel-soft);
+      padding: 14px;
+      min-width: 0;
+    }
+
+    .flow-step strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--accent);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .flow-step .title {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .flow-step span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .note {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: rgba(12, 24, 39, 0.9);
+      color: var(--muted);
+      line-height: 1.8;
+      font-size: 14px;
+    }
+
+    .note strong {
+      color: var(--green);
+    }
+
+    @media (max-width: 1100px) {
+      .branches,
+      .flow {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .page {
+        width: min(100vw - 16px, 1560px);
+        padding-top: 16px;
+      }
+
+      .hero,
+      .section {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <p class="eyebrow">Project Mind Map</p>
+      <h1>shuqian-nav 项目脑图</h1>
+      <p class="subtitle">
+        这是基于仓库 <code>rdone4425/shuqian-nav</code> 整理的项目脑图。
+        我按“产品定位、前端页面、后端 API、数据库、认证、AI 能力、部署运维”几个视角来拆，适合你自己回看项目结构，也适合拿给别人快速理解。
+      </p>
+      <div class="chips">
+        <span class="chip"><strong>定位</strong>Cloudflare Pages + Functions + D1 的书签导航后台</span>
+        <span class="chip"><strong>前端</strong><code>public/</code> 多页面静态站点</span>
+        <span class="chip"><strong>后端</strong><code>pages/functions/</code> API + 中间件 + utils</span>
+        <span class="chip"><strong>数据</strong><code>db/schema.sql</code> 单一数据库结构源</span>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>项目总览</h2>
+      <p>先从最高层看，这个项目并不是单纯的书签列表，而是一个带登录、分类、导入导出、回收站、链接检查、通知、Token、AI Wiki 的完整小型后台系统。</p>
+
+      <div class="root">
+        <div class="root-title">shuqian-nav</div>
+        <div class="root-meta">
+          一个部署在 <code>Cloudflare Pages</code> 上的书签导航系统。
+          静态页面放在 <code>public/</code>，API 放在 <code>pages/functions/</code>，
+          数据库使用 <code>D1</code>，部署链路由 <code>GitHub Actions</code> 自动完成。
+        </div>
+      </div>
+
+      <div class="branches">
+        <div class="branch">
+          <div class="branch-title"><span class="badge">01</span>产品定位</div>
+          <div class="branch-meta">核心不是“导航页”，而是“有后台能力的书签管理系统”。</div>
+          <div class="item-list">
+            <div class="item">
+              <div class="item-title">基础能力</div>
+              <div class="item-meta">书签增删改查、分类、搜索、排序、收藏、访问统计。</div>
+            </div>
+            <div class="item blue">
+              <div class="item-title">管理能力</div>
+              <div class="item-meta">登录、改密码、Token、导入导出、回收站、配置管理。</div>
+            </div>
+            <div class="item green">
+              <div class="item-title">增强能力</div>
+              <div class="item-meta">链接检查、通知、AI 设置、AI Wiki 快照、自动备份。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="branch">
+          <div class="branch-title"><span class="badge">02</span>前端页面层</div>
+          <div class="branch-meta"><code>public/</code> 是一个多页面静态应用，每个页面对应一个管理功能。</div>
+          <div class="item-list">
+            <div class="item">
+              <div class="item-title"><code>index.html</code></div>
+              <div class="item-meta">主书签导航页，核心交互入口。</div>
+            </div>
+            <div class="item blue">
+              <div class="item-title"><code>login.html</code></div>
+              <div class="item-meta">后台登录入口。</div>
+            </div>
+            <div class="item green">
+              <div class="item-title">功能页集合</div>
+              <div class="item-meta"><code>import.html</code>、<code>deleted-bookmarks.html</code>、<code>link-checker.html</code>、<code>notifications.html</code>、<code>token.html</code>、<code>ai-settings.html</code></div>
+            </div>
+            <div class="item pink">
+              <div class="item-title">共用资源</div>
+              <div class="item-meta"><code>public/css/</code>、<code>public/components/header.html</code>、<code>public/_headers</code>、<code>public/_redirects</code></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="branch">
+          <div class="branch-title"><span class="badge">03</span>前端 JS 模块</div>
+          <div class="branch-meta">前端代码不是框架项目，而是原生 JS 模块化组织。</div>
+          <div class="item-list">
+            <div class="item">
+              <div class="item-title"><code>public/js/app.js</code></div>
+              <div class="item-meta">主应用控制器，负责初始化、事件绑定、书签页交互和设置面板逻辑。</div>
+            </div>
+            <div class="item blue">
+              <div class="item-title"><code>public/js/auth.js</code></div>
+              <div class="item-meta">认证状态、登录登出、token 校验、重定向和权限事件。</div>
+            </div>
+            <div class="item green">
+              <div class="item-title"><code>public/js/wiki-view.js</code></div>
+              <div class="item-meta">Wiki 风格知识库视图，可切换本地视图和 AI 视图。</div>
+            </div>
+            <div class="item pink">
+              <div class="item-title">其他模块</div>
+              <div class="item-meta"><code>bookmarks.js</code>、<code>import.js</code>、<code>deleted-bookmarks.js</code>、<code>i18n.js</code>、<code>ui-enhancements.js</code>、<code>utils/*.js</code></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="branch">
+          <div class="branch-title"><span class="badge">04</span>后端 API 层</div>
+          <div class="branch-meta"><code>pages/functions/</code> 是项目真正的业务后端，按 Pages Functions 路由约定组织。</div>
+          <div class="item-list">
+            <div class="item">
+              <div class="item-title"><code>_middleware.js</code></div>
+              <div class="item-meta">全局中间件，处理 CORS、基础安全头、可疑请求拦截。</div>
+            </div>
+            <div class="item blue">
+              <div class="item-title">认证 API</div>
+              <div class="item-meta"><code>/api/auth/login</code>、<code>verify</code>、<code>change-password</code>、<code>token</code></div>
+            </div>
+            <div class="item green">
+              <div class="item-title">书签 API</div>
+              <div class="item-meta"><code>/api/bookmarks</code>、<code>/api/bookmarks/[id]</code>、<code>categories</code>、<code>import</code>、<code>sync</code>、<code>deleted</code>、<code>keep-status</code>、<code>visit</code></div>
+            </div>
+            <div class="item pink">
+              <div class="item-title">系统 / 扩展 API</div>
+              <div class="item-meta"><code>/api/system/*</code>、<code>/api/wiki</code>、<code>/api/analytics</code>、<code>/api/cron/weekly-check</code>、<code>/api/health</code></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="branch">
+          <div class="branch-title"><span class="badge">05</span>后端工具层</div>
+          <div class="branch-meta">很多公共能力被下沉到 <code>pages/functions/utils/</code>，这是后端的复用层。</div>
+          <div class="item-list">
+            <div class="item">
+              <div class="item-title"><code>database-helper.js</code></div>
+              <div class="item-meta">统一 D1 查询、分页、批量执行、增删改查辅助。</div>
+            </div>
+            <div class="item blue">
+              <div class="item-title"><code>auth-middleware.js</code> / <code>jwt-manager.js</code></div>
+              <div class="item-meta">认证包装、JWT secret 处理和鉴权统一入口。</div>
+            </div>
+            <div class="item green">
+              <div class="item-title"><code>response-helper.js</code></div>
+              <div class="item-meta">成功、校验失败、未授权、服务端错误等统一响应格式。</div>
+            </div>
+            <div class="item pink">
+              <div class="item-title">业务工具</div>
+              <div class="item-meta"><code>backup-manager.js</code>、<code>bookmark-analytics.js</code>、<code>deleted-bookmarks.js</code>、<code>performance-monitor.js</code>、<code>validation.js</code>、<code>ai-client.js</code>、<code>ai-wiki.js</code></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="branch">
+          <div class="branch-title"><span class="badge">06</span>数据库模型</div>
+          <div class="branch-meta"><code>db/schema.sql</code> 是唯一可信的数据库结构来源，既定义表，也初始化默认配置。</div>
+          <div class="item-list">
+            <div class="item">
+              <div class="item-title">配置与权限</div>
+              <div class="item-meta"><code>system_config</code> 保存初始化标记、管理员密码、站点标题、AI 配置、AI Wiki 快照等。</div>
+            </div>
+            <div class="item blue">
+              <div class="item-title">核心业务表</div>
+              <div class="item-meta"><code>categories</code>、<code>bookmarks</code>、<code>deleted_bookmarks</code></div>
+            </div>
+            <div class="item green">
+              <div class="item-title">统计与行为表</div>
+              <div class="item-meta"><code>bookmark_visits</code>、<code>daily_analytics</code>、<code>search_logs</code>、<code>user_sessions</code></div>
+            </div>
+            <div class="item pink">
+              <div class="item-title">缓存与分析表</div>
+              <div class="item-meta"><code>popularity_cache</code>、<code>category_analytics</code></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="branch">
+          <div class="branch-title"><span class="badge">07</span>认证与安全</div>
+          <div class="branch-meta">这个项目是后台系统，所以认证和默认密码逻辑是非常关键的一条主线。</div>
+          <div class="item-list">
+            <div class="item">
+              <div class="item-title">密码优先级</div>
+              <div class="item-meta"><code>ADMIN_PASSWORD</code> 环境变量 → D1 中 <code>system_config.admin_password</code> → schema 默认 <code>admin123</code></div>
+            </div>
+            <div class="item blue">
+              <div class="item-title">登录逻辑</div>
+              <div class="item-meta"><code>/api/auth/login</code> 登录后发放 JWT，默认有效期 24 小时。</div>
+            </div>
+            <div class="item green">
+              <div class="item-title">前端守卫</div>
+              <div class="item-meta"><code>auth.js</code> 会做 token 校验缓存、失效后重定向回 <code>/login.html</code>。</div>
+            </div>
+            <div class="item pink">
+              <div class="item-title">全局保护</div>
+              <div class="item-meta">Pages Functions 中间件处理 CORS、安全头和部分可疑访问拦截。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="branch">
+          <div class="branch-title"><span class="badge">08</span>AI Wiki 能力</div>
+          <div class="branch-meta">这是项目里比较有辨识度的增强点，不只是“书签 CRUD”，而是会自动整理书签知识结构。</div>
+          <div class="item-list">
+            <div class="item">
+              <div class="item-title"><code>pages/functions/api/wiki/index.js</code></div>
+              <div class="item-meta">负责读取 / 生成 AI Wiki 快照，并将结果写回 <code>system_config</code>。</div>
+            </div>
+            <div class="item blue">
+              <div class="item-title"><code>pages/functions/utils/ai-wiki.js</code></div>
+              <div class="item-meta">执行数据去重、分类聚合、消息构建、调用 AI 和 fallback 生成逻辑。</div>
+            </div>
+            <div class="item green">
+              <div class="item-title"><code>public/js/wiki-view.js</code></div>
+              <div class="item-meta">前端提供本地视图 / AI 视图切换、命令面板、AI 自动整理按钮。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="branch">
+          <div class="branch-title"><span class="badge">09</span>运维与部署</div>
+          <div class="branch-meta">项目的运行模型已经明显收敛到 Cloudflare 平台优先。</div>
+          <div class="item-list">
+            <div class="item">
+              <div class="item-title"><code>.github/workflows/frontend_pagefunction_deploy.yml</code></div>
+              <div class="item-meta">自动准备 Pages 项目和 D1 数据库，再部署 <code>public/</code> 和 <code>pages/functions/</code>。</div>
+            </div>
+            <div class="item blue">
+              <div class="item-title"><code>pages/wrangler.toml</code></div>
+              <div class="item-meta">本地开发时的 Pages 包装配置，生产由 GitHub Actions + Cloudflare API 接手。</div>
+            </div>
+            <div class="item green">
+              <div class="item-title"><code>scripts/setup-config.cjs</code> / <code>scripts/reset.cjs</code></div>
+              <div class="item-meta">生成本地配置、初始化或重置本地 D1 数据库。</div>
+            </div>
+            <div class="item pink">
+              <div class="item-title">本地开发命令</div>
+              <div class="item-meta"><code>npm run config</code> → <code>npm run db:init:local</code> / <code>npm run reset</code> → <code>npm run dev</code></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="note">
+        <strong>一句话判断：</strong>
+        这个项目的本质是一个“小而完整的 Cloudflare 后台系统”。
+        表面上是书签导航，但实际已经具备了
+        <code>认证</code>、
+        <code>CRUD</code>、
+        <code>回收站</code>、
+        <code>统计分析</code>、
+        <code>备份</code>、
+        <code>AI 知识整理</code>、
+        <code>自动部署</code>
+        这些典型后台能力。
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>主流程脑图</h2>
+      <p>如果只想快速理解系统怎么跑，可以先看下面这条主流程。</p>
+      <div class="flow">
+        <div class="flow-step">
+          <strong>Step 1</strong>
+          <span class="title">用户访问</span>
+          <span>进入 <code>/login.html</code> 或主页面。</span>
+        </div>
+        <div class="flow-step">
+          <strong>Step 2</strong>
+          <span class="title">认证校验</span>
+          <span>前端 <code>auth.js</code> + 后端 <code>/api/auth/*</code> 完成 token 验证。</span>
+        </div>
+        <div class="flow-step">
+          <strong>Step 3</strong>
+          <span class="title">业务操作</span>
+          <span>前端页面调用 <code>/api/bookmarks/*</code>、<code>/api/system/*</code>、<code>/api/wiki</code> 等接口。</span>
+        </div>
+        <div class="flow-step">
+          <strong>Step 4</strong>
+          <span class="title">D1 读写</span>
+          <span>Functions 使用 <code>BOOKMARKS_DB</code> 读写分类、书签、统计、配置和快照。</span>
+        </div>
+        <div class="flow-step">
+          <strong>Step 5</strong>
+          <span class="title">增强处理</span>
+          <span>需要时触发链接检查、备份、AI Wiki 生成、分析统计等辅助逻辑。</span>
+        </div>
+        <div class="flow-step">
+          <strong>Step 6</strong>
+          <span class="title">部署交付</span>
+          <span>GitHub Actions 自动把静态页和 Functions 发布到 Cloudflare Pages。</span>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
