@@ -3,169 +3,31 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title data-i18n="login.title">登录 - 书签导航</title>
-    <meta name="description" content="书签导航管理员登录" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;590;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <title>公开工作区 - 书签导航</title>
+    <meta name="description" content="书签导航已切换为公开工作区模式，无需登录即可使用。" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/styles.css" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
-  <body class="login-page">
+  <body class="login-page public-gateway">
     <div class="login-container">
       <div class="login-card">
         <div class="login-header">
           <div class="logo">
             <span class="logo-icon">B</span>
-            <h1 class="logo-text" data-i18n="common.appName">书签导航</h1>
+            <h1 class="logo-text">书签导航</h1>
           </div>
-          <p class="login-subtitle" data-i18n="login.subtitle">请输入管理员密码以继续</p>
+          <p class="login-subtitle">当前站点已切换为公开工作区模式</p>
           <p class="login-hint">
-            <span data-i18n="login.hintFirst">首次登录：使用</span>
-            <strong>admin123</strong>
-            <span data-i18n="login.hintAfter">，登录后请立即修改密码</span>
+            这里不再提供登录入口。你可以直接进入首页管理书签、导入数据、查看链接检查和通知记录。
           </p>
         </div>
 
-        <form id="loginForm" class="login-form">
-          <div class="form-group">
-            <label for="password" class="form-label">
-              <span class="label-icon">P</span>
-              <span class="label-text" data-i18n="login.password">密码</span>
-            </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              required
-              class="form-input"
-              data-i18n-placeholder="login.passwordPlaceholder"
-              placeholder="输入密码"
-              autocomplete="current-password"
-            />
-          </div>
-
-          <button type="submit" id="loginBtn" class="btn btn-primary btn-full">
-            <span class="btn-icon">L</span>
-            <span class="btn-text" data-i18n="login.loginBtn">登录</span>
-          </button>
-        </form>
-
-        <div id="loginStatus" class="login-status hidden">
-          <div class="status-icon">...</div>
-          <div class="status-text" data-i18n="login.verifying">验证中...</div>
-        </div>
-
-        <div id="errorMessage" class="error-message hidden">
-          <div class="error-icon">!</div>
-          <div class="error-text" data-i18n="login.errorWrong">密码错误</div>
-        </div>
-      </div>
-
-      <div class="login-footer">
-        <div class="footer-info">
-          <p data-i18n="common.version">v1.0.0</p>
-          <p data-i18n="common.cloudflare">Cloudflare Pages + Functions + D1</p>
-        </div>
-        <div class="footer-links">
-          <a
-            href="/api/health"
-            target="_blank"
-            rel="noreferrer"
-            class="footer-link"
-            data-i18n="common.healthCheck"
-            >健康检查</a
-          >
+        <div class="public-actions">
+          <a href="/" class="btn btn-primary btn-full">进入首页</a>
+          <a href="/import.html" class="btn btn-secondary btn-full">打开导入页</a>
         </div>
       </div>
     </div>
-
-    <div class="login-background">
-      <div class="bg-shape shape-1"></div>
-      <div class="bg-shape shape-2"></div>
-      <div class="bg-shape shape-3"></div>
-    </div>
-
-    <script src="/js/utils/storage.js"></script>
-    <script src="/js/utils/api.js"></script>
-    <script src="/js/auth.js"></script>
-    <script src="/js/i18n.js"></script>
-
-    <script>
-      document.addEventListener("DOMContentLoaded", async () => {
-        if (window.I18n) I18n.init();
-
-        const loginForm = document.getElementById("loginForm");
-        const passwordInput = document.getElementById("password");
-        const loginBtn = document.getElementById("loginBtn");
-        const loginStatus = document.getElementById("loginStatus");
-        const errorMessage = document.getElementById("errorMessage");
-
-        await Auth.init();
-        if (Auth.checkAuthenticated()) {
-          window.location.href = "/";
-          return;
-        }
-
-        loginForm.addEventListener("submit", async (event) => {
-          event.preventDefault();
-          const password = passwordInput.value.trim();
-          if (!password) {
-            showError(window.I18n ? I18n.t("login.errorEmpty") : "请输入密码");
-            return;
-          }
-
-          try {
-            showLoading();
-            const result = await Auth.login(password);
-
-            if (!result.success) {
-              showError(result.error || (window.I18n ? I18n.t("login.errorWrong") : "密码错误"));
-              return;
-            }
-
-            const msg = result.isDefaultPassword
-              ? (window.I18n ? I18n.t("login.successDefault") : "登录成功。请尽快修改默认密码")
-              : (window.I18n ? I18n.t("login.success") : "登录成功，正在跳转...");
-            showSuccess(msg);
-
-            setTimeout(() => {
-              Auth.redirectAfterLogin();
-            }, 800);
-          } catch (error) {
-            console.error("Login failed:", error);
-            showError(error.message || (window.I18n ? I18n.t("login.errorNetwork") : "网络错误，请重试"));
-          }
-        });
-
-        function showLoading() {
-          loginBtn.disabled = true;
-          loginBtn.querySelector(".btn-text").textContent = window.I18n ? I18n.t("login.loginLoading") : "正在登录...";
-          loginStatus.classList.remove("hidden");
-          loginStatus.querySelector(".status-icon").textContent = "...";
-          loginStatus.querySelector(".status-text").textContent = window.I18n ? I18n.t("login.verifying") : "验证中...";
-          errorMessage.classList.add("hidden");
-        }
-
-        function showError(message) {
-          loginBtn.disabled = false;
-          loginBtn.querySelector(".btn-text").textContent = window.I18n ? I18n.t("login.loginBtn") : "登录";
-          loginStatus.classList.add("hidden");
-          errorMessage.querySelector(".error-text").textContent = message;
-          errorMessage.classList.remove("hidden");
-          passwordInput.focus();
-          passwordInput.select();
-        }
-
-        function showSuccess(message) {
-          loginBtn.disabled = false;
-          loginBtn.querySelector(".btn-text").textContent = window.I18n ? I18n.t("login.loginBtn") : "登录";
-          loginStatus.classList.remove("hidden");
-          loginStatus.querySelector(".status-icon").textContent = "OK";
-          loginStatus.querySelector(".status-text").textContent = message;
-          errorMessage.classList.add("hidden");
-        }
-
-        passwordInput.focus();
-      });
-    </script>
   </body>
 </html>

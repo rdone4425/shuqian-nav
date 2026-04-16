@@ -22,22 +22,12 @@ const AdminUI = {
   },
 
   async requireAuth() {
-    if (typeof Auth !== "undefined" && typeof Auth.init === "function") {
-      await Auth.init();
-    }
-
-    if (typeof Auth !== "undefined" && Auth.checkAuthenticated()) {
-      return true;
-    }
-
-    window.location.href = "/login.html";
-    return false;
+    return true;
   },
 
   initToolsMenu(activePath = window.location.pathname) {
     const toolsMenuToggle = document.getElementById("toolsMenuToggle");
     const toolsDropdown = document.getElementById("toolsDropdown");
-    const changePasswordBtn = document.getElementById("changePasswordBtn");
 
     if (toolsMenuToggle && toolsDropdown) {
       toolsMenuToggle.addEventListener("click", (event) => {
@@ -55,12 +45,6 @@ const AdminUI = {
           toolsDropdown.classList.remove("show");
           toolsMenuToggle.classList.remove("active");
         }
-      });
-    }
-
-    if (changePasswordBtn) {
-      changePasswordBtn.addEventListener("click", () => {
-        window.location.href = "/?action=change-password";
       });
     }
 

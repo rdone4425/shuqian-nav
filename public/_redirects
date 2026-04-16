@@ -1,6 +1,6 @@
 /init /
 /init.html /
-/setup-password /login.html
-/setup-password.html /login.html
+/setup-password /
+/setup-password.html /
 /diagnose /api/health
 /diagnose.html /api/health

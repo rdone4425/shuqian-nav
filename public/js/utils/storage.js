@@ -4,7 +4,6 @@
 const Storage = {
   // 存储键名常量
   KEYS: {
-    AUTH_TOKEN: "bookmark_auth_token",
     USER_PREFERENCES: "bookmark_user_preferences",
     LAST_SEARCH: "bookmark_last_search",
     VIEW_MODE: "bookmark_view_mode",

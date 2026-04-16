@@ -20,14 +20,11 @@ const API = {
   },
 
   getAuthHeaders() {
-    const token = localStorage.getItem("auth_token");
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    return {};
   },
 
   async request(url, options = {}) {
-    const fullUrl = url.startsWith("http")
-      ? url
-      : `${this.config.baseURL}${url}`;
+    const fullUrl = url.startsWith("http") ? url : `${this.config.baseURL}${url}`;
     const defaultOptions = {
       method: "GET",
       headers: {
@@ -53,13 +50,10 @@ const API = {
 
     let lastError;
 
-    for (let attempt = 0; attempt <= this.config.retryAttempts; attempt++) {
+    for (let attempt = 0; attempt <= this.config.retryAttempts; attempt += 1) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(
-          () => controller.abort(),
-          finalOptions.timeout,
-        );
+        const timeoutId = setTimeout(() => controller.abort(), finalOptions.timeout);
 
         const response = await fetch(fullUrl, {
           ...finalOptions,
@@ -75,8 +69,7 @@ const API = {
         if (!response.ok) {
           const errorData = await this.parseResponse(response);
           throw new APIError(
-            errorData.error ||
-              `HTTP ${response.status}: ${response.statusText}`,
+            errorData.error || `HTTP ${response.status}: ${response.statusText}`,
             response.status,
             errorData,
           );
@@ -85,10 +78,7 @@ const API = {
         return await this.parseResponse(response);
       } catch (error) {
         lastError = error;
-        if (
-          attempt === this.config.retryAttempts ||
-          !this.shouldRetry(error, finalOptions)
-        ) {
+        if (attempt === this.config.retryAttempts || !this.shouldRetry(error, finalOptions)) {
           break;
         }
 
@@ -242,70 +232,23 @@ const BookmarkAPI = {
       referrer: document.referrer,
     });
   },
-
 };
 
 const AuthAPI = {
-  getToken() {
-    return localStorage.getItem("auth_token");
-  },
-
-  setToken(token) {
-    localStorage.setItem("auth_token", token);
-  },
-
-  removeToken() {
-    localStorage.removeItem("auth_token");
-  },
-
-  isLoggedIn() {
-    return !!this.getToken();
-  },
-
-  async login(password) {
-    const response = await API.post("/api/auth/login", { password });
-    if (response.success) {
-      const token = response.data?.token || response.token;
-      if (token) {
-        this.setToken(token);
-      }
-    }
-    return response;
-  },
-
   async verifyToken() {
-    return await API.post("/api/auth/verify");
-  },
-
-  logout() {
-    this.removeToken();
-    window.location.href = "/login.html";
-  },
-
-  async changePassword(currentPassword, newPassword, confirmPassword) {
-    return await API.post("/api/auth/change-password", {
-      currentPassword,
-      newPassword,
-      confirmPassword,
-    });
+    return {
+      success: true,
+      valid: true,
+      message: "Public mode is active.",
+    };
   },
 };
-
-API.addResponseInterceptor(async (response) => {
-  if (response.status === 401) {
-    localStorage.removeItem("auth_token");
-    if (!window.location.pathname.includes("login.html")) {
-      window.location.href = "/login.html";
-    }
-  }
-});
 
 const SystemAPI = {
   async createBackup(format = "json") {
     const response = await fetch(`/api/system/backup?format=${format}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
         Accept: format === "json" ? "application/json" : "text/html",
       },
     });
@@ -316,7 +259,6 @@ const SystemAPI = {
 
     return response;
   },
-
 };
 
 window.API = API;
