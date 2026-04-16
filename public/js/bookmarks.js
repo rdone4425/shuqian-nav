@@ -191,82 +191,83 @@ const BookmarkManager = {
       window.I18n?.t("bookmarkCard.lastVisited") || "最后访问";
     const editLabel = window.I18n?.t("bookmarkCard.edit") || "编辑";
     const deleteLabel = window.I18n?.t("bookmarkCard.delete") || "删除";
+    const openLabel = window.I18n?.t("bookmarkCard.open") || "打开链接";
 
-    // 获取访问统计
     const localStats = this.getLocalVisitStats(bookmark.id);
     const visitCount = Math.max(bookmark.visit_count || 0, localStats.count);
     const lastVisited = localStats.lastVisit || bookmark.last_visited;
-
-    const categoryBadge = bookmark.category_name
-      ? `
-      <div class="bookmark-category">
-        <div class="category-dot" style="background-color: ${bookmark.category_color || "var(--accent)"}"></div>
-        <span>${bookmark.category_name}</span>
-      </div>
-    `
-      : "";
-
-    const description = bookmark.description
-      ? `
-      <div class="bookmark-description">${this.escapeHtml(bookmark.description)}</div>
-    `
-      : "";
-
-    // 访问统计信息
-    const statsInfo =
-      visitCount > 0
-        ? `
-      <div class="bookmark-stats">
-        <span class="visit-count" title="${this.escapeHtml(visitCountLabel)}">👁️ ${visitCount}</span>
-        ${lastVisited ? `<span class="last-visited" title="${this.escapeHtml(lastVisitedLabel)}">${this.formatRelativeTime(lastVisited)}</span>` : ""}
-      </div>
-    `
-        : "";
-
-    // 热度指示器
     const popularity = SimpleSorter.calculatePopularity(bookmark);
+
+    const faviconUrl = bookmark.favicon_url || "/favicon.ico";
+    const title = this.escapeHtml(bookmark.title || "未命名书签");
+    const rawUrl = bookmark.url || "";
+    const url = this.escapeHtml(rawUrl);
+    const description = bookmark.description
+      ? this.escapeHtml(bookmark.description)
+      : "";
+    const categoryName = bookmark.category_name
+      ? this.escapeHtml(bookmark.category_name)
+      : "";
+
+    const statsParts = [];
+    if (visitCount > 0) {
+      statsParts.push(`
+        <span class="visit-count" title="${this.escapeHtml(visitCountLabel)}">${visitCountLabel} ${visitCount}</span>
+      `);
+    }
+    if (lastVisited) {
+      statsParts.push(`
+        <span class="last-visited" title="${this.escapeHtml(lastVisitedLabel)}">${this.formatRelativeTime(lastVisited)}</span>
+      `);
+    }
+
+    const categoryBadge = categoryName
+      ? `<div class="bookmark-category"><span class="category-dot" style="background-color: ${bookmark.category_color || "var(--accent)"}"></span><span>${categoryName}</span></div>`
+      : "";
+
     const hotBadge =
       popularity > 50
-        ? `<span class="hot-badge" title="${this.escapeHtml(hotLabel)}">🔥</span>`
+        ? `<span class="hot-badge" title="${this.escapeHtml(hotLabel)}">HOT</span>`
         : "";
 
     return `
-      <div class="bookmark-card" data-id="${bookmark.id}">
-        <div class="bookmark-header">
-          <img src="${bookmark.favicon_url || "/favicon.ico"}"
-               alt="favicon"
-               class="bookmark-favicon"
-               onerror="this.src='/favicon.ico'">
-          <div class="bookmark-info">
-            <h3 class="bookmark-title">
-              ${this.escapeHtml(bookmark.title)}
+      <article class="bookmark-card" data-id="${bookmark.id}">
+        <div class="bookmark-card-top">
+          <div class="bookmark-favicon-wrap">
+            <img src="${this.escapeHtml(faviconUrl)}" alt="" aria-hidden="true" class="bookmark-favicon" onerror="this.src='/favicon.ico'">
+          </div>
+          <div class="bookmark-main">
+            <div class="bookmark-title-row">
+              <h3 class="bookmark-title">${title}</h3>
               ${hotBadge}
-            </h3>
-            <a href="${bookmark.url}" target="_blank" class="bookmark-url" rel="noopener noreferrer">
-              ${this.escapeHtml(bookmark.url)}
-            </a>
+            </div>
+            <a href="${this.escapeHtml(rawUrl)}" target="_blank" class="bookmark-url" rel="noopener noreferrer" aria-label="${this.escapeHtml(openLabel)} ${title}">${url}</a>
           </div>
         </div>
-        ${description}
-        ${statsInfo}
+
+        ${description ? `<p class="bookmark-description">${description}</p>` : ""}
+
+        ${statsParts.length ? `<div class="bookmark-stats">${statsParts.join("")}</div>` : ""}
+
         <div class="bookmark-footer">
-          ${categoryBadge}
+          <div class="bookmark-meta">
+            ${categoryBadge || `<span class="bookmark-id">#${bookmark.id}</span>`}
+          </div>
           <div class="bookmark-actions">
             <button class="action-btn edit-btn" data-id="${bookmark.id}" title="${this.escapeHtml(editLabel)}">
-              <span class="action-icon">✏️</span>
+              <span class="action-icon">\u270f</span>
               <span class="action-text">${this.escapeHtml(editLabel)}</span>
             </button>
             <button class="action-btn delete-btn" data-id="${bookmark.id}" title="${this.escapeHtml(deleteLabel)}">
-              <span class="action-icon">🗑️</span>
+              <span class="action-icon">\u00d7</span>
               <span class="action-text">${this.escapeHtml(deleteLabel)}</span>
             </button>
           </div>
         </div>
-      </div>
+      </article>
     `;
   },
 
-  // 格式化相对时间
   formatRelativeTime(dateString) {
     const date = new Date(dateString);
     const now = new Date();
@@ -320,7 +321,7 @@ const BookmarkManager = {
     const optionsHTML = this.categories
       .map(
         (category) =>
-          `<option value="${category.id}">${category.name} (${category.bookmark_count})</option>`,
+          `<option value="${category.id}">${category.name}</option>`,
       )
       .join("");
 
@@ -414,7 +415,7 @@ const BookmarkManager = {
   // 更新统计信息
   updateStats() {
     if (this.elements.totalCount) {
-      this.elements.totalCount.textContent = this.totalCount;
+      this.elements.totalCount.textContent = String(this.totalCount);
     }
     if (this.elements.currentPageInfo) {
       const start = (this.currentPage - 1) * 20 + 1;
@@ -433,7 +434,7 @@ const BookmarkManager = {
   },
 
   showError(message) {
-    DOMHelper.setState("error", { message: message });
+    DOMHelper.setState("error", { message });
   },
 
   hideStates() {
@@ -496,11 +497,9 @@ const BookmarkManager = {
 
   // 初始化点击排序（简化版）
   initClickSorting() {
-    // 只保留访问统计功能，移除多余的快速按钮
-    console.log("访问统计功能已启用");
+    // ???????????????
   },
 
-  // 记录书签访问
   async recordVisit(bookmarkId) {
     try {
       // 发送访问记录到服务器

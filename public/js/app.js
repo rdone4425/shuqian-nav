@@ -23,6 +23,7 @@ const App = {
     const selectors = {
       searchToggle: "searchToggle",
       searchContainer: "searchContainer",
+      searchBtn: "searchBtn",
       clearSearchBtn: "clearSearchBtn",
       addBookmarkBtn: "addBookmarkBtn",
       bookmarkModal: "bookmarkModal",
@@ -58,6 +59,10 @@ const App = {
 
     this.elements.clearSearchBtn?.addEventListener("click", () => {
       this.clearSearch();
+    });
+
+    this.elements.searchBtn?.addEventListener("click", () => {
+      this.runSearch();
     });
 
     this.elements.addBookmarkBtn?.addEventListener("click", () => {
@@ -146,7 +151,18 @@ const App = {
     if (searchInput) {
       searchInput.value = "";
       searchInput.dispatchEvent(new Event("input"));
+      searchInput.focus();
     }
+  },
+
+  runSearch() {
+    const searchInput = document.getElementById("searchInput");
+    if (!searchInput) {
+      return;
+    }
+
+    searchInput.dispatchEvent(new Event("input"));
+    searchInput.focus();
   },
 
   showBookmarkModal(bookmark = null) {
@@ -157,13 +173,12 @@ const App = {
       this.elements.bookmarkTitle.value = bookmark.title || "";
       this.elements.bookmarkUrl.value = bookmark.url || "";
       this.elements.bookmarkDescription.value = bookmark.description || "";
-      this.elements.bookmarkCategory.value = bookmark.category_id || "";
     } else {
       this.elements.modalTitle.textContent = "添加书签";
       this.elements.bookmarkForm.reset();
     }
 
-    this.loadCategoryOptions();
+    this.loadCategoryOptions(bookmark?.category_id || "");
     this.elements.bookmarkModal?.classList.remove("hidden");
     this.elements.bookmarkTitle?.focus();
   },
@@ -174,7 +189,7 @@ const App = {
     this.elements.bookmarkForm?.reset();
   },
 
-  async loadCategoryOptions() {
+  async loadCategoryOptions(selectedCategoryId = "") {
     try {
       const response = await BookmarkAPI.getCategories();
       if (response.success && this.elements.bookmarkCategory) {
@@ -186,6 +201,7 @@ const App = {
           <option value="">无分类</option>
           ${optionsHTML}
         `;
+        this.elements.bookmarkCategory.value = selectedCategoryId || "";
       }
     } catch (error) {
       console.error("加载分类选项失败:", error);

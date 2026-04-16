@@ -1,5 +1,5 @@
 // 本地存储工具模块
-// 提供统一的本地存储接口，支持JWT令牌和用户偏好设置
+// 提供统一的本地存储接口，用于保存用户偏好和本地数据
 
 const Storage = {
   // 存储键名常量
@@ -94,30 +94,6 @@ const Storage = {
       console.error("计算存储大小失败:", error);
       return 0;
     }
-  },
-
-  // 认证令牌相关方法
-  auth: {
-    // 获取认证令牌
-    getToken() {
-      return Storage.get(Storage.KEYS.AUTH_TOKEN);
-    },
-
-    // 设置认证令牌
-    setToken(token) {
-      return Storage.set(Storage.KEYS.AUTH_TOKEN, token);
-    },
-
-    // 删除认证令牌
-    removeToken() {
-      return Storage.remove(Storage.KEYS.AUTH_TOKEN);
-    },
-
-    // 检查是否有有效令牌
-    hasToken() {
-      const token = Storage.auth.getToken();
-      return token && token.length > 0;
-    },
   },
 
   // 用户偏好设置

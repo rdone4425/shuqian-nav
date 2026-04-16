@@ -42,13 +42,12 @@ class ViewManager {
     }
 
     // 保存用户偏好
-    localStorage.setItem("bookmark_view_preference", viewType);
+    Storage.viewMode.set(viewType);
   }
 
   enhanceUI() {
     // 恢复用户视图偏好
-    const savedView =
-      localStorage.getItem("bookmark_view_preference") || "grid";
+    const savedView = Storage.viewMode.get() || "grid";
     this.switchView(savedView);
 
     // 添加快捷键支持
@@ -228,17 +227,20 @@ class TooltipManager {
       tooltip.className = "tooltip-container";
       tooltip.style.cssText = `
         position: absolute;
-        background: rgba(0, 0, 0, 0.9);
-        color: white;
-        padding: 8px 12px;
-        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.96);
+        color: var(--text-primary);
+        padding: 10px 12px;
+        border-radius: 14px;
         font-size: 12px;
         pointer-events: none;
         z-index: 10000;
         opacity: 0;
-        transition: opacity 0.2s;
-        max-width: 200px;
+        transition: opacity 0.2s, transform 0.2s;
+        max-width: 220px;
         word-wrap: break-word;
+        border: 1px solid var(--border-light);
+        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+        backdrop-filter: blur(12px);
       `;
       document.body.appendChild(tooltip);
     }

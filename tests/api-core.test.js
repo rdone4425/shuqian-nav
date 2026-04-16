@@ -2,7 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { onRequestPost as loginHandler } from "../pages/functions/api/auth/login.js";
+import { onRequestPost as changePasswordHandler } from "../pages/functions/api/auth/change-password.js";
 import { onRequestGet as healthHandler } from "../pages/functions/api/health.js";
+import { verifyToken as verifyPublicToken } from "../pages/functions/api/auth/verify.js";
 import { JWTKeyManager } from "../pages/functions/utils/jwt-manager.js";
 
 function createDbMock({ firstResult, firstError, runResult, runError } = {}) {
@@ -42,7 +44,7 @@ function createDbMock({ firstResult, firstError, runResult, runError } = {}) {
   };
 }
 
-test("login returns a JWT when ADMIN_PASSWORD is configured", async () => {
+test("login endpoint stays disabled in public mode", async () => {
   const request = new Request("https://example.com/api/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -58,66 +60,41 @@ test("login returns a JWT when ADMIN_PASSWORD is configured", async () => {
     },
   });
 
-  assert.equal(response.status, 200);
+  assert.equal(response.status, 410);
 
   const body = await response.json();
-  assert.equal(body.success, true);
-  assert.equal(typeof body.token, "string");
-  assert.equal(body.passwordSource, "environment");
-  assert.equal(body.canChangePassword, false);
+  assert.equal(body.success, false);
+  assert.equal(body.error, "Authentication is disabled in public mode.");
 });
 
-test("login falls back to the seeded default password from D1", async () => {
-  const request = new Request("https://example.com/api/auth/login", {
+test("change-password endpoint stays disabled in public mode", async () => {
+  const request = new Request("https://example.com/api/auth/change-password", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password: "admin123" }),
+    body: JSON.stringify({ currentPassword: "admin123", newPassword: "new-pass" }),
   });
 
-  const response = await loginHandler({
+  const response = await changePasswordHandler({
     request,
     env: {
       JWT_SECRET: "test-secret-with-safe-length-1234567890",
-      BOOKMARKS_DB: createDbMock({
-        firstResult: ({ params }) =>
-          params[0] === "admin_password" ? { config_value: "admin123" } : null,
-      }),
+      BOOKMARKS_DB: createDbMock(),
     },
   });
 
-  assert.equal(response.status, 200);
+  assert.equal(response.status, 410);
 
   const body = await response.json();
-  assert.equal(body.success, true);
-  assert.equal(body.isDefaultPassword, true);
-  assert.equal(body.passwordSource, "database");
-  assert.equal(body.canChangePassword, true);
+  assert.equal(body.success, false);
+  assert.equal(body.error, "Password change is disabled in public mode.");
 });
 
-test("login falls back to the default password when D1 is unavailable", async () => {
-  const request = new Request("https://example.com/api/auth/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password: "admin123" }),
-  });
+test("verify helper reports public mode state", async () => {
+  const result = await verifyPublicToken();
 
-  const response = await loginHandler({
-    request,
-    env: {
-      JWT_SECRET: "test-secret-with-safe-length-1234567890",
-      BOOKMARKS_DB: createDbMock({
-        firstError: new Error("db down"),
-      }),
-    },
-  });
-
-  assert.equal(response.status, 200);
-
-  const body = await response.json();
-  assert.equal(body.success, true);
-  assert.equal(body.passwordSource, "fallback");
-  assert.equal(body.canChangePassword, false);
-  assert.equal(body.warning, "database_unavailable");
+  assert.equal(result.valid, true);
+  assert.equal(result.payload.sub, "public");
+  assert.equal(result.payload.mode, "public");
 });
 
 test("health reports connected database state when D1 is available", async () => {
