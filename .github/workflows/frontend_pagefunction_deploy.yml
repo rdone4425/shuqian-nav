@@ -241,7 +241,8 @@ jobs:
           await resolveAccountId();
           const d1Id = await ensureD1Database();
           if (process.env.GITHUB_ENV) {
-            require('node:fs').appendFileSync(process.env.GITHUB_ENV, `D1_DATABASE_ID=${d1Id}\n`);
+            const { appendFileSync } = await import('node:fs');
+            appendFileSync(process.env.GITHUB_ENV, `D1_DATABASE_ID=${d1Id}\n`);
           }
           await ensurePagesProject(d1Id);
           EOF
