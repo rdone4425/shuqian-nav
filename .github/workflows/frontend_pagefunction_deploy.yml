@@ -240,6 +240,9 @@ jobs:
           await verifyToken();
           await resolveAccountId();
           const d1Id = await ensureD1Database();
+          if (process.env.GITHUB_ENV) {
+            require('node:fs').appendFileSync(process.env.GITHUB_ENV, `D1_DATABASE_ID=${d1Id}\n`);
+          }
           await ensurePagesProject(d1Id);
           EOF
 
@@ -252,7 +255,30 @@ jobs:
 
       - name: Deploy Cloudflare Pages project
         working-directory: pages
-        run: npx wrangler pages deploy ../public --project-name "$PAGES_PROJECT_NAME" --branch "${{ github.ref_name }}" --commit-dirty=true
+        run: |
+          node <<'EOF'
+          const fs = require('node:fs');
+          const path = 'wrangler.toml';
+          const databaseId = process.env.D1_DATABASE_ID;
+
+          if (!databaseId) {
+            throw new Error('Missing D1_DATABASE_ID from previous workflow step.');
+          }
+
+          const current = fs.readFileSync(path, 'utf8');
+          const next = current.replace(
+            /database_id\s*=\s*"[^"]*"/,
+            `database_id = "${databaseId}"`,
+          );
+
+          if (next === current) {
+            throw new Error('Failed to patch wrangler.toml with the resolved D1 database id.');
+          }
+
+          fs.writeFileSync(path, next, 'utf8');
+          console.log(`Patched ${path} with D1 database ${databaseId}`);
+          EOF
+          npx wrangler pages deploy ../public --project-name "$PAGES_PROJECT_NAME" --branch "${{ github.ref_name }}" --commit-dirty=true
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
