@@ -1,6 +1,3 @@
-// 主应用逻辑
-// 协调各个模块，处理用户交互和应用状态
-
 const App = {
   isInitialized: false,
   currentBookmark: null,
@@ -14,8 +11,11 @@ const App = {
       this.isInitialized = true;
       console.log("应用初始化完成");
     } catch (error) {
-      console.error("应用初始化失败:", error);
-      this.showMessage(`应用初始化失败: ${error.message}`, "error");
+      console.error("应用初始化失败", error);
+      this.showMessage(
+        `${this.t("messages.appInitFailed")}：${error.message}`,
+        "error",
+      );
     }
   },
 
@@ -54,7 +54,7 @@ const App = {
 
   bindEvents() {
     this.elements.searchToggle?.addEventListener("click", () => {
-      this.toggleSearch();
+      this.focusSearch();
     });
 
     this.elements.clearSearchBtn?.addEventListener("click", () => {
@@ -106,6 +106,12 @@ const App = {
       this.toggleSettings();
     });
 
+    document
+      .getElementById("settingsInlineToggle")
+      ?.addEventListener("click", () => {
+        this.toggleSettings();
+      });
+
     this.elements.settingsClose?.addEventListener("click", () => {
       this.hideSettings();
     });
@@ -135,15 +141,13 @@ const App = {
     });
   },
 
-  toggleSearch() {
-    if (!this.elements.searchContainer) {
-      return;
-    }
+  t(key, params = {}) {
+    return window.I18n?.t(key, params) || key;
+  },
 
-    this.elements.searchContainer.classList.toggle("hidden");
-    if (!this.elements.searchContainer.classList.contains("hidden")) {
-      document.getElementById("searchInput")?.focus();
-    }
+  focusSearch() {
+    this.elements.searchContainer?.classList.remove("hidden");
+    document.getElementById("searchInput")?.focus();
   },
 
   clearSearch() {
@@ -169,12 +173,12 @@ const App = {
     this.currentBookmark = bookmark;
 
     if (bookmark) {
-      this.elements.modalTitle.textContent = "编辑书签";
+      this.elements.modalTitle.textContent = this.t("bookmarkModal.editTitle");
       this.elements.bookmarkTitle.value = bookmark.title || "";
       this.elements.bookmarkUrl.value = bookmark.url || "";
       this.elements.bookmarkDescription.value = bookmark.description || "";
     } else {
-      this.elements.modalTitle.textContent = "添加书签";
+      this.elements.modalTitle.textContent = this.t("bookmarkModal.addTitle");
       this.elements.bookmarkForm.reset();
     }
 
@@ -196,12 +200,12 @@ const App = {
         const optionsHTML = response.data
           .map(
             (category) =>
-              `<option value="${category.id}">${category.name}</option>`,
+              `<option value="${category.id}">${this.escapeHtml(category.name)}</option>`,
           )
           .join("");
 
         this.elements.bookmarkCategory.innerHTML = `
-          <option value="">无分类</option>
+          <option value="">${this.t("bookmarkModal.noCategory")}</option>
           ${optionsHTML}
         `;
         this.elements.bookmarkCategory.value = selectedCategoryId || "";
@@ -221,13 +225,13 @@ const App = {
       };
 
       if (!formData.title || !formData.url) {
-        this.showMessage("标题和 URL 是必填字段", "error");
+        this.showMessage(this.t("messages.titleUrlRequired"), "error");
         return;
       }
 
       let response;
       this.elements.saveBtn.disabled = true;
-      this.elements.saveBtn.textContent = "保存中...";
+      this.elements.saveBtn.textContent = this.t("bookmarkModal.saving");
 
       if (this.currentBookmark) {
         response = await BookmarkAPI.updateBookmark(
@@ -239,22 +243,27 @@ const App = {
       }
 
       if (!response.success) {
-        throw new Error(response.error || "保存失败");
+        throw new Error(response.error || this.t("messages.saveFailed"));
       }
 
       this.showMessage(
-        this.currentBookmark ? "书签更新成功" : "书签创建成功",
+        this.currentBookmark
+          ? this.t("messages.bookmarkUpdated")
+          : this.t("messages.bookmarkCreated"),
         "success",
       );
       this.hideBookmarkModal();
       await BookmarkManager.refresh();
     } catch (error) {
-      console.error("保存书签错误:", error);
-      this.showMessage(error.message || "网络连接异常，请稍后重试", "error");
+      console.error("保存站点错误:", error);
+      this.showMessage(
+        error.message || this.t("messages.networkError"),
+        "error",
+      );
     } finally {
       if (this.elements.saveBtn) {
         this.elements.saveBtn.disabled = false;
-        this.elements.saveBtn.textContent = "保存";
+        this.elements.saveBtn.textContent = this.t("bookmarkModal.saveBtn");
       }
     }
   },
@@ -263,49 +272,55 @@ const App = {
     try {
       const response = await BookmarkAPI.getBookmark(bookmarkId);
       if (!response.success) {
-        throw new Error(response.error || "获取书签信息失败");
+        throw new Error(response.error || this.t("messages.getBookmarkFailed"));
       }
 
       this.showBookmarkModal(response.data);
     } catch (error) {
-      console.error("获取书签错误:", error);
-      this.showMessage(error.message || "网络连接异常", "error");
+      console.error("获取站点错误:", error);
+      this.showMessage(
+        error.message || this.t("messages.networkError"),
+        "error",
+      );
     }
   },
 
   async deleteBookmark(bookmarkId) {
     const bookmark = BookmarkManager.bookmarks.find(
-      (item) => item.id == bookmarkId,
+      (item) => String(item.id) === String(bookmarkId),
     );
-    const bookmarkTitle = bookmark ? bookmark.title : "该书签";
+    const bookmarkTitle = bookmark
+      ? bookmark.title
+      : this.t("bookmarkCard.untitled");
 
-    if (!confirm(`确定要删除书签“${bookmarkTitle}”吗？此操作不可撤销。`)) {
+    if (!confirm(this.t("messages.confirmDelete", { title: bookmarkTitle }))) {
       return;
     }
 
     try {
       const response = await BookmarkAPI.deleteBookmark(bookmarkId);
       if (!response.success) {
-        throw new Error(response.error || "删除失败");
+        throw new Error(response.error || this.t("messages.deleteFailed"));
       }
 
-      this.showMessage("书签删除成功", "success");
+      this.showMessage(this.t("messages.bookmarkDeleted"), "success");
       await BookmarkManager.refresh();
     } catch (error) {
-      console.error("删除书签错误:", error);
-      this.showMessage(error.message || "网络连接异常，请稍后重试", "error");
+      console.error("删除站点错误:", error);
+      this.showMessage(
+        error.message || this.t("messages.networkError"),
+        "error",
+      );
     }
   },
 
   toggleToolsMenu() {
     const dropdown = this.elements.toolsDropdown;
-    const toggle = this.elements.toolsMenuToggle;
-    if (!dropdown || !toggle) {
+    if (!dropdown) {
       return;
     }
 
-    const isVisible = dropdown.classList.contains("show");
-    if (isVisible) {
+    if (dropdown.classList.contains("show")) {
       this.hideToolsMenu();
     } else {
       this.showToolsMenu();
@@ -318,6 +333,7 @@ const App = {
     if (dropdown && toggle) {
       dropdown.classList.add("show");
       toggle.classList.add("active");
+      toggle.setAttribute("aria-expanded", "true");
     }
   },
 
@@ -327,6 +343,7 @@ const App = {
     if (dropdown && toggle) {
       dropdown.classList.remove("show");
       toggle.classList.remove("active");
+      toggle.setAttribute("aria-expanded", "false");
     }
   },
 
@@ -353,24 +370,30 @@ const App = {
 
   async executeExport(format) {
     try {
-      this.showMessage("正在导出书签...", "info");
+      this.showMessage(this.t("messages.exportPreparing"), "info");
       const allBookmarks = await this.getAllBookmarksForExport();
 
       if (!allBookmarks.length) {
-        this.showMessage("没有书签可以导出", "warning");
+        this.showMessage(this.t("messages.exportEmpty"), "warning");
         return;
       }
 
       if (format === "html") {
-        this.exportAsHTML(allBookmarks, BookmarkManager.categories);
+        this.exportAsHTML(allBookmarks);
       } else {
         this.exportAsJSON(allBookmarks, BookmarkManager.categories);
       }
 
-      this.showMessage(`成功导出 ${allBookmarks.length} 个书签`, "success");
+      this.showMessage(
+        this.t("messages.exportSuccess", { count: allBookmarks.length }),
+        "success",
+      );
     } catch (error) {
       console.error("导出失败:", error);
-      this.showMessage(`导出失败: ${error.message}`, "error");
+      this.showMessage(
+        `${this.t("messages.exportFailed")}：${error.message}`,
+        "error",
+      );
     }
   },
 
@@ -382,7 +405,9 @@ const App = {
     while (true) {
       const response = await BookmarkAPI.getBookmarks({ page, limit });
       if (!response.success) {
-        throw new Error(response.error || "获取书签失败");
+        throw new Error(
+          response.error || this.t("messages.loadBookmarksFailed"),
+        );
       }
 
       const bookmarks = response.data.bookmarks || [];
@@ -394,7 +419,7 @@ const App = {
 
       page += 1;
       this.showMessage(
-        `正在获取书签... 已获取 ${allBookmarks.length} 个`,
+        this.t("messages.exportFetching", { count: allBookmarks.length }),
         "info",
       );
     }
@@ -418,57 +443,33 @@ const App = {
       }
     });
 
+    const timestamp = Math.floor(now.getTime() / 1000);
     let html = `<!DOCTYPE NETSCAPE-Bookmark-file-1>
-<!-- This is an automatically generated file.
-     It will be read and overwritten.
-     DO NOT EDIT! -->
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
 <TITLE>Bookmarks</TITLE>
 <H1>Bookmarks</H1>
 <DL><p>
-    <DT><H3 ADD_DATE="${Math.floor(now.getTime() / 1000)}" LAST_MODIFIED="${Math.floor(now.getTime() / 1000)}">书签导航 - 导出于 ${now.toLocaleDateString()}</H3>
+    <DT><H3 ADD_DATE="${timestamp}" LAST_MODIFIED="${timestamp}">书签导航 - ${now.toLocaleDateString()}</H3>
     <DL><p>
 `;
 
     Object.keys(bookmarksByCategory).forEach((categoryName) => {
-      html += `        <DT><H3 ADD_DATE="${Math.floor(now.getTime() / 1000)}" LAST_MODIFIED="${Math.floor(now.getTime() / 1000)}">${this.escapeHtml(categoryName)}</H3>\n`;
+      html += `        <DT><H3 ADD_DATE="${timestamp}" LAST_MODIFIED="${timestamp}">${this.escapeHtml(categoryName)}</H3>\n`;
       html += "        <DL><p>\n";
 
       bookmarksByCategory[categoryName].forEach((bookmark) => {
-        const addDate = Math.floor(
-          new Date(bookmark.created_at).getTime() / 1000,
-        );
-        html += `            <DT><A HREF="${this.escapeHtml(bookmark.url)}" ADD_DATE="${addDate}"`;
-        if (bookmark.favicon_url) {
-          html += ` ICON="${this.escapeHtml(bookmark.favicon_url)}"`;
-        }
-        html += `>${this.escapeHtml(bookmark.title)}</A>\n`;
-        if (bookmark.description) {
-          html += `            <DD>${this.escapeHtml(bookmark.description)}\n`;
-        }
+        html += this.createBookmarkExportLine(bookmark);
       });
 
       html += "        </DL><p>\n";
     });
 
     if (uncategorized.length) {
-      html += `        <DT><H3 ADD_DATE="${Math.floor(now.getTime() / 1000)}" LAST_MODIFIED="${Math.floor(now.getTime() / 1000)}">未分类</H3>\n`;
+      html += `        <DT><H3 ADD_DATE="${timestamp}" LAST_MODIFIED="${timestamp}">${this.t("bookmarkCard.uncategorized")}</H3>\n`;
       html += "        <DL><p>\n";
-
       uncategorized.forEach((bookmark) => {
-        const addDate = Math.floor(
-          new Date(bookmark.created_at).getTime() / 1000,
-        );
-        html += `            <DT><A HREF="${this.escapeHtml(bookmark.url)}" ADD_DATE="${addDate}"`;
-        if (bookmark.favicon_url) {
-          html += ` ICON="${this.escapeHtml(bookmark.favicon_url)}"`;
-        }
-        html += `>${this.escapeHtml(bookmark.title)}</A>\n`;
-        if (bookmark.description) {
-          html += `            <DD>${this.escapeHtml(bookmark.description)}\n`;
-        }
+        html += this.createBookmarkExportLine(bookmark);
       });
-
       html += "        </DL><p>\n";
     }
 
@@ -479,6 +480,22 @@ const App = {
       `bookmarks-${new Date().toISOString().split("T")[0]}.html`,
       "text/html",
     );
+  },
+
+  createBookmarkExportLine(bookmark) {
+    const addDate = Math.floor(new Date(bookmark.created_at).getTime() / 1000);
+    const safeAddDate = Number.isFinite(addDate)
+      ? addDate
+      : Math.floor(Date.now() / 1000);
+    let html = `            <DT><A HREF="${this.escapeHtml(bookmark.url)}" ADD_DATE="${safeAddDate}"`;
+    if (bookmark.favicon_url) {
+      html += ` ICON="${this.escapeHtml(bookmark.favicon_url)}"`;
+    }
+    html += `>${this.escapeHtml(bookmark.title)}</A>\n`;
+    if (bookmark.description) {
+      html += `            <DD>${this.escapeHtml(bookmark.description)}\n`;
+    }
+    return html;
   },
 
   exportAsJSON(bookmarks, categories) {
@@ -510,7 +527,7 @@ const App = {
     URL.revokeObjectURL(url);
   },
 
-  escapeHtml(text) {
+  escapeHtml(text = "") {
     const div = document.createElement("div");
     div.textContent = text;
     return div.innerHTML;
@@ -521,12 +538,12 @@ const App = {
   },
 
   handleKeyboardShortcuts(event) {
-    if ((event.ctrlKey || event.metaKey) && event.key === "k") {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
       event.preventDefault();
-      this.toggleSearch();
+      this.focusSearch();
     }
 
-    if ((event.ctrlKey || event.metaKey) && event.key === "n") {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "n") {
       event.preventDefault();
       this.showBookmarkModal();
     }
@@ -560,7 +577,7 @@ const App = {
   async createFullBackup(format) {
     try {
       this.showMessage(
-        `正在创建 ${format.toUpperCase()} 格式的完整备份...`,
+        this.t("messages.backupPreparing", { format: format.toUpperCase() }),
         "info",
       );
       const response = await SystemAPI.createBackup(format);
@@ -583,10 +600,16 @@ const App = {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      this.showMessage(`完整备份已下载: ${filename}`, "success");
+      this.showMessage(
+        this.t("messages.backupSuccess", { filename }),
+        "success",
+      );
     } catch (error) {
       console.error("创建备份失败:", error);
-      this.showMessage(`备份失败: ${error.message}`, "error");
+      this.showMessage(
+        `${this.t("messages.backupFailed")}：${error.message}`,
+        "error",
+      );
     }
   },
 };

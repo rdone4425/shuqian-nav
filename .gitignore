@@ -7,3 +7,9 @@ pages/node_modules/
 .codex-dev*.log
 .codex-dev*.err.log
 .tmp_apply_patch_test.txt
+
+# OMX state
+.omx/
+
+# Backup files
+*.bak
