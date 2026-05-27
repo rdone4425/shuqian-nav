@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Deleted Bookmarks - Bookmark Navigator</title>
+    <title>已删除书签 - 书签导航</title>
     <meta
       name="description"
-      content="Review deleted bookmark records and restore mistakes inside the public workspace."
+      content="查看已删除书签记录，并在需要时恢复误删内容。"
     />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
@@ -24,16 +24,14 @@
           <div class="logo">
             <span class="logo-icon">DEL</span>
             <div class="logo-copy">
-              <h1 class="logo-text">Deleted Records</h1>
-              <p class="logo-subtitle">
-                Review mistakes and restore bookmarks when needed
-              </p>
+              <h1 class="logo-text">已删除书签</h1>
+              <p class="logo-subtitle">查看删除记录，并在需要时恢复书签</p>
             </div>
           </div>
           <div class="header-actions">
             <a class="action-btn-icon has-label" href="/">
               <span class="btn-icon">H</span>
-              <span class="action-btn-label">Home</span>
+              <span class="action-btn-label">首页</span>
             </a>
           </div>
         </div>
@@ -41,13 +39,11 @@
 
       <section class="workspace-section-heading">
         <div>
-          <span class="section-kicker">Restore</span>
-          <h2 class="section-title">Keep deletion history visible and reversible</h2>
+          <span class="section-kicker">恢复</span>
+          <h2 class="section-title">让删除历史可见，也能及时撤回误删</h2>
         </div>
         <p class="section-copy">
-          This page is the safety net for cleanup work. Review manual deletes,
-          failed-link removals, and recover mistakes before they become
-          permanent.
+          这个页面就是清理工作的安全网。误删、失效链接删除或批量处理后的记录，都可以在这里回看。
         </p>
       </section>
 
@@ -56,19 +52,19 @@
           <div class="stats-grid">
             <div class="stat-card">
               <div class="stat-value" id="totalDeleted">0</div>
-              <div class="stat-label">Visible records</div>
+              <div class="stat-label">当前记录</div>
             </div>
             <div class="stat-card">
               <div class="stat-value" id="manualDeleted">0</div>
-              <div class="stat-label">Manual delete</div>
+              <div class="stat-label">手动删除</div>
             </div>
             <div class="stat-card">
               <div class="stat-value" id="autoDeleted">0</div>
-              <div class="stat-label">Maintenance delete</div>
+              <div class="stat-label">维护删除</div>
             </div>
             <div class="stat-card">
               <div class="stat-value" id="todayDeleted">0</div>
-              <div class="stat-label">Deleted today</div>
+              <div class="stat-label">今日删除</div>
             </div>
           </div>
         </section>
@@ -76,7 +72,7 @@
         <section class="actions-section">
           <div class="actions-left">
             <button id="refreshBtn" class="btn btn-primary" type="button">
-              Refresh list
+              刷新列表
             </button>
             <button
               id="clearAllBtn"
@@ -84,20 +80,20 @@
               type="button"
               disabled
             >
-              Bulk clear not supported
+              暂不支持批量清空
             </button>
           </div>
           <div class="actions-right">
             <select id="filterSelect" class="filter-select">
-              <option value="all">All records</option>
-              <option value="manual_delete">Manual delete</option>
-              <option value="link_check_failed">Link check failed</option>
-              <option value="batch_delete_inaccessible">Batch delete</option>
+              <option value="all">全部记录</option>
+              <option value="manual_delete">手动删除</option>
+              <option value="link_check_failed">链接检查失败</option>
+              <option value="batch_delete_inaccessible">批量删除</option>
             </select>
             <input
               type="search"
               id="searchInput"
-              placeholder="Search title or URL"
+              placeholder="搜索标题或 URL"
               class="search-input"
             />
           </div>
@@ -105,15 +101,15 @@
 
         <section class="records-section">
           <div id="recordsList" class="records-list">
-            <div class="loading">Loading deleted bookmarks...</div>
+            <div class="loading">正在加载已删除书签...</div>
           </div>
           <div id="pagination" class="pagination hidden">
             <button id="prevPage" class="btn btn-secondary" type="button">
-              Previous
+              上一页
             </button>
-            <span id="pageInfo" class="page-info">Page 1 of 1</span>
+            <span id="pageInfo" class="page-info">第 1 页，共 1 页</span>
             <button id="nextPage" class="btn btn-secondary" type="button">
-              Next
+              下一页
             </button>
           </div>
         </section>
@@ -123,18 +119,18 @@
     <div id="restoreModal" class="modal hidden">
       <div class="modal-content">
         <div class="modal-header">
-          <h3>Restore bookmark</h3>
+          <h3>恢复书签</h3>
           <button id="closeRestoreModal" class="btn-close">&times;</button>
         </div>
         <div class="modal-body">
           <div id="restoreBookmarkInfo"></div>
-          <p>Restore this bookmark now?</p>
+          <p>确定立即恢复这条书签吗？</p>
           <div class="modal-actions">
             <button id="cancelRestore" class="btn btn-secondary" type="button">
-              Cancel
+              取消
             </button>
             <button id="confirmRestore" class="btn btn-primary" type="button">
-              Restore
+              恢复
             </button>
           </div>
         </div>
@@ -144,7 +140,7 @@
     <div id="detailModal" class="modal hidden">
       <div class="modal-content modal-large">
         <div class="modal-header">
-          <h3>Delete details</h3>
+          <h3>删除详情</h3>
           <button id="closeDetailModal" class="btn-close">&times;</button>
         </div>
         <div class="modal-body">

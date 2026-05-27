@@ -1,10 +1,13 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title data-i18n="common.appName">Bookmark Navigator</title>
-    <meta name="description" content="?????????????????????????????" />
+    <title data-i18n="common.appName">书签导航</title>
+    <meta
+      name="description"
+      content="一个更简洁的中文书签工作台，用来搜索、浏览和维护常用链接。"
+    />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
@@ -21,11 +24,9 @@
           <div class="logo">
             <span class="logo-icon">B</span>
             <div class="logo-copy">
-              <h1 class="logo-text" data-i18n="common.appName">
-                Bookmark Navigator
-              </h1>
+              <h1 class="logo-text" data-i18n="common.appName">书签导航</h1>
               <p class="logo-subtitle" data-i18n="home.logoSubtitle">
-                公开书签工作台
+                简洁书签工作台
               </p>
             </div>
           </div>
@@ -33,7 +34,7 @@
             <div class="action-group primary-actions">
               <button
                 id="searchToggle"
-                class="action-btn-icon has-label"
+                class="action-btn-icon has-label primary"
                 title="搜索书签"
                 data-i18n-title="header.searchTitle"
               >
@@ -44,7 +45,7 @@
               </button>
               <button
                 id="addBookmarkBtn"
-                class="action-btn-icon primary has-label"
+                class="action-btn-icon has-label"
                 title="添加书签"
                 data-i18n-title="header.addTitle"
               >
@@ -68,6 +69,15 @@
                 <span class="dropdown-arrow">v</span>
               </button>
               <div id="toolsDropdown" class="dropdown-menu">
+                <a href="/import.html" class="dropdown-item"
+                  ><span class="item-icon">IMP</span>
+                  <div class="item-content">
+                    <span class="item-text" data-i18n="header.import">导入</span
+                    ><span class="item-desc" data-i18n="header.importDesc"
+                      >导入导出文件或备份</span
+                    >
+                  </div></a
+                >
                 <a href="/link-checker.html" class="dropdown-item"
                   ><span class="item-icon">CHK</span>
                   <div class="item-content">
@@ -84,7 +94,7 @@
                     <span class="item-text" data-i18n="header.deleted"
                       >已删除书签</span
                     ><span class="item-desc" data-i18n="header.deletedDesc"
-                      >查看已删除书签</span
+                      >查看和恢复删除记录</span
                     >
                   </div></a
                 >
@@ -96,7 +106,7 @@
                     ><span
                       class="item-desc"
                       data-i18n="header.notificationsDesc"
-                      >查看最近通知</span
+                      >查看最近维护通知</span
                     >
                   </div></a
                 >
@@ -104,9 +114,9 @@
                   ><span class="item-icon">API</span>
                   <div class="item-content">
                     <span class="item-text" data-i18n="header.apiTokens"
-                      >API 令牌</span
+                      >同步令牌</span
                     ><span class="item-desc" data-i18n="header.apiTokensDesc"
-                      >管理访问令牌</span
+                      >查看同步与令牌说明</span
                     >
                   </div></a
                 >
@@ -117,7 +127,7 @@
                     <span class="item-text" data-i18n="header.settings"
                       >设置</span
                     ><span class="item-desc" data-i18n="header.settingsDesc"
-                      >打开设置面板</span
+                      >导出、备份和导入</span
                     >
                   </div>
                 </button>
@@ -127,19 +137,17 @@
         </div>
       </header>
 
-      <main class="main-content home-content">
-        <section class="workspace-hero">
-          <div class="hero-copy">
-            <span class="hero-badge" data-i18n="home.heroBadge"
-              >公开工作台</span
-            >
+      <main class="main-content home-content home-compact">
+        <section class="workspace-hero workspace-hero-compact">
+          <div class="hero-copy hero-copy-compact">
+            <span class="hero-badge" data-i18n="home.heroBadge">首页</span>
             <h2 class="hero-title" data-i18n="home.heroTitle">
-              把搜索、导入、维护和备份集中在一个清爽的工作台里。
+              搜索优先，把常用链接更快找出来。
             </h2>
             <p class="hero-description" data-i18n="home.heroDescription">
-              首页是主入口。搜索保持优先，较重的工具在真正需要时再进入。
+              首页只保留搜索、筛选和书签列表。导入、检查、恢复这些较重工具放进工具菜单里。
             </p>
-            <div class="hero-actions">
+            <div class="hero-actions hero-actions-compact">
               <a
                 class="hero-link primary"
                 href="#searchContainer"
@@ -150,118 +158,31 @@
                 class="hero-link"
                 href="#bookmarksGrid"
                 data-i18n="home.heroBrowseLibrary"
-                >浏览书签库</a
-              >
-              <a
-                class="hero-link"
-                href="/import.html"
-                data-i18n="home.heroImportData"
-                >导入数据</a
-              >
-            </div>
-            <div class="hero-notes">
-              <span class="hero-note" data-i18n="home.heroNoteSearchShortcut"
-                >Ctrl / Cmd + K 可聚焦搜索</span
-              >
-              <span class="hero-note" data-i18n="home.heroNoteAddShortcut"
-                >Ctrl / Cmd + N 可打开新增书签</span
-              >
-              <span class="hero-note" data-i18n="home.heroNoteViews"
-                >同时支持网格和列表视图</span
+                >浏览书签</a
               >
             </div>
           </div>
-          <div class="hero-panel">
-            <div class="hero-panel-card">
-              <span class="hero-panel-label" data-i18n="home.heroPanelLabel"
-                >模式</span
-              >
-              <strong class="hero-panel-value" data-i18n="home.heroPanelValue"
-                >公开访问，开箱即用</strong
-              >
-              <p class="hero-panel-text" data-i18n="home.heroPanelText">
-                这套布局既适合共享起始页，也适合本地书签站，或者受控公开工作台。
-              </p>
+          <div class="hero-metrics hero-metrics-compact">
+            <div class="hero-metric">
+              <span data-i18n="home.heroMetricSearchLabel">搜索</span
+              ><strong data-i18n="home.heroMetricSearchValue">实时筛选</strong>
             </div>
-            <div class="hero-metrics">
-              <div class="hero-metric">
-                <span data-i18n="home.heroMetricSearchLabel">搜索</span
-                ><strong data-i18n="home.heroMetricSearchValue"
-                  >实时筛选</strong
-                >
-              </div>
-              <div class="hero-metric">
-                <span data-i18n="home.heroMetricManageLabel">管理</span
-                ><strong data-i18n="home.heroMetricManageValue"
-                  >新增、编辑与删除</strong
-                >
-              </div>
-              <div class="hero-metric">
-                <span data-i18n="home.heroMetricMaintainLabel">维护</span
-                ><strong data-i18n="home.heroMetricMaintainValue"
-                  >检查、导入与备份</strong
-                >
-              </div>
+            <div class="hero-metric">
+              <span data-i18n="home.heroMetricManageLabel">维护</span
+              ><strong data-i18n="home.heroMetricManageValue"
+                >工具菜单集中管理</strong
+              >
+            </div>
+            <div class="hero-metric">
+              <span data-i18n="home.heroMetricMaintainLabel">视图</span
+              ><strong data-i18n="home.heroMetricMaintainValue"
+                >网格与列表切换</strong
+              >
             </div>
           </div>
         </section>
 
-        <section class="workspace-quick-actions" aria-label="工作台快捷入口">
-          <a class="quick-action-card quick-action-primary" href="/import.html"
-            ><span
-              class="quick-action-kicker"
-              data-i18n="home.quickImportKicker"
-              >导入</span
-            ><strong
-              class="quick-action-title"
-              data-i18n="home.quickImportTitle"
-              >从导出文件或备份中导入书签</strong
-            ><span class="quick-action-copy" data-i18n="home.quickImportCopy"
-              >适合迁移、首次初始化和数据恢复。</span
-            ></a
-          >
-          <a class="quick-action-card" href="/link-checker.html"
-            ><span
-              class="quick-action-kicker"
-              data-i18n="home.quickMaintainKicker"
-              >维护</span
-            ><strong
-              class="quick-action-title"
-              data-i18n="home.quickMaintainTitle"
-              >批量检查失效链接</strong
-            ><span class="quick-action-copy" data-i18n="home.quickMaintainCopy"
-              >把不可达项目、保留决策和待删除项放在一个页面里处理。</span
-            ></a
-          >
-          <a class="quick-action-card" href="/deleted-bookmarks.html"
-            ><span
-              class="quick-action-kicker"
-              data-i18n="home.quickRestoreKicker"
-              >恢复</span
-            ><strong
-              class="quick-action-title"
-              data-i18n="home.quickRestoreTitle"
-              >查看删除记录</strong
-            ><span class="quick-action-copy" data-i18n="home.quickRestoreCopy"
-              >快速恢复误删内容，并让删除历史保持可见。</span
-            ></a
-          >
-          <a class="quick-action-card" href="/notifications.html"
-            ><span
-              class="quick-action-kicker"
-              data-i18n="home.quickSignalsKicker"
-              >通知</span
-            ><strong
-              class="quick-action-title"
-              data-i18n="home.quickSignalsTitle"
-              >查看最近检查和通知</strong
-            ><span class="quick-action-copy" data-i18n="home.quickSignalsCopy"
-              >后台维护应该留下可见记录，而不是静默发生。</span
-            ></a
-          >
-        </section>
-
-        <div id="searchContainer" class="search-container hidden">
+        <div id="searchContainer" class="search-container">
           <div class="search-box">
             <input
               type="text"
@@ -283,7 +204,9 @@
           </div>
         </div>
 
-        <section class="workspace-section-heading">
+        <section
+          class="workspace-section-heading workspace-section-heading-compact"
+        >
           <div>
             <span class="section-kicker" data-i18n="home.bookmarksKicker"
               >书签</span
@@ -293,17 +216,17 @@
             </h3>
           </div>
           <p class="section-copy" data-i18n="home.bookmarksCopy">
-            先搜索，再筛选。只有在任务需要时再进入更深的维护页面。
+            首页只负责找链接；更深的导入、检查和恢复工作放到独立页面。
           </p>
         </section>
 
-        <div class="controls-bar">
+        <div class="controls-bar controls-bar-compact">
           <div class="controls-copy">
             <span class="controls-kicker" data-i18n="home.workspaceLabel"
               >浏览工作台</span
             >
             <p class="controls-text" data-i18n="home.controlsHint">
-              按分类、热度和最近访问快速切换，找到常用链接会更快。
+              先搜索，再按分类或排序缩小范围。
             </p>
           </div>
           <div class="controls-main">
@@ -395,9 +318,9 @@
           </div>
           <div class="stats-item stats-item-accent">
             <span class="stats-label" data-i18n="home.statsShortcutLabel"
-              >快捷路径</span
+              >使用建议</span
             ><span class="stats-value" data-i18n="home.statsShortcutValue"
-              >搜索、筛选、维护</span
+              >搜索、筛选、打开</span
             >
           </div>
         </div>
@@ -560,7 +483,7 @@
         </div>
         <div class="settings-section settings-note">
           <p data-i18n="home.settingsNote">
-            当前工作台以公开模式运行，更适合本地使用或部署在受控环境中。
+            当前首页保持简洁，导入、检查和恢复功能统一放到工具页面里。
           </p>
         </div>
       </div>

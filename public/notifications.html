@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Notifications - Bookmark Navigator</title>
+    <title>通知 - 书签导航</title>
     <meta
       name="description"
-      content="Review recent maintenance summaries and link-check notifications in the public workspace."
+      content="查看最近的维护通知、检查结果和系统记录。"
     />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
@@ -24,16 +24,14 @@
           <div class="logo">
             <span class="logo-icon">MSG</span>
             <div class="logo-copy">
-              <h1 class="logo-text">Notifications</h1>
-              <p class="logo-subtitle">
-                Read recent maintenance summaries and system notices
-              </p>
+              <h1 class="logo-text">通知</h1>
+              <p class="logo-subtitle">查看最近的维护摘要和系统提醒</p>
             </div>
           </div>
           <div class="header-actions">
             <a class="action-btn-icon has-label" href="/">
               <span class="btn-icon">H</span>
-              <span class="action-btn-label">Home</span>
+              <span class="action-btn-label">首页</span>
             </a>
           </div>
         </div>
@@ -41,39 +39,36 @@
 
       <section class="workspace-section-heading">
         <div>
-          <span class="section-kicker">Signals</span>
-          <h2 class="section-title">
-            Keep maintenance output visible instead of hidden
-          </h2>
+          <span class="section-kicker">通知</span>
+          <h2 class="section-title">让维护结果保持可见，而不是静默发生</h2>
         </div>
         <p class="section-copy">
-          Link checks, scheduled cleanup, and health signals should leave a
-          readable trail so the public workspace stays understandable.
+          链接检查、定时维护和系统提示，都应该留下清晰记录，方便你回看和判断。
         </p>
       </section>
 
       <main class="notifications-container">
         <section class="notification-card">
           <div class="notification-card-header">
-            <h2 class="notification-card-title">Summary</h2>
+            <h2 class="notification-card-title">摘要</h2>
             <button id="refreshBtn" class="btn btn-secondary" type="button">
-              Refresh
+              刷新
             </button>
           </div>
           <div class="notification-stats">
             <div class="stat-group">
               <span class="stat-icon">ALL</span>
-              <span class="stat-text">Total records</span>
+              <span class="stat-text">总记录数</span>
               <span id="totalChecks" class="stat-value">0</span>
             </div>
             <div class="stat-group">
               <span class="stat-icon">BAD</span>
-              <span class="stat-text">Total unreachable</span>
+              <span class="stat-text">不可访问总数</span>
               <span id="totalInaccessible" class="stat-value">0</span>
             </div>
             <div class="stat-group">
               <span class="stat-icon">TIME</span>
-              <span class="stat-text">Last check</span>
+              <span class="stat-text">最近检查</span>
               <span id="lastCheckTime" class="stat-value">-</span>
             </div>
           </div>
@@ -81,12 +76,10 @@
 
         <section class="notification-card">
           <div class="notification-card-header">
-            <h2 class="notification-card-title">Recent records</h2>
+            <h2 class="notification-card-title">最近记录</h2>
           </div>
           <div id="notificationsList">
-            <div class="notification-description">
-              Loading notification records...
-            </div>
+            <div class="notification-description">正在加载通知记录...</div>
           </div>
         </section>
       </main>
@@ -98,22 +91,26 @@
     <script src="/js/admin-common.js"></script>
     <script>
       function getNotificationLabel(type) {
-        if (type === "weekly_check_notification") return "Auto notice";
-        if (type === "weekly_auto_check") return "Auto check";
-        return "System record";
+        if (type === "weekly_check_notification") return "自动通知";
+        if (type === "weekly_auto_check") return "自动检查";
+        return "系统记录";
       }
 
       function renderNotificationItem(item) {
         const typeLabel = getNotificationLabel(item.type);
         const sample = item.inaccessibleBookmarks || [];
         const total =
-          typeof item.total === "number" ? item.total : item.inaccessibleCount || 0;
+          typeof item.total === "number"
+            ? item.total
+            : item.inaccessibleCount || 0;
         const inaccessible =
           typeof item.inaccessible === "number"
             ? item.inaccessible
             : item.inaccessibleCount || 0;
         const deleted =
-          typeof item.deleted === "number" ? item.deleted : item.deletedCount || 0;
+          typeof item.deleted === "number"
+            ? item.deleted
+            : item.deletedCount || 0;
         const statusClass =
           inaccessible > 0
             ? "critical"
@@ -133,24 +130,24 @@
               <p class="notification-description">
                 ${
                   inaccessible > 0
-                    ? `Found ${inaccessible} unreachable links.`
-                    : "No unreachable links were reported in this run."
+                    ? `发现 ${inaccessible} 个不可访问链接。`
+                    : "本次运行没有发现不可访问链接。"
                 }
               </p>
             </div>
             <div class="notification-stats">
-              <div class="stat-group"><span class="stat-text">Checked</span><span class="stat-value">${total}</span></div>
-              <div class="stat-group"><span class="stat-text">Reachable</span><span class="stat-value">${item.accessible ?? 0}</span></div>
-              <div class="stat-group"><span class="stat-text">Unreachable</span><span class="stat-value">${inaccessible}</span></div>
-              <div class="stat-group"><span class="stat-text">Deleted</span><span class="stat-value">${deleted}</span></div>
+              <div class="stat-group"><span class="stat-text">已检查</span><span class="stat-value">${total}</span></div>
+              <div class="stat-group"><span class="stat-text">可访问</span><span class="stat-value">${item.accessible ?? 0}</span></div>
+              <div class="stat-group"><span class="stat-text">不可访问</span><span class="stat-value">${inaccessible}</span></div>
+              <div class="stat-group"><span class="stat-text">已删除</span><span class="stat-value">${deleted}</span></div>
             </div>
             ${
               sample.length
-                ? `<div class="notification-content"><div class="notification-description"><strong>Examples:</strong><ul>${sample
+                ? `<div class="notification-content"><div class="notification-description"><strong>示例：</strong><ul>${sample
                     .slice(0, 5)
                     .map(
                       (bookmark) =>
-                        `<li>${AdminUI.escapeHtml(bookmark.title || bookmark.url || "Untitled")}${
+                        `<li>${AdminUI.escapeHtml(bookmark.title || bookmark.url || "未命名")}${
                           bookmark.url
                             ? ` - ${AdminUI.escapeHtml(bookmark.url)}`
                             : ""
@@ -166,7 +163,8 @@
       function updateSummary(items) {
         const totalChecks = items.length;
         const totalInaccessible = items.reduce(
-          (sum, item) => sum + (item.inaccessible ?? item.inaccessibleCount ?? 0),
+          (sum, item) =>
+            sum + (item.inaccessible ?? item.inaccessibleCount ?? 0),
           0,
         );
         const lastItem = items[0];
@@ -183,12 +181,12 @@
       async function loadNotifications() {
         const container = document.getElementById("notificationsList");
         container.innerHTML =
-          '<div class="notification-description">Loading notification records...</div>';
+          '<div class="notification-description">正在加载通知记录...</div>';
 
         try {
           const response = await API.get("/api/cron/weekly-check");
           if (!response.success) {
-            throw new Error(response.error || "Failed to load records");
+            throw new Error(response.error || "加载记录失败");
           }
 
           const items = response.data || [];
@@ -196,14 +194,13 @@
 
           if (!items.length) {
             container.innerHTML =
-              '<div class="notification-description">There are no notification records yet.</div>';
+              '<div class="notification-description">暂时还没有通知记录。</div>';
             return;
           }
 
           container.innerHTML = items.map(renderNotificationItem).join("");
         } catch (error) {
-          container.innerHTML =
-            `<div class="notification-description">Load failed: ${AdminUI.escapeHtml(error.message)}</div>`;
+          container.innerHTML = `<div class="notification-description">加载失败：${AdminUI.escapeHtml(error.message)}</div>`;
         }
       }
 

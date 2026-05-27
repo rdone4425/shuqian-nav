@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Advanced Sync Tools - Bookmark Navigator</title>
+    <title>同步令牌说明 - 书签导航</title>
     <meta
       name="description"
-      content="Advanced sync tools for Chrome extension setup and automation. Web token management stays disabled by default in public mode."
+      content="查看 Chrome 扩展同步和 API 令牌相关说明。公开模式下默认关闭网页令牌管理。"
     />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
@@ -23,8 +23,8 @@
           <div class="logo">
             <span class="logo-icon">API</span>
             <div class="logo-copy">
-              <h1 class="logo-text">Advanced Sync Tools</h1>
-              <p class="logo-subtitle">Chrome extension and automation setup</p>
+              <h1 class="logo-text">同步令牌说明</h1>
+              <p class="logo-subtitle">用于 Chrome 扩展和自动化同步设置</p>
             </div>
           </div>
 
@@ -32,7 +32,7 @@
             <div class="action-group">
               <a class="action-btn-icon has-label" href="/">
                 <span class="btn-icon">H</span>
-                <span class="action-btn-label">Home</span>
+                <span class="action-btn-label">首页</span>
               </a>
             </div>
           </div>
@@ -42,43 +42,39 @@
       <main class="token-container token-page-shell">
         <section class="token-intro-card">
           <div class="token-title-block">
-            <span class="token-kicker">Advanced</span>
+            <span class="token-kicker">高级</span>
             <h2 class="token-page-title">
-              This page is for sync integration, not the main public workspace
-              flow.
+              这个页面只用于同步接入，不是日常首页流程。
             </h2>
             <p class="token-page-copy">
-              Keep everyday browsing, search, import, and maintenance on the
-              home page. Use this page only when Chrome sync or automation
-              requires a token-backed integration.
+              平时的搜索、浏览、导入和维护都建议在首页或工具页完成。只有在
+              Chrome 同步或自动化确实需要令牌时，再来这里查看说明。
             </p>
           </div>
 
           <div class="token-intro-grid">
             <article class="token-mini-card">
-              <strong>Chrome extension</strong>
+              <strong>Chrome 扩展</strong>
               <span
-                >The extension still sends <code>X-API-Token</code> to
-                <code>/api/bookmarks/sync</code>, so token support remains part
-                of the backend contract.</span
+                >扩展仍会把 <code>X-API-Token</code> 发送到
+                <code>/api/bookmarks/sync</code
+                >，因此令牌支持仍然是后端契约的一部分。</span
               >
             </article>
             <article class="token-mini-card">
-              <strong>Public mode guardrail</strong>
+              <strong>公开模式保护</strong>
               <span
-                >To avoid exposing token creation to all visitors, web token
-                management is disabled by default and this page focuses on
-                status and guidance.</span
+                >为了避免所有访问者都能创建令牌，网页端令牌管理默认关闭，这个页面主要负责展示状态和说明。</span
               >
             </article>
           </div>
         </section>
 
         <section class="token-guard-card">
-          <span class="token-kicker">Status</span>
-          <h3 class="section-title">Current web token management status</h3>
+          <span class="token-kicker">状态</span>
+          <h3 class="section-title">当前网页令牌管理状态</h3>
           <p id="tokenGuardStatus" class="token-guard-copy">
-            Checking current configuration...
+            正在检查当前配置...
           </p>
           <div class="token-actions-inline">
             <button
@@ -86,49 +82,42 @@
               class="btn btn-primary"
               type="button"
             >
-              Refresh status
+              刷新状态
             </button>
-            <a href="/" class="btn btn-soft">Back to home</a>
+            <a href="/" class="btn btn-soft">返回首页</a>
           </div>
         </section>
 
         <section class="token-guide-card">
-          <span class="token-kicker">Guide</span>
-          <h3 class="section-title">How to enable sync tokens safely</h3>
+          <span class="token-kicker">说明</span>
+          <h3 class="section-title">如何更安全地启用同步令牌</h3>
           <div class="token-guide-grid">
             <article class="token-mini-card">
-              <strong>1. Keep it off by default</strong>
+              <strong>1. 默认保持关闭</strong>
+              <span>公开书签站不应把令牌创建能力暴露给所有访问者。</span>
+            </article>
+            <article class="token-mini-card">
+              <strong>2. 明确开启</strong>
               <span
-                >A public bookmark site should not expose token creation to
-                every visitor.</span
+                >仅在受控环境里，把
+                <code>PUBLIC_API_TOKEN_MANAGEMENT</code> 设为
+                <code>enabled</code>。</span
               >
             </article>
             <article class="token-mini-card">
-              <strong>2. Opt in explicitly</strong>
-              <span
-                >Only in a controlled environment, set
-                <code>PUBLIC_API_TOKEN_MANAGEMENT</code> to
-                <code>enabled</code>.</span
-              >
+              <strong>3. 按工具分开令牌</strong>
+              <span>不同自动化工具尽量使用不同令牌，后续撤销更简单。</span>
             </article>
             <article class="token-mini-card">
-              <strong>3. Scope tokens per tool</strong>
+              <strong>4. 在这里查看接入说明</strong>
               <span
-                >Create separate tokens for separate automations so revocation
-                stays simple.</span
-              >
-            </article>
-            <article class="token-mini-card">
-              <strong>4. Configure the extension here</strong>
-              <span
-                >The Chrome popup still points users to this page for service
-                URL and token setup guidance.</span
+                >Chrome 扩展仍然会把用户带到这里查看服务地址和令牌说明。</span
               >
             </article>
           </div>
           <div class="token-actions-inline">
-            <a class="btn btn-primary" href="/import.html">Import bookmarks</a>
-            <a class="btn btn-soft" href="/link-checker.html">Check links</a>
+            <a class="btn btn-primary" href="/import.html">导入书签</a>
+            <a class="btn btn-soft" href="/link-checker.html">检查链接</a>
           </div>
         </section>
       </main>
@@ -137,7 +126,7 @@
     <script>
       async function refreshTokenGuardStatus() {
         const statusEl = document.getElementById("tokenGuardStatus");
-        statusEl.textContent = "Checking current configuration...";
+        statusEl.textContent = "正在检查当前配置...";
 
         try {
           const response = await fetch("/api/auth/token", {
@@ -151,21 +140,20 @@
 
           if (response.status === 403) {
             statusEl.textContent =
-              "Public mode protection is active. Web token management is disabled until PUBLIC_API_TOKEN_MANAGEMENT=enabled is set.";
+              "公开模式保护已启用。只有在设置 PUBLIC_API_TOKEN_MANAGEMENT=enabled 后，网页端令牌管理才会开放。";
             return;
           }
 
           if (response.ok) {
             statusEl.textContent =
-              "Web token management is enabled for this environment. Make sure only trusted operators can access this deployment.";
+              "当前环境已启用网页端令牌管理。请确认只有可信操作人员可以访问这个部署。";
             return;
           }
 
           statusEl.textContent =
-            data.error ||
-            "Token status check failed with HTTP " + response.status;
+            data.error || "令牌状态检查失败，HTTP 状态码：" + response.status;
         } catch (error) {
-          statusEl.textContent = "Token status check failed: " + error.message;
+          statusEl.textContent = "令牌状态检查失败：" + error.message;
         }
       }
 

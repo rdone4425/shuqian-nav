@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Link Checker - Bookmark Navigator</title>
+    <title>链接检查 - 书签导航</title>
     <meta
       name="description"
-      content="Run reachability checks across the bookmark workspace and keep decisions visible."
+      content="批量检查书签可访问性，并把处理结果保留为可见记录。"
     />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
@@ -24,16 +24,14 @@
           <div class="logo">
             <span class="logo-icon">CHK</span>
             <div class="logo-copy">
-              <h1 class="logo-text">Link Checker</h1>
-              <p class="logo-subtitle">
-                Verify bookmark reachability before cleanup
-              </p>
+              <h1 class="logo-text">链接检查</h1>
+              <p class="logo-subtitle">在清理前先确认书签是否可访问</p>
             </div>
           </div>
           <div class="header-actions">
             <a class="action-btn-icon has-label" href="/">
               <span class="btn-icon">H</span>
-              <span class="action-btn-label">Home</span>
+              <span class="action-btn-label">首页</span>
             </a>
           </div>
         </div>
@@ -41,44 +39,46 @@
 
       <section class="workspace-section-heading">
         <div>
-          <span class="section-kicker">Maintain</span>
-          <h2 class="section-title">Check the workspace before deleting anything</h2>
+          <span class="section-kicker">维护</span>
+          <h2 class="section-title">删除前，先把检查结果看清楚</h2>
         </div>
         <p class="section-copy">
-          This page loads the current bookmark set, checks links one by one, and
-          keeps the results visible while you decide what to keep or remove.
+          这个页面会加载当前书签库，逐条检查链接，并把结果保留在页面上，方便你决定保留或删除。
         </p>
       </section>
 
       <main class="checker-container">
         <section class="controls-section">
           <div class="checker-header">
-            <h2>Run a reachability pass across saved bookmarks</h2>
+            <h2>对已保存书签进行一轮可访问性检查</h2>
           </div>
           <p class="bookmarks-stats">
-            This tool reviews existing bookmarks only. It does not create or
-            import new data.
+            这里只检查现有书签，不会创建或导入新数据。
           </p>
           <div class="btn-group">
-            <button id="reloadBookmarksBtn" class="btn btn-secondary" type="button">
-              Refresh list
+            <button
+              id="reloadBookmarksBtn"
+              class="btn btn-secondary"
+              type="button"
+            >
+              刷新列表
             </button>
             <button id="startCheckBtn" class="btn btn-primary" type="button">
-              Start checks
+              开始检查
             </button>
             <button
               id="stopCheckBtn"
               class="btn btn-secondary hidden"
               type="button"
             >
-              Stop
+              停止
             </button>
           </div>
         </section>
 
         <section class="progress-section">
           <div class="progress-header">
-            <span id="progressText" class="progress-text">Waiting to start</span>
+            <span id="progressText" class="progress-text">等待开始</span>
             <span id="progressPercent" class="progress-percent">0%</span>
           </div>
           <div class="progress-bar">
@@ -87,56 +87,56 @@
           <div class="stats-grid">
             <div class="stat-item">
               <span class="stat-value" id="totalBookmarks">0</span>
-              <span class="stat-label">Total</span>
+              <span class="stat-label">总计</span>
             </div>
             <div class="stat-item">
               <span class="stat-value" id="checkedCount">0</span>
-              <span class="stat-label">Checked</span>
+              <span class="stat-label">已检查</span>
             </div>
             <div class="stat-item">
               <span class="stat-value" id="accessibleCount">0</span>
-              <span class="stat-label">Reachable</span>
+              <span class="stat-label">可访问</span>
             </div>
             <div class="stat-item">
               <span class="stat-value" id="inaccessibleCount">0</span>
-              <span class="stat-label">Unreachable</span>
+              <span class="stat-label">不可访问</span>
             </div>
             <div class="stat-item">
               <span class="stat-value" id="keptCount">0</span>
-              <span class="stat-label">Kept</span>
+              <span class="stat-label">已保留</span>
             </div>
             <div class="stat-item">
               <span class="stat-value" id="deletedCount">0</span>
-              <span class="stat-label">Deleted</span>
+              <span class="stat-label">已删除</span>
             </div>
           </div>
         </section>
 
         <section class="details-section">
           <div class="details-content">
-            <h4>How this works</h4>
+            <h4>工作方式</h4>
             <ul>
-              <li>The page loads the current bookmark library from the backend.</li>
-              <li>Each check updates status in place so you can review it as it runs.</li>
-              <li>You can keep an item, re-check a single item, or delete it from the list.</li>
+              <li>页面会先从后端加载当前书签库。</li>
+              <li>开始检查后，每条书签会逐个更新状态。</li>
+              <li>你可以保留单条、重新检查单条，或者直接删除。</li>
             </ul>
           </div>
         </section>
 
         <section id="bookmarksCard" class="bookmarks-section">
           <div class="bookmarks-header">
-            <h2>Bookmark list</h2>
-            <span id="filterStatus" class="bookmarks-stats">Waiting to load</span>
+            <h2>书签列表</h2>
+            <span id="filterStatus" class="bookmarks-stats">等待加载</span>
           </div>
           <div id="bookmarksList">
-            <div class="bookmarks-stats">Loading bookmarks...</div>
+            <div class="bookmarks-stats">正在加载书签...</div>
           </div>
         </section>
 
         <section class="details-section">
           <div class="details-content">
-            <h4>Recent runs</h4>
-            <div id="historyList">Loading history...</div>
+            <h4>最近运行记录</h4>
+            <div id="historyList">正在加载历史记录...</div>
           </div>
         </section>
       </main>
@@ -159,25 +159,25 @@
       }
 
       function getStatusBadgeText(bookmarkClass) {
-        if (bookmarkClass === "accessible") return "OK";
-        if (bookmarkClass === "inaccessible") return "ERR";
-        if (bookmarkClass === "kept") return "KEEP";
-        if (bookmarkClass === "deleted") return "DEL";
-        if (bookmarkClass === "checking") return "...";
-        return "ID";
+        if (bookmarkClass === "accessible") return "正常";
+        if (bookmarkClass === "inaccessible") return "异常";
+        if (bookmarkClass === "kept") return "保留";
+        if (bookmarkClass === "deleted") return "已删";
+        if (bookmarkClass === "checking") return "检查中";
+        return "待检";
       }
 
       function getResultText(bookmark) {
-        if (bookmark.deleted) return "Deleted";
-        if (bookmark.status === "checking") return "Checking...";
+        if (bookmark.deleted) return "已删除";
+        if (bookmark.status === "checking") return "正在检查...";
         if (bookmark.status === "accessible") {
-          return `HTTP ${bookmark.statusCode || 200} reachable`;
+          return `HTTP ${bookmark.statusCode || 200} 可访问`;
         }
         if (bookmark.status === "inaccessible") {
-          return bookmark.error || `${bookmark.statusCode || 0} unreachable`;
+          return bookmark.error || `${bookmark.statusCode || 0} 不可访问`;
         }
-        if (bookmark.keepStatus === "keep") return "Marked as keep";
-        return "Pending";
+        if (bookmark.keepStatus === "keep") return "已标记保留";
+        return "待检查";
       }
 
       function renderBookmarks() {
@@ -185,43 +185,43 @@
 
         if (!state.bookmarks.length) {
           list.innerHTML =
-            '<div class="bookmarks-stats">There are no bookmarks to check.</div>';
-          document.getElementById("filterStatus").textContent = "No data";
+            '<div class="bookmarks-stats">当前没有可检查的书签。</div>';
+          document.getElementById("filterStatus").textContent = "暂无数据";
           updateStats();
           return;
         }
 
         document.getElementById("filterStatus").textContent =
-          `${state.bookmarks.length} bookmarks loaded`;
+          `已加载 ${state.bookmarks.length} 条书签`;
 
         list.innerHTML = state.bookmarks
           .map((bookmark) => {
             const bookmarkClass = getBookmarkClass(bookmark);
             const keepAction =
               bookmark.keepStatus === "keep"
-                ? `<button class="unkeep-btn" type="button" data-action="unkeep" data-id="${bookmark.id}">Clear keep</button>`
-                : `<button class="keep-btn" type="button" data-action="keep" data-id="${bookmark.id}">Keep</button>`;
+                ? `<button class="unkeep-btn" type="button" data-action="unkeep" data-id="${bookmark.id}">取消保留</button>`
+                : `<button class="keep-btn" type="button" data-action="keep" data-id="${bookmark.id}">保留</button>`;
 
             return `
               <article class="bookmark-item ${bookmarkClass}">
                 <div class="bookmark-status">${getStatusBadgeText(bookmarkClass)}</div>
                 <div class="bookmark-info">
-                  <div class="bookmark-title">${AdminUI.escapeHtml(bookmark.title || "Untitled bookmark")}</div>
+                  <div class="bookmark-title">${AdminUI.escapeHtml(bookmark.title || "未命名书签")}</div>
                   <div class="bookmark-url">
                     <a href="${AdminUI.escapeHtml(bookmark.url)}" target="_blank" rel="noreferrer">${AdminUI.escapeHtml(bookmark.url)}</a>
                   </div>
                 </div>
                 <div class="bookmark-meta">
                   <span class="bookmark-category" style="background:${AdminUI.escapeHtml(bookmark.categoryColor || "#6b7280")}">
-                    ${AdminUI.escapeHtml(bookmark.category || "Uncategorized")}
+                    ${AdminUI.escapeHtml(bookmark.category || "未分类")}
                   </span>
                   <span class="bookmark-result">${AdminUI.escapeHtml(getResultText(bookmark))}</span>
                 </div>
                 <div class="bookmark-actions-container">
                   <div class="bookmark-actions">
-                    <button class="btn btn-outline" type="button" data-action="check" data-id="${bookmark.id}">Check</button>
+                    <button class="btn btn-outline" type="button" data-action="check" data-id="${bookmark.id}">检查</button>
                     ${keepAction}
-                    <button class="delete-single-btn" type="button" data-action="delete" data-id="${bookmark.id}">Delete</button>
+                    <button class="delete-single-btn" type="button" data-action="delete" data-id="${bookmark.id}">删除</button>
                   </div>
                 </div>
               </article>
@@ -249,7 +249,9 @@
         const kept = state.bookmarks.filter(
           (bookmark) => bookmark.keepStatus === "keep" && !bookmark.deleted,
         ).length;
-        const deleted = state.bookmarks.filter((bookmark) => bookmark.deleted).length;
+        const deleted = state.bookmarks.filter(
+          (bookmark) => bookmark.deleted,
+        ).length;
         const percent = total ? Math.round((checked / total) * 100) : 0;
 
         document.getElementById("totalBookmarks").textContent = total;
@@ -264,12 +266,12 @@
 
       async function loadBookmarks() {
         document.getElementById("bookmarksList").innerHTML =
-          '<div class="bookmarks-stats">Loading bookmarks...</div>';
+          '<div class="bookmarks-stats">正在加载书签...</div>';
 
         try {
           const response = await API.get("/api/system/check-links-stream");
           if (!response.success) {
-            throw new Error(response.error || "Failed to load bookmarks");
+            throw new Error(response.error || "加载书签失败");
           }
 
           state.bookmarks = (response.data || []).map((bookmark) => ({
@@ -282,11 +284,11 @@
           }));
 
           document.getElementById("progressText").textContent =
-            "Bookmark list loaded";
+            "书签列表已加载";
           renderBookmarks();
         } catch (error) {
           document.getElementById("bookmarksList").innerHTML =
-            `<div class="bookmarks-stats">Load failed: ${AdminUI.escapeHtml(error.message)}</div>`;
+            `<div class="bookmarks-stats">加载失败：${AdminUI.escapeHtml(error.message)}</div>`;
         }
       }
 
@@ -300,7 +302,7 @@
         bookmark.error = "";
         renderBookmarks();
         document.getElementById("progressText").textContent =
-          `Checking ${bookmark.title}`;
+          `正在检查：${bookmark.title}`;
 
         try {
           const response = await API.post("/api/system/check-links-stream", {
@@ -310,7 +312,7 @@
           });
 
           if (!response.success) {
-            throw new Error(response.error || "Failed to check bookmark");
+            throw new Error(response.error || "检查书签失败");
           }
 
           const result = response.data;
@@ -343,12 +345,12 @@
         state.stopRequested = false;
         document.getElementById("startCheckBtn").classList.remove("hidden");
         document.getElementById("stopCheckBtn").classList.add("hidden");
-        document.getElementById("progressText").textContent = "Checks completed";
+        document.getElementById("progressText").textContent = "本轮检查已完成";
       }
 
       function stopBatchCheck() {
         state.stopRequested = true;
-        document.getElementById("progressText").textContent = "Stopping checks...";
+        document.getElementById("progressText").textContent = "正在停止检查...";
       }
 
       async function updateKeepStatus(bookmarkId, keepStatus) {
@@ -359,7 +361,7 @@
           });
 
           if (!response.success) {
-            throw new Error(response.error || "Failed to update keep status");
+            throw new Error(response.error || "更新保留状态失败");
           }
 
           const bookmark = state.bookmarks.find(
@@ -369,12 +371,10 @@
 
           renderBookmarks();
           AdminUI.showToast(
-            keepStatus === "keep"
-              ? "Bookmark marked as keep"
-              : "Keep mark cleared",
+            keepStatus === "keep" ? "书签已标记为保留" : "已取消保留标记",
           );
         } catch (error) {
-          AdminUI.showToast(`Update failed: ${error.message}`, "error");
+          AdminUI.showToast(`更新失败：${error.message}`, "error");
         }
       }
 
@@ -385,7 +385,7 @@
         if (!bookmark) return;
 
         const confirmed = window.confirm(
-          `Delete bookmark "${bookmark.title}" now?`,
+          `确定现在删除书签「${bookmark.title}」吗？`,
         );
         if (!confirmed) return;
 
@@ -402,15 +402,15 @@
           });
 
           if (!response.success) {
-            throw new Error(response.error || "Failed to delete bookmark");
+            throw new Error(response.error || "删除书签失败");
           }
 
           bookmark.deleted = true;
           bookmark.status = "deleted";
           renderBookmarks();
-          AdminUI.showToast(`Deleted: ${bookmark.title}`);
+          AdminUI.showToast(`已删除：${bookmark.title}`);
         } catch (error) {
-          AdminUI.showToast(`Delete failed: ${error.message}`, "error");
+          AdminUI.showToast(`删除失败：${error.message}`, "error");
         }
       }
 
@@ -418,14 +418,14 @@
         try {
           const response = await API.get("/api/system/check-links");
           if (!response.success) {
-            throw new Error(response.error || "Failed to load history");
+            throw new Error(response.error || "加载历史记录失败");
           }
 
           const history = response.data || [];
           const historyList = document.getElementById("historyList");
 
           if (!history.length) {
-            historyList.textContent = "There are no saved check runs yet.";
+            historyList.textContent = "暂时还没有保存过检查记录。";
             return;
           }
 
@@ -434,16 +434,16 @@
             .map(
               (item) => `
                 <div class="bookmarks-stats" style="margin-bottom: 8px;">
-                  ${AdminUI.formatDate(item.checkedAt || item.createdAt)}:
-                  total ${item.total ?? 0}, reachable ${item.accessible ?? 0},
-                  unreachable ${item.inaccessible ?? 0}
+                  ${AdminUI.formatDate(item.checkedAt || item.createdAt)}：
+                  总计 ${item.total ?? 0}，可访问 ${item.accessible ?? 0}，
+                  不可访问 ${item.inaccessible ?? 0}
                 </div>
               `,
             )
             .join("");
         } catch (error) {
           document.getElementById("historyList").textContent =
-            `Failed to load history: ${error.message}`;
+            `加载历史记录失败：${error.message}`;
         }
       }
 
@@ -457,16 +457,18 @@
         document
           .getElementById("stopCheckBtn")
           .addEventListener("click", stopBatchCheck);
-        document.getElementById("bookmarksList").addEventListener("click", (event) => {
-          const button = event.target.closest("[data-action]");
-          if (!button) return;
+        document
+          .getElementById("bookmarksList")
+          .addEventListener("click", (event) => {
+            const button = event.target.closest("[data-action]");
+            if (!button) return;
 
-          const { action, id } = button.dataset;
-          if (action === "check") checkBookmark(id);
-          else if (action === "keep") updateKeepStatus(id, "keep");
-          else if (action === "unkeep") updateKeepStatus(id, "normal");
-          else if (action === "delete") deleteBookmark(id);
-        });
+            const { action, id } = button.dataset;
+            if (action === "check") checkBookmark(id);
+            else if (action === "keep") updateKeepStatus(id, "keep");
+            else if (action === "unkeep") updateKeepStatus(id, "normal");
+            else if (action === "delete") deleteBookmark(id);
+          });
 
         await Promise.all([loadBookmarks(), loadHistory()]);
       });
