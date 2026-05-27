@@ -70,22 +70,22 @@ const I18n = {
         restoreFailed: "恢复失败",
       },
       header: {
-        searchTitle: "搜索书签",
-        addTitle: "添加书签",
-        toolsTitle: "工具菜单",
-        searchButton: "搜索",
-        addButton: "新增书签",
-        toolsButton: "工具",
-        apiTokens: "API 令牌",
-        apiTokensDesc: "管理访问令牌",
-        linkChecker: "链接检查",
-        linkCheckerDesc: "检查书签可访问性",
-        deleted: "已删除书签",
-        deletedDesc: "查看已删除书签",
-        notifications: "通知",
-        notificationsDesc: "查看最近通知",
-        settings: "设置",
-        settingsDesc: "打开设置面板",
+        searchTitle: "Search bookmarks",
+        addTitle: "Add bookmark",
+        toolsTitle: "Tools menu",
+        searchButton: "Search",
+        addButton: "Add bookmark",
+        toolsButton: "Tools",
+        apiTokens: "API Tokens",
+        apiTokensDesc: "Manage access tokens",
+        linkChecker: "Link Checker",
+        linkCheckerDesc: "Check bookmark reachability",
+        deleted: "Deleted",
+        deletedDesc: "Review deleted bookmarks",
+        notifications: "Notifications",
+        notificationsDesc: "View recent notices",
+        settings: "Settings",
+        settingsDesc: "Open workspace settings",
       },
       search: {
         placeholder: "搜索书签标题、描述或 URL...",
@@ -112,10 +112,105 @@ const I18n = {
         listShort: "列表",
       },
       stats: {
-        total: "总计",
-        currentPage: "当前页",
+        total: "Total:",
+        currentPage: "Current page:",
       },
       home: {
+        subtitle: "Search, sort, and revisit the links you use every day.",
+        workspaceLabel: "Workspace",
+        controlsHint:
+          "Switch by category, popularity, and recent activity to find the right link faster.",
+        logoSubtitle: "Public bookmark workspace",
+        heroBadge: "Public Workspace",
+        heroTitle:
+          "Keep search, import, maintenance, and backup in one clean workspace.",
+        heroDescription:
+          "The home page is the main path. Search stays primary, and heavier tools stay secondary until you need them.",
+        heroStartSearch: "Start Search",
+        heroBrowseLibrary: "Browse Library",
+        heroImportData: "Import Data",
+        heroNoteSearchShortcut: "Ctrl / Cmd + K focuses search",
+        heroNoteAddShortcut: "Ctrl / Cmd + N opens add bookmark",
+        heroNoteViews: "Grid and list view are both available",
+        heroPanelLabel: "Mode",
+        heroPanelValue: "Public access, ready to use",
+        heroPanelText:
+          "This layout works as a shared start page, a local bookmark station, or a controlled public workspace.",
+        heroMetricSearchLabel: "Search",
+        heroMetricSearchValue: "Live filtering",
+        heroMetricManageLabel: "Manage",
+        heroMetricManageValue: "Add, edit, and remove",
+        heroMetricMaintainLabel: "Maintain",
+        heroMetricMaintainValue: "Check, import, and backup",
+        quickImportKicker: "Import",
+        quickImportTitle: "Bring bookmarks in from export or backup",
+        quickImportCopy: "Best for migration, first-time setup, and recovery.",
+        quickMaintainKicker: "Maintain",
+        quickMaintainTitle: "Check broken links in batches",
+        quickMaintainCopy:
+          "Review unreachable items, keep decisions, and pending removals in one place.",
+        quickRestoreKicker: "Restore",
+        quickRestoreTitle: "Review deleted records",
+        quickRestoreCopy:
+          "Recover mistakes quickly and keep deletion history visible.",
+        quickSignalsKicker: "Signals",
+        quickSignalsTitle: "Read recent checks and notices",
+        quickSignalsCopy:
+          "Background maintenance should leave visible evidence instead of going silent.",
+        bookmarksKicker: "Bookmarks",
+        bookmarksTitle: "Current library",
+        bookmarksCopy:
+          "Search first, then filter. Move into deeper maintenance pages only when the task needs them.",
+        statsShortcutLabel: "Shortcut lane",
+        statsShortcutValue: "Search, filter, maintain",
+        loadFailedMessage: "The bookmark list could not be loaded.",
+        settingsNote:
+          "This workspace runs in public mode and is best used locally or inside a controlled environment.",
+      },
+      empty: {
+        subtitle: "??????????????",
+        workspaceLabel: "?????",
+        controlsHint: "??????????????????????????",
+        logoSubtitle: "???????",
+        heroBadge: "?????",
+        heroTitle: "?????????????????????????",
+        heroDescription: "?????????????????????????????",
+        heroStartSearch: "????",
+        heroBrowseLibrary: "?????",
+        heroImportData: "????",
+        heroNoteSearchShortcut: "Ctrl / Cmd + K ?????",
+        heroNoteAddShortcut: "Ctrl / Cmd + N ???????",
+        heroNoteViews: "???????????",
+        heroPanelLabel: "??",
+        heroPanelValue: "?????????",
+        heroPanelText: "????????????????????????????????",
+        heroMetricSearchLabel: "??",
+        heroMetricSearchValue: "????",
+        heroMetricManageLabel: "??",
+        heroMetricManageValue: "????????",
+        heroMetricMaintainLabel: "??",
+        heroMetricMaintainValue: "????????",
+        quickImportKicker: "??",
+        quickImportTitle: "?????????????",
+        quickImportCopy: "????????????????",
+        quickMaintainKicker: "??",
+        quickMaintainTitle: "????????",
+        quickMaintainCopy: "??????????????????????????",
+        quickRestoreKicker: "??",
+        quickRestoreTitle: "??????",
+        quickRestoreCopy: "????????????????????",
+        quickSignalsKicker: "??",
+        quickSignalsTitle: "?????????",
+        quickSignalsCopy: "?????????????????????",
+        bookmarksKicker: "??",
+        bookmarksTitle: "?????",
+        bookmarksCopy: "???????????????????????????",
+        statsShortcutLabel: "????",
+        statsShortcutValue: "????????",
+        loadFailedMessage: "?????????",
+        settingsNote: "??????????????????????????????",
+      },
+      empty: {
         subtitle: "更快搜索、整理和回访常用链接",
         workspaceLabel: "浏览工作台",
         controlsHint: "按分类、热度和最近访问快速切换，找到常用链接会更快。",
@@ -145,13 +240,13 @@ const I18n = {
         cancelBtn: "取消",
       },
       settings: {
-        title: "设置",
-        data: "数据",
-        exportHtml: "导出 HTML",
-        exportJson: "导出 JSON",
-        backupJson: "完整备份 (JSON)",
-        backupHtml: "完整备份 (HTML)",
-        import: "导入书签",
+        title: "Settings",
+        data: "Data",
+        exportHtml: "Export HTML",
+        exportJson: "Export JSON",
+        backupJson: "Full backup (JSON)",
+        backupHtml: "Full backup (HTML)",
+        import: "Import bookmarks",
       },
       pagination: {
         prev: "上一页",
@@ -205,7 +300,8 @@ const I18n = {
         statKept: "已保留",
         statDeleted: "已删除",
         howThisWorks: "工作原理",
-        howThisWorksLine1: "本页面从 /api/system/check-links-stream 加载当前书签列表。",
+        howThisWorksLine1:
+          "本页面从 /api/system/check-links-stream 加载当前书签列表。",
         howThisWorksLine2: "点击开始后，逐个检查每个链接的可访问性。",
         howThisWorksLine3: "你可以保留某个链接、重新检查单个链接，或手动删除。",
         bookmarkList: "书签列表",
@@ -309,7 +405,8 @@ const I18n = {
         reasonLinkFailed: "链接检查失败",
         reasonBatchDelete: "批量删除",
         reasonOther: "其他",
-        permanentDeleteConfirm: "确定永久删除记录「{title}」吗？此操作不可撤销。",
+        permanentDeleteConfirm:
+          "确定永久删除记录「{title}」吗？此操作不可撤销。",
         recordDeletedForever: "记录已永久删除",
         deleteFailed: "删除失败",
         // restore modal innerHTML
@@ -425,7 +522,8 @@ const I18n = {
         deleted: "Deleted",
         deleteFailed: "Delete failed",
         historyLoadFailed: "Failed to load history",
-        historyItem: "total {total}, reachable {accessible}, unreachable {inaccessible}",
+        historyItem:
+          "total {total}, reachable {accessible}, unreachable {inaccessible}",
       },
       notifications: {
         loadingNotifications: "Loading notification records...",
@@ -500,11 +598,13 @@ const I18n = {
       home: {
         subtitle: "Search, sort, and revisit the links you use every day.",
         workspaceLabel: "Workspace",
-        controlsHint: "Switch by category, popularity, and recent activity to find the right link faster.",
+        controlsHint:
+          "Switch by category, popularity, and recent activity to find the right link faster.",
       },
       empty: {
         noBookmarks: "No bookmarks yet",
-        noBookmarksHint: "Use the Add bookmark button in the header to add your first bookmark.",
+        noBookmarksHint:
+          "Use the Add bookmark button in the header to add your first bookmark.",
       },
       bookmarkCard: {
         hot: "Popular bookmark",
@@ -548,15 +648,18 @@ const I18n = {
         notePlaceholder: "Optional note about where this token is used",
         create: "Create token",
         revoke: "Revoke",
-        revokeConfirm: "Are you sure you want to revoke this token? This action cannot be undone.",
+        revokeConfirm:
+          "Are you sure you want to revoke this token? This action cannot be undone.",
         noTokens: "No tokens yet",
         noTokensHint: "Click the button above to create your first token.",
-        tokenCreated: "New token created. Copy it now — you won't see it again.",
+        tokenCreated:
+          "New token created. Copy it now — you won't see it again.",
         copied: "Copied to clipboard",
         copyFailed: "Copy failed, please copy manually",
         // HTML static text
         createNewToken: "Create a new token",
-        createDesc: "Use a dedicated token for scripts, extensions, and automation.",
+        createDesc:
+          "Use a dedicated token for scripts, extensions, and automation.",
         labelTokenName: "Token name",
         hintName: "Pick a clear label so it is easy to revoke later.",
         labelDescription: "Description",
@@ -568,7 +671,8 @@ const I18n = {
         btnCreateToken: "Create token",
         newToken: "New token",
         btnCopy: "Copy",
-        newTokenWarning: "The full value is shown only once. Copy it now and store it safely.",
+        newTokenWarning:
+          "The full value is shown only once. Copy it now and store it safely.",
         existingTokens: "Existing tokens",
         existingTokensDesc: "The list below shows saved token records.",
         btnRefresh: "Refresh",
@@ -579,8 +683,10 @@ const I18n = {
         usageNotesDesc: "Send the token in an API request header.",
         headerSection: "Header",
         safetyTips: "Safety tips",
-        tipDifferentTokens: "Use different tokens for different tools when possible.",
-        tipRecreateIfLeak: "Delete and recreate a token immediately if you suspect a leak.",
+        tipDifferentTokens:
+          "Use different tokens for different tools when possible.",
+        tipRecreateIfLeak:
+          "Delete and recreate a token immediately if you suspect a leak.",
         tipNoExposeAdmin: "Do not expose admin tokens in public frontend code.",
         // JS template strings
         created: "Created: ",
@@ -592,7 +698,8 @@ const I18n = {
         failedToCreateToken: "Failed to create token",
         tokenCreatedToast: "API token created",
         createFailed: "Create failed",
-        deleteTokenConfirm: 'Delete token "{name}" now? It will stop working immediately.',
+        deleteTokenConfirm:
+          'Delete token "{name}" now? It will stop working immediately.',
         deleted: "Deleted",
         deleteFailed: "Delete failed",
         noTokenToCopy: "There is no token to copy",
@@ -631,9 +738,12 @@ const I18n = {
         statKept: "Kept",
         statDeleted: "Deleted",
         howThisWorks: "How this works",
-        howThisWorksLine1: "The page loads the current bookmark list from /api/system/check-links-stream.",
-        howThisWorksLine2: "Each link is checked one by one when you start a run.",
-        howThisWorksLine3: "You can keep an item, re-check a single item, or delete manually.",
+        howThisWorksLine1:
+          "The page loads the current bookmark list from /api/system/check-links-stream.",
+        howThisWorksLine2:
+          "Each link is checked one by one when you start a run.",
+        howThisWorksLine3:
+          "You can keep an item, re-check a single item, or delete manually.",
         bookmarkList: "Bookmark list",
         waitingToLoad: "Waiting to load",
         loadingBookmarks: "Loading bookmarks...",
@@ -735,7 +845,8 @@ const I18n = {
         reasonLinkFailed: "Link check failed",
         reasonBatchDelete: "Batch delete",
         reasonOther: "Other",
-        permanentDeleteConfirm: 'Delete the record "{title}" forever? This cannot be undone.',
+        permanentDeleteConfirm:
+          'Delete the record "{title}" forever? This cannot be undone.',
         recordDeletedForever: "Record deleted forever",
         deleteFailed: "Delete failed",
         // restore modal innerHTML
@@ -760,7 +871,8 @@ const I18n = {
     const k = parts.slice(1).join(".");
     const dict = this.dict[this.lang] || this.dict.zh;
     if (dict[ns] && dict[ns][k] !== undefined) return dict[ns][k];
-    if (this.dict.zh[ns] && this.dict.zh[ns][k] !== undefined) return this.dict.zh[ns][k];
+    if (this.dict.zh[ns] && this.dict.zh[ns][k] !== undefined)
+      return this.dict.zh[ns][k];
     return key;
   },
 
@@ -776,28 +888,28 @@ const I18n = {
   },
 
   apply() {
-    document.querySelectorAll("[data-i18n]").forEach(el => {
+    document.querySelectorAll("[data-i18n]").forEach((el) => {
       const key = el.getAttribute("data-i18n");
       const text = this.t(key);
       if (text && text !== key) el.textContent = text;
     });
-    document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+    document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
       const key = el.getAttribute("data-i18n-placeholder");
       const text = this.t(key);
       if (text && text !== key) el.placeholder = text;
     });
-    document.querySelectorAll("[data-i18n-title]").forEach(el => {
+    document.querySelectorAll("[data-i18n-title]").forEach((el) => {
       const key = el.getAttribute("data-i18n-title");
       const text = this.t(key);
       if (text && text !== key) el.title = text;
     });
-    document.querySelectorAll("[data-i18n-title]").forEach(el => {
+    document.querySelectorAll("[data-i18n-title]").forEach((el) => {
       const key = el.getAttribute("data-i18n-title");
       const text = this.t(key);
       if (text && text !== key) el.title = text;
     });
     // html content
-    document.querySelectorAll("[data-i18n-html]").forEach(el => {
+    document.querySelectorAll("[data-i18n-html]").forEach((el) => {
       const key = el.getAttribute("data-i18n-html");
       const text = this.t(key);
       if (text && text !== key) el.innerHTML = text;
@@ -826,8 +938,12 @@ const I18n = {
         const btn = document.createElement("button");
         btn.id = "langToggle";
         btn.className = "action-btn-icon";
-        btn.setAttribute("title", this.lang === "zh" ? "Switch to English" : "切换到中文");
-        btn.style.cssText = "font-size:12px;font-weight:600;letter-spacing:0.5px;";
+        btn.setAttribute(
+          "title",
+          this.lang === "zh" ? "Switch to English" : "切换到中文",
+        );
+        btn.style.cssText =
+          "font-size:12px;font-weight:600;letter-spacing:0.5px;";
         btn.textContent = this.lang === "zh" ? "EN" : "中";
         btn.onclick = () => this.toggle();
         headerActions.insertBefore(btn, headerActions.firstChild);
@@ -836,4 +952,3 @@ const I18n = {
     this.apply();
   },
 };
-
