@@ -4,10 +4,14 @@ import assert from "node:assert/strict";
 import { onRequestPost as loginHandler } from "../pages/functions/api/auth/login.js";
 import { onRequestPost as changePasswordHandler } from "../pages/functions/api/auth/change-password.js";
 import { onRequestGet as healthHandler } from "../pages/functions/api/health.js";
-import { verifyToken as verifyPublicToken } from "../pages/functions/api/auth/verify.js";
+import {
+  verifyToken as verifyPublicToken,
+  authenticateRequest,
+} from "../pages/functions/api/auth/verify.js";
 import {
   onRequestGet as tokenListHandler,
   onRequestPost as tokenCreateHandler,
+  verifyApiToken,
 } from "../pages/functions/api/auth/token.js";
 import { JWTKeyManager } from "../pages/functions/utils/jwt-manager.js";
 
@@ -31,6 +35,9 @@ function createDbMock({ firstResult, firstError, runResult, runError } = {}) {
           return runResult({ sql, params });
         }
         return runResult ?? { success: true, changes: 1 };
+      },
+      async all() {
+        return { results: [] };
       },
     };
   }
@@ -96,12 +103,29 @@ test("change-password endpoint stays disabled in public mode", async () => {
   assert.equal(body.error, "Password change is disabled in public mode.");
 });
 
-test("verify helper reports public mode state", async () => {
-  const result = await verifyPublicToken();
+test("verify helper reports local development write mode for local requests", async () => {
+  const request = new Request("http://127.0.0.1:8788/api/auth/verify");
+  const result = await verifyPublicToken(request, {
+    ENVIRONMENT: "development",
+  });
 
   assert.equal(result.valid, true);
-  assert.equal(result.payload.sub, "public");
-  assert.equal(result.payload.mode, "public");
+  assert.equal(result.payload.sub, "local-dev");
+  assert.equal(result.payload.mode, "local-dev");
+});
+
+test("authenticateRequest blocks writes in public readonly mode", async () => {
+  const request = new Request("https://example.com/api/bookmarks", {
+    method: "POST",
+  });
+
+  const result = await authenticateRequest(request, {
+    ENVIRONMENT: "production",
+  });
+
+  assert.equal(result.authenticated, false);
+  assert.match(result.error, /public read-only mode/i);
+  assert.equal(result.payload.mode, "public-readonly");
 });
 
 test("health reports connected database state when D1 is available", async () => {
@@ -200,4 +224,39 @@ test("token management stays disabled by default in public mode", async () => {
   const createBody = await createResponse.json();
   assert.equal(createBody.success, false);
   assert.match(createBody.error, /disabled in public mode/i);
+});
+
+test("token verification uses generated jwt secret instead of a fixed fallback", async () => {
+  const env = {
+    BOOKMARKS_DB: createDbMock({
+      firstError: new Error("db down"),
+      runError: new Error("db down"),
+    }),
+  };
+
+  const createResponse = await tokenCreateHandler({
+    request: new Request("http://127.0.0.1:8788/api/auth/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "Local Sync" }),
+    }),
+    env: {
+      ...env,
+      PUBLIC_API_TOKEN_MANAGEMENT: "enabled",
+      ENVIRONMENT: "development",
+    },
+  });
+
+  assert.equal(createResponse.status, 200);
+  const createBody = await createResponse.json();
+  assert.equal(createBody.success, true);
+
+  const validCheck = await verifyApiToken(createBody.data.token, env);
+  assert.equal(validCheck.valid, true);
+
+  const forgedCheck = await verifyApiToken(createBody.data.token, {
+    JWT_SECRET: "different-secret-value-12345678901234567890",
+    BOOKMARKS_DB: createDbMock(),
+  });
+  assert.equal(forgedCheck.valid, false);
 });

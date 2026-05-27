@@ -1,9 +1,23 @@
-// 创建删除书签记录表的迁移
+import { authenticateRequest } from "../auth/verify.js";
+
 export async function onRequestPost(context) {
-  const { env } = context;
+  const { request, env } = context;
 
   try {
-    // 创建删除书签记录表
+    const auth = await authenticateRequest(request, env);
+    if (!auth.authenticated) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: auth.error,
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
     await env.BOOKMARKS_DB.exec(`
       CREATE TABLE IF NOT EXISTS deleted_bookmarks (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,7 +41,6 @@ export async function onRequestPost(context) {
       );
     `);
 
-    // 创建索引以提高查询性能
     await env.BOOKMARKS_DB.exec(`
       CREATE INDEX IF NOT EXISTS idx_deleted_bookmarks_original_id
       ON deleted_bookmarks(original_bookmark_id);

@@ -1,5 +1,6 @@
-﻿import { SignJWT, jwtVerify } from "jose";
+import { SignJWT, jwtVerify } from "jose";
 import { authenticateRequest } from "./verify.js";
+import { JWTKeyManager } from "../../utils/jwt-manager.js";
 
 function isTokenManagementEnabled(env = {}) {
   return env.PUBLIC_API_TOKEN_MANAGEMENT === "enabled";
@@ -35,7 +36,7 @@ async function ensureTokenManagement(context) {
     return createJsonResponse(
       {
         success: false,
-        error: "Administrator access is required.",
+        error: auth.error || "Administrator access is required.",
       },
       401,
     );
@@ -52,6 +53,10 @@ async function ensureTokenManagement(context) {
   }
 
   return null;
+}
+
+async function getSigningSecret(env) {
+  return new TextEncoder().encode(await JWTKeyManager.getJWTSecret(env));
 }
 
 export async function onRequestPost(context) {
@@ -85,9 +90,7 @@ export async function onRequestPost(context) {
     const expirationTime =
       Math.floor(Date.now() / 1000) + expireDays * 24 * 60 * 60;
 
-    const secret = new TextEncoder().encode(
-      env.JWT_SECRET || "default-secret-key",
-    );
+    const secret = await getSigningSecret(env);
     const token = await new SignJWT({
       sub: "api-access",
       type: "api-token",
@@ -144,9 +147,7 @@ export async function onRequestPost(context) {
 
 export async function verifyApiToken(token, env) {
   try {
-    const secret = new TextEncoder().encode(
-      env.JWT_SECRET || "default-secret-key",
-    );
+    const secret = await getSigningSecret(env);
     const { payload } = await jwtVerify(token, secret);
 
     if (payload.type !== "api-token") {

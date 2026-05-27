@@ -5,10 +5,7 @@ compatibility_date = "2026-04-07"
 [vars]
 ENVIRONMENT = "development"
 
-# Local development config only. GitHub Actions now configures the production
-# Pages project and D1 binding through the Cloudflare API.
-# Optional local D1 example:
-# [[d1_databases]]
-# binding = "BOOKMARKS_DB"
-# database_name = "bookmark-navigator"
-# database_id = "YOUR_D1_DATABASE_ID"
+[[d1_databases]]
+binding = "BOOKMARKS_DB"
+database_name = "bookmark-navigator-local"
+database_id = "00000000-0000-0000-0000-000000000000"

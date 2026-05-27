@@ -54,6 +54,9 @@ export async function onRequestGet(context) {
         : "";
 
     // 验证排序字段
+    const sortFieldAliases = {
+      popularity: "popularity_score",
+    };
     const allowedSortFields = [
       "created_at",
       "updated_at",
@@ -61,9 +64,11 @@ export async function onRequestGet(context) {
       "url",
       "visit_count",
       "last_visited",
+      "popularity_score",
     ];
-    const validSortBy = allowedSortFields.includes(sortBy)
-      ? sortBy
+    const normalizedSortBy = sortFieldAliases[sortBy] || sortBy;
+    const validSortBy = allowedSortFields.includes(normalizedSortBy)
+      ? normalizedSortBy
       : "created_at";
     const validSortOrder = ["asc", "desc"].includes(sortOrder.toLowerCase())
       ? sortOrder.toUpperCase()

@@ -1,10 +1,35 @@
 /**
- * 数据库备份API
+ * 数据库备份 API
  * 在数据库升级前备份现有数据
  */
 
+import { authenticateRequest } from "../auth/verify.js";
+
+async function requireAdminAccess(context) {
+  const auth = await authenticateRequest(context.request, context.env);
+  if (auth.authenticated) {
+    return null;
+  }
+
+  return new Response(
+    JSON.stringify({
+      success: false,
+      error: auth.error,
+    }),
+    {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    },
+  );
+}
+
 export async function onRequestPost(context) {
   try {
+    const blocked = await requireAdminAccess(context);
+    if (blocked) {
+      return blocked;
+    }
+
     console.log("=== 开始数据库备份 ===");
 
     const db = context.env.BOOKMARKS_DB;
@@ -28,7 +53,6 @@ export async function onRequestPost(context) {
       tables: {},
     };
 
-    // 备份核心表数据
     const tablesToBackup = [
       "system_config",
       "categories",
@@ -41,7 +65,6 @@ export async function onRequestPost(context) {
       try {
         console.log(`备份表: ${tableName}`);
 
-        // 检查表是否存在
         const tableExists = await db
           .prepare(
             "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
@@ -54,12 +77,9 @@ export async function onRequestPost(context) {
           continue;
         }
 
-        // 获取表结构
         const schema = await db
           .prepare(`PRAGMA table_info(${tableName})`)
           .all();
-
-        // 获取所有数据
         const data = await db.prepare(`SELECT * FROM ${tableName}`).all();
 
         backupData.tables[tableName] = {
@@ -82,7 +102,6 @@ export async function onRequestPost(context) {
       }
     }
 
-    // 计算总统计
     const totalRecords = Object.values(backupData.tables).reduce(
       (sum, table) => sum + (table.count || 0),
       0,
@@ -93,7 +112,7 @@ export async function onRequestPost(context) {
       message: "数据备份完成",
       timestamp: backupData.timestamp,
       totalTables: Object.keys(backupData.tables).length,
-      totalRecords: totalRecords,
+      totalRecords,
       tables: Object.keys(backupData.tables).map((name) => ({
         name,
         records: backupData.tables[name].count || 0,
@@ -106,7 +125,7 @@ export async function onRequestPost(context) {
     return new Response(
       JSON.stringify({
         ...summary,
-        backupData: backupData,
+        backupData,
       }),
       {
         status: 200,
@@ -135,6 +154,11 @@ export async function onRequestPost(context) {
 
 export async function onRequestGet(context) {
   try {
+    const blocked = await requireAdminAccess(context);
+    if (blocked) {
+      return blocked;
+    }
+
     const db = context.env.BOOKMARKS_DB;
 
     if (!db) {
@@ -150,7 +174,6 @@ export async function onRequestGet(context) {
       );
     }
 
-    // 检查数据库状态
     const status = {
       tables: {},
       totalRecords: 0,
@@ -183,7 +206,7 @@ export async function onRequestGet(context) {
           status.tables[tableName] = 0;
         }
       } catch (error) {
-        status.tables[tableName] = -1; // 表示错误
+        status.tables[tableName] = -1;
       }
     }
 

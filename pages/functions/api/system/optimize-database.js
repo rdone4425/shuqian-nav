@@ -1,15 +1,29 @@
-// 数据库优化API - 创建索引提升查询性能
+import { authenticateRequest } from "../auth/verify.js";
+
 export async function onRequestPost(context) {
-  const { env } = context;
+  const { request, env } = context;
 
   try {
+    const auth = await authenticateRequest(request, env);
+    if (!auth.authenticated) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: auth.error,
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
     console.log("开始数据库优化...");
 
-    // 为书签表添加索引
     const optimizations = [
       {
         name: "idx_bookmarks_category",
-        sql: "CREATE INDEX IF NOT EXISTS idx_bookmarks_category ON bookmarks(category)",
+        sql: "CREATE INDEX IF NOT EXISTS idx_bookmarks_category ON bookmarks(category_id)",
         description: "书签分类索引",
       },
       {
@@ -25,7 +39,7 @@ export async function onRequestPost(context) {
       {
         name: "idx_bookmarks_url",
         sql: "CREATE INDEX IF NOT EXISTS idx_bookmarks_url ON bookmarks(url)",
-        description: "URL索引（用于重复检测）",
+        description: "URL 索引（用于重复检测）",
       },
       {
         name: "idx_system_config_key",
@@ -56,7 +70,6 @@ export async function onRequestPost(context) {
       }
     }
 
-    // 执行VACUUM优化
     try {
       await env.BOOKMARKS_DB.exec("VACUUM");
       results.push({
@@ -64,7 +77,7 @@ export async function onRequestPost(context) {
         description: "数据库碎片整理",
         status: "success",
       });
-      console.log("✅ 数据库VACUUM优化完成");
+      console.log("✅ 数据库 VACUUM 优化完成");
     } catch (error) {
       results.push({
         index: "vacuum",
@@ -72,7 +85,7 @@ export async function onRequestPost(context) {
         status: "error",
         error: error.message,
       });
-      console.error("❌ VACUUM优化失败:", error);
+      console.error("❌ VACUUM 优化失败:", error);
     }
 
     return new Response(
@@ -103,22 +116,33 @@ export async function onRequestPost(context) {
   }
 }
 
-// 获取数据库优化状态
 export async function onRequestGet(context) {
-  const { env } = context;
+  const { request, env } = context;
 
   try {
-    // 查询数据库统计信息
+    const auth = await authenticateRequest(request, env);
+    if (!auth.authenticated) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: auth.error,
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
     const stats = await env.BOOKMARKS_DB.prepare(
       `
         SELECT 
           (SELECT COUNT(*) FROM bookmarks) as total_bookmarks,
-          (SELECT COUNT(DISTINCT category) FROM bookmarks) as total_categories,
+          (SELECT COUNT(DISTINCT category_id) FROM bookmarks) as total_categories,
           (SELECT COUNT(*) FROM system_config) as total_configs
       `,
     ).first();
 
-    // 检查索引状态
     const indexes = await env.BOOKMARKS_DB.prepare(
       "SELECT name, sql FROM sqlite_master WHERE type='index' AND name LIKE 'idx_%'",
     ).all();

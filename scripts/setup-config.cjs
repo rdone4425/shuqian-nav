@@ -28,8 +28,8 @@ async function main() {
     "bookmark-navigator-pages",
   );
   const dbName = await ask(
-    "D1 database name (default: bookmark-navigator): ",
-    "bookmark-navigator",
+    "D1 database name (default: bookmark-navigator-local): ",
+    "bookmark-navigator-local",
   );
   const dbId = await ask(
     "D1 database id (leave blank for local-only template): ",
@@ -71,18 +71,27 @@ async function main() {
   } else {
     lines.push(
       "",
-      "# Add a production D1 binding before deploy:",
-      "# [[d1_databases]]",
-      '# binding = "BOOKMARKS_DB"',
-      `# database_name = "${dbName}"`,
-      '# database_id = "YOUR_D1_DATABASE_ID"',
+      "# Local D1 binding for dev/reset commands",
+      "[[d1_databases]]",
+      'binding = "BOOKMARKS_DB"',
+      `database_name = "${dbName}"`,
+      'database_id = "00000000-0000-0000-0000-000000000000"',
+      "",
+      "# Replace the placeholder id above before remote deploy if you want to",
+      "# manage the same binding outside GitHub Actions.",
     );
   }
 
   fs.writeFileSync(wranglerPath, `${lines.join("\n")}\n`, "utf8");
   fs.writeFileSync(
     devVarsPath,
-    `ADMIN_PASSWORD=${adminPassword}\nJWT_SECRET=${jwtSecret}\nENVIRONMENT=development\n`,
+    [
+      `ADMIN_PASSWORD=${adminPassword}`,
+      `JWT_SECRET=${jwtSecret}`,
+      "ENVIRONMENT=development",
+      "ALLOW_PUBLIC_WRITE=enabled",
+      "",
+    ].join("\n"),
     "utf8",
   );
 
