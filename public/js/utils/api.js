@@ -20,11 +20,13 @@ const API = {
   },
 
   getAuthHeaders() {
-    return {};
+    return window.Auth?.getAuthHeaders?.() || {};
   },
 
   async request(url, options = {}) {
-    const fullUrl = url.startsWith("http") ? url : `${this.config.baseURL}${url}`;
+    const fullUrl = url.startsWith("http")
+      ? url
+      : `${this.config.baseURL}${url}`;
     const defaultOptions = {
       method: "GET",
       headers: {
@@ -53,7 +55,10 @@ const API = {
     for (let attempt = 0; attempt <= this.config.retryAttempts; attempt += 1) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), finalOptions.timeout);
+        const timeoutId = setTimeout(
+          () => controller.abort(),
+          finalOptions.timeout,
+        );
 
         const response = await fetch(fullUrl, {
           ...finalOptions,
@@ -68,8 +73,12 @@ const API = {
 
         if (!response.ok) {
           const errorData = await this.parseResponse(response);
+          if (response.status === 401) {
+            window.Auth?.logout?.({ redirect: true });
+          }
           throw new APIError(
-            errorData.error || `HTTP ${response.status}: ${response.statusText}`,
+            errorData.error ||
+              `HTTP ${response.status}: ${response.statusText}`,
             response.status,
             errorData,
           );
@@ -78,7 +87,10 @@ const API = {
         return await this.parseResponse(response);
       } catch (error) {
         lastError = error;
-        if (attempt === this.config.retryAttempts || !this.shouldRetry(error, finalOptions)) {
+        if (
+          attempt === this.config.retryAttempts ||
+          !this.shouldRetry(error, finalOptions)
+        ) {
           break;
         }
 
@@ -236,11 +248,7 @@ const BookmarkAPI = {
 
 const AuthAPI = {
   async verifyToken() {
-    return {
-      success: true,
-      valid: true,
-      message: "Public mode is active.",
-    };
+    return await API.post("/api/auth/verify");
   },
 };
 

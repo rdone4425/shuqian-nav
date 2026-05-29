@@ -13,7 +13,10 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/css/styles.css" />
-    <link rel="stylesheet" href="/css/workspace-refresh.css?v=nav-20260529-ui2" />
+    <link
+      rel="stylesheet"
+      href="/css/workspace-refresh.css?v=nav-20260529-ui3"
+    />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
   <body class="nav-site">
@@ -34,7 +37,10 @@
             <a href="#directory" class="nav-menu-link" data-i18n="nav.directory"
               >导航目录</a
             >
-            <a href="/import.html" class="nav-menu-link" data-i18n="header.import"
+            <a
+              href="/import.html"
+              class="nav-menu-link"
+              data-i18n="header.import"
               >导入</a
             >
             <a
@@ -88,13 +94,19 @@
                 <a href="/import.html" class="dropdown-item" role="menuitem">
                   <span class="item-icon">IN</span>
                   <div class="item-content">
-                    <span class="item-text" data-i18n="header.import">导入</span>
+                    <span class="item-text" data-i18n="header.import"
+                      >导入</span
+                    >
                     <span class="item-desc" data-i18n="header.importDesc"
                       >导入导出文件或备份</span
                     >
                   </div>
                 </a>
-                <a href="/link-checker.html" class="dropdown-item" role="menuitem">
+                <a
+                  href="/link-checker.html"
+                  class="dropdown-item"
+                  role="menuitem"
+                >
                   <span class="item-icon">CK</span>
                   <div class="item-content">
                     <span class="item-text" data-i18n="header.linkChecker"
@@ -120,7 +132,11 @@
                     >
                   </div>
                 </a>
-                <a href="/notifications.html" class="dropdown-item" role="menuitem">
+                <a
+                  href="/notifications.html"
+                  class="dropdown-item"
+                  role="menuitem"
+                >
                   <span class="item-icon">NT</span>
                   <div class="item-content">
                     <span class="item-text" data-i18n="header.notifications"
@@ -143,10 +159,16 @@
                   </div>
                 </a>
                 <div class="dropdown-divider"></div>
-                <button id="settingsToggle" class="dropdown-item" role="menuitem">
+                <button
+                  id="settingsToggle"
+                  class="dropdown-item"
+                  role="menuitem"
+                >
                   <span class="item-icon">ST</span>
                   <div class="item-content">
-                    <span class="item-text" data-i18n="header.settings">设置</span>
+                    <span class="item-text" data-i18n="header.settings"
+                      >设置</span
+                    >
                     <span class="item-desc" data-i18n="header.settingsDesc"
                       >导出、备份和导入</span
                     >
@@ -160,7 +182,10 @@
 
       <main class="main-content home-content nav-home">
         <section class="nav-toolbar" aria-label="搜索、筛选和统计">
-          <div id="searchContainer" class="search-container nav-search-container">
+          <div
+            id="searchContainer"
+            class="search-container nav-search-container"
+          >
             <div class="search-box nav-search-box">
               <input
                 type="text"
@@ -169,7 +194,11 @@
                 data-i18n-placeholder="search.placeholder"
                 class="search-input"
               />
-              <button id="searchBtn" class="search-btn" data-i18n="search.action">
+              <button
+                id="searchBtn"
+                class="search-btn"
+                data-i18n="search.action"
+              >
                 搜索
               </button>
               <button
@@ -188,11 +217,15 @@
                 >分类</span
               >
               <select id="categoryFilter" class="filter-select">
-                <option value="" data-i18n="filter.allCategories">全部分类</option>
+                <option value="" data-i18n="filter.allCategories">
+                  全部分类
+                </option>
               </select>
             </label>
             <label class="filter-group">
-              <span class="filter-label" data-i18n="filter.sortLabel">排序</span>
+              <span class="filter-label" data-i18n="filter.sortLabel"
+                >排序</span
+              >
               <select id="sortSelect" class="filter-select">
                 <option value="created_at:desc" data-i18n="filter.newest">
                   最新收录
@@ -203,7 +236,10 @@
                 <option value="visit_count:desc" data-i18n="filter.mostVisited">
                   访问最多
                 </option>
-                <option value="last_visited:desc" data-i18n="filter.recentVisited">
+                <option
+                  value="last_visited:desc"
+                  data-i18n="filter.recentVisited"
+                >
                   最近访问
                 </option>
                 <option value="title:asc" data-i18n="filter.titleAZ">
@@ -212,7 +248,10 @@
                 <option value="title:desc" data-i18n="filter.titleZA">
                   标题 Z-A
                 </option>
-                <option value="updated_at:desc" data-i18n="filter.recentUpdated">
+                <option
+                  value="updated_at:desc"
+                  data-i18n="filter.recentUpdated"
+                >
                   最近更新
                 </option>
                 <option value="created_at:asc" data-i18n="filter.oldest">
@@ -228,7 +267,9 @@
                 data-i18n-title="filter.gridView"
               >
                 <span class="icon">▦</span>
-                <span class="view-label" data-i18n="filter.gridShort">网格</span>
+                <span class="view-label" data-i18n="filter.gridShort"
+                  >网格</span
+                >
               </button>
               <button
                 id="listViewBtn"
@@ -237,7 +278,9 @@
                 data-i18n-title="filter.listView"
               >
                 <span class="icon">☷</span>
-                <span class="view-label" data-i18n="filter.listShort">列表</span>
+                <span class="view-label" data-i18n="filter.listShort"
+                  >列表</span
+                >
               </button>
             </div>
           </div>
@@ -256,118 +299,30 @@
           </div>
         </section>
 
-        <section id="directory" class="nav-directory" aria-labelledby="directoryTitle">
+        <nav
+          id="categoryRail"
+          class="category-rail"
+          aria-label="分类快速筛选"
+        ></nav>
+
+        <section
+          id="directory"
+          class="nav-directory"
+          aria-labelledby="directoryTitle"
+        >
           <div class="nav-directory-title">
             <p class="nav-kicker" data-i18n="home.bookmarksKicker">导航目录</p>
-            <h2 id="directoryTitle" data-i18n="home.bookmarksTitle">常用站点</h2>
+            <h2 id="directoryTitle" data-i18n="home.bookmarksTitle">
+              常用站点
+            </h2>
             <p data-i18n="home.bookmarksCopy">
               按当前分类和排序展示，点击网址直接访问，也可以编辑或删除。
             </p>
           </div>
-          <div id="bookmarksGrid" class="bookmarks-grid nav-bookmarks-grid">
-            <article class="bookmark-card" data-id="static-google" style="--card-accent: #2563eb">
-              <div class="bookmark-card-top">
-                <div class="bookmark-favicon-wrap">
-                  <img src="https://www.google.com/s2/favicons?domain=google.com&amp;sz=32" alt="" aria-hidden="true" class="bookmark-favicon" />
-                </div>
-                <div class="bookmark-main">
-                  <div class="bookmark-title-row"><h3 class="bookmark-title">Google</h3></div>
-                  <a href="https://www.google.com" target="_blank" class="bookmark-url" rel="noopener noreferrer">https://www.google.com</a>
-                </div>
-              </div>
-              <p class="bookmark-description">全球搜索入口，适合信息检索、资料查询和日常访问。</p>
-              <div class="bookmark-footer">
-                <div class="bookmark-meta">
-                  <div class="bookmark-category" style="background-color: #2563eb25; color: #2563eb; border: 1px solid #2563eb40;"><span class="category-dot" style="background-color: #2563eb;"></span><span>搜索</span></div>
-                </div>
-              </div>
-            </article>
-            <article class="bookmark-card" data-id="static-github" style="--card-accent: #16a34a">
-              <div class="bookmark-card-top">
-                <div class="bookmark-favicon-wrap">
-                  <img src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=32" alt="" aria-hidden="true" class="bookmark-favicon" />
-                </div>
-                <div class="bookmark-main">
-                  <div class="bookmark-title-row"><h3 class="bookmark-title">GitHub</h3></div>
-                  <a href="https://github.com" target="_blank" class="bookmark-url" rel="noopener noreferrer">https://github.com</a>
-                </div>
-              </div>
-              <p class="bookmark-description">代码托管、开源项目和工程协作入口。</p>
-              <div class="bookmark-footer">
-                <div class="bookmark-meta">
-                  <div class="bookmark-category" style="background-color: #16a34a25; color: #16a34a; border: 1px solid #16a34a40;"><span class="category-dot" style="background-color: #16a34a;"></span><span>开发</span></div>
-                </div>
-              </div>
-            </article>
-            <article class="bookmark-card" data-id="static-mdn" style="--card-accent: #16a34a">
-              <div class="bookmark-card-top">
-                <div class="bookmark-favicon-wrap">
-                  <img src="https://www.google.com/s2/favicons?domain=developer.mozilla.org&amp;sz=32" alt="" aria-hidden="true" class="bookmark-favicon" />
-                </div>
-                <div class="bookmark-main">
-                  <div class="bookmark-title-row"><h3 class="bookmark-title">MDN Web Docs</h3></div>
-                  <a href="https://developer.mozilla.org" target="_blank" class="bookmark-url" rel="noopener noreferrer">https://developer.mozilla.org</a>
-                </div>
-              </div>
-              <p class="bookmark-description">前端标准、浏览器 API 和 Web 技术文档。</p>
-              <div class="bookmark-footer">
-                <div class="bookmark-meta">
-                  <div class="bookmark-category" style="background-color: #16a34a25; color: #16a34a; border: 1px solid #16a34a40;"><span class="category-dot" style="background-color: #16a34a;"></span><span>开发</span></div>
-                </div>
-              </div>
-            </article>
-            <article class="bookmark-card" data-id="static-chatgpt" style="--card-accent: #7c3aed">
-              <div class="bookmark-card-top">
-                <div class="bookmark-favicon-wrap">
-                  <img src="https://www.google.com/s2/favicons?domain=chatgpt.com&amp;sz=32" alt="" aria-hidden="true" class="bookmark-favicon" />
-                </div>
-                <div class="bookmark-main">
-                  <div class="bookmark-title-row"><h3 class="bookmark-title">ChatGPT</h3></div>
-                  <a href="https://chatgpt.com" target="_blank" class="bookmark-url" rel="noopener noreferrer">https://chatgpt.com</a>
-                </div>
-              </div>
-              <p class="bookmark-description">写作、分析、代码和日常问题处理。</p>
-              <div class="bookmark-footer">
-                <div class="bookmark-meta">
-                  <div class="bookmark-category" style="background-color: #7c3aed25; color: #7c3aed; border: 1px solid #7c3aed40;"><span class="category-dot" style="background-color: #7c3aed;"></span><span>工具</span></div>
-                </div>
-              </div>
-            </article>
-            <article class="bookmark-card" data-id="static-figma" style="--card-accent: #db2777">
-              <div class="bookmark-card-top">
-                <div class="bookmark-favicon-wrap">
-                  <img src="https://www.google.com/s2/favicons?domain=figma.com&amp;sz=32" alt="" aria-hidden="true" class="bookmark-favicon" />
-                </div>
-                <div class="bookmark-main">
-                  <div class="bookmark-title-row"><h3 class="bookmark-title">Figma</h3></div>
-                  <a href="https://www.figma.com" target="_blank" class="bookmark-url" rel="noopener noreferrer">https://www.figma.com</a>
-                </div>
-              </div>
-              <p class="bookmark-description">界面设计、原型协作和设计稿交付。</p>
-              <div class="bookmark-footer">
-                <div class="bookmark-meta">
-                  <div class="bookmark-category" style="background-color: #db277725; color: #db2777; border: 1px solid #db277740;"><span class="category-dot" style="background-color: #db2777;"></span><span>设计</span></div>
-                </div>
-              </div>
-            </article>
-            <article class="bookmark-card" data-id="static-sspai" style="--card-accent: #ea580c">
-              <div class="bookmark-card-top">
-                <div class="bookmark-favicon-wrap">
-                  <img src="https://www.google.com/s2/favicons?domain=sspai.com&amp;sz=32" alt="" aria-hidden="true" class="bookmark-favicon" />
-                </div>
-                <div class="bookmark-main">
-                  <div class="bookmark-title-row"><h3 class="bookmark-title">少数派</h3></div>
-                  <a href="https://sspai.com" target="_blank" class="bookmark-url" rel="noopener noreferrer">https://sspai.com</a>
-                </div>
-              </div>
-              <p class="bookmark-description">效率工具、数字生活和科技内容。</p>
-              <div class="bookmark-footer">
-                <div class="bookmark-meta">
-                  <div class="bookmark-category" style="background-color: #ea580c25; color: #ea580c; border: 1px solid #ea580c40;"><span class="category-dot" style="background-color: #ea580c;"></span><span>资讯</span></div>
-                </div>
-              </div>
-            </article>
-          </div>
+          <div
+            id="bookmarksGrid"
+            class="bookmarks-grid nav-bookmarks-grid"
+          ></div>
         </section>
 
         <div id="loadingState" class="loading-state hidden">
@@ -387,7 +342,11 @@
           <p id="errorMessage" data-i18n="home.loadFailedMessage">
             站点目录加载失败。
           </p>
-          <button id="retryBtn" class="btn btn-primary" data-i18n="common.retry">
+          <button
+            id="retryBtn"
+            class="btn btn-primary"
+            data-i18n="common.retry"
+          >
             重试
           </button>
         </div>
@@ -415,11 +374,15 @@
       <div class="modal-content">
         <div class="modal-header">
           <h3 id="modalTitle" data-i18n="bookmarkModal.addTitle">添加站点</h3>
-          <button id="closeModalBtn" class="btn-close" aria-label="关闭">×</button>
+          <button id="closeModalBtn" class="btn-close" aria-label="关闭">
+            ×
+          </button>
         </div>
         <form id="bookmarkForm" class="modal-body">
           <div class="form-group">
-            <label for="bookmarkTitle" data-i18n="bookmarkModal.title">标题 *</label>
+            <label for="bookmarkTitle" data-i18n="bookmarkModal.title"
+              >标题 *</label
+            >
             <input type="text" id="bookmarkTitle" required class="form-input" />
           </div>
           <div class="form-group">
@@ -427,7 +390,9 @@
             <input type="url" id="bookmarkUrl" required class="form-input" />
           </div>
           <div class="form-group">
-            <label for="bookmarkDescription" data-i18n="bookmarkModal.description"
+            <label
+              for="bookmarkDescription"
+              data-i18n="bookmarkModal.description"
               >描述</label
             >
             <textarea
@@ -443,7 +408,9 @@
               >分类</label
             >
             <select id="bookmarkCategory" class="form-select">
-              <option value="" data-i18n="bookmarkModal.noCategory">无分类</option>
+              <option value="" data-i18n="bookmarkModal.noCategory">
+                无分类
+              </option>
             </select>
           </div>
           <div class="modal-actions">
@@ -471,7 +438,9 @@
     <div id="settingsPanel" class="settings-panel hidden">
       <div class="panel-header">
         <h3 data-i18n="settings.title">设置</h3>
-        <button id="settingsClose" class="btn-close" aria-label="关闭">×</button>
+        <button id="settingsClose" class="btn-close" aria-label="关闭">
+          ×
+        </button>
       </div>
       <div class="panel-content">
         <div class="settings-section">
@@ -529,14 +498,15 @@
     </div>
 
     <script src="/js/i18n.js"></script>
+    <script src="/js/auth.js"></script>
     <script src="/js/utils/storage.js"></script>
     <script src="/js/utils/api.js"></script>
     <script src="/js/utils/sorting.js"></script>
     <script src="/js/utils/dom-helper.js?v=nav-20260529"></script>
     <script src="/js/utils/ui-helper.js"></script>
-    <script src="/js/bookmarks.js?v=nav-20260529-ui2"></script>
-    <script src="/js/ui-enhancements.js?v=nav-20260529-ui2"></script>
-    <script src="/js/app.js?v=nav-20260529-ui2"></script>
+    <script src="/js/bookmarks.js?v=nav-20260529-ui3"></script>
+    <script src="/js/ui-enhancements.js?v=nav-20260529-ui3"></script>
+    <script src="/js/app.js?v=nav-20260529-ui3"></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         if (window.I18n) {

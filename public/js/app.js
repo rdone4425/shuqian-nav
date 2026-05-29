@@ -5,6 +5,13 @@ const App = {
 
   async init() {
     try {
+      if (window.Auth) {
+        const authenticated = await Auth.init({ requireAuth: true });
+        if (!authenticated) {
+          return;
+        }
+      }
+
       this.bindElements();
       this.bindEvents();
       await BookmarkManager.init();

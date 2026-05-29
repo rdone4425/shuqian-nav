@@ -55,7 +55,7 @@ function createDbMock({ firstResult, firstError, runResult, runError } = {}) {
   };
 }
 
-test("login endpoint stays disabled in public mode", async () => {
+test("login endpoint issues a web session token for the admin password", async () => {
   const request = new Request("https://example.com/api/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -71,14 +71,15 @@ test("login endpoint stays disabled in public mode", async () => {
     },
   });
 
-  assert.equal(response.status, 410);
+  assert.equal(response.status, 200);
 
   const body = await response.json();
-  assert.equal(body.success, false);
-  assert.equal(body.error, "Authentication is disabled in public mode.");
+  assert.equal(body.success, true);
+  assert.equal(typeof body.token, "string");
+  assert.equal(body.user.role, "admin");
 });
 
-test("change-password endpoint stays disabled in public mode", async () => {
+test("change-password requires an authenticated session", async () => {
   const request = new Request("https://example.com/api/auth/change-password", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -96,25 +97,38 @@ test("change-password endpoint stays disabled in public mode", async () => {
     },
   });
 
-  assert.equal(response.status, 410);
+  assert.equal(response.status, 401);
 
   const body = await response.json();
   assert.equal(body.success, false);
-  assert.equal(body.error, "Password change is disabled in public mode.");
+  assert.match(body.error, /令牌|登录/i);
 });
 
-test("verify helper reports local development write mode for local requests", async () => {
-  const request = new Request("http://127.0.0.1:8788/api/auth/verify");
-  const result = await verifyPublicToken(request, {
-    ENVIRONMENT: "development",
+test("verify helper accepts a login token", async () => {
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock(),
+  };
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
   });
+  const loginBody = await loginResponse.json();
+  const request = new Request("http://127.0.0.1:8788/api/auth/verify");
+  request.headers.set("Authorization", `Bearer ${loginBody.token}`);
+  const result = await verifyPublicToken(request, env);
 
   assert.equal(result.valid, true);
-  assert.equal(result.payload.sub, "local-dev");
-  assert.equal(result.payload.mode, "local-dev");
+  assert.equal(result.payload.sub, "admin");
+  assert.equal(result.payload.role, "admin");
 });
 
-test("authenticateRequest blocks writes in public readonly mode", async () => {
+test("authenticateRequest blocks requests without a login token", async () => {
   const request = new Request("https://example.com/api/bookmarks", {
     method: "POST",
   });
@@ -124,8 +138,33 @@ test("authenticateRequest blocks writes in public readonly mode", async () => {
   });
 
   assert.equal(result.authenticated, false);
-  assert.match(result.error, /public read-only mode/i);
-  assert.equal(result.payload.mode, "public-readonly");
+  assert.match(result.error, /令牌|登录/i);
+});
+
+test("authenticateRequest accepts a login token", async () => {
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock(),
+  };
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+  const request = new Request("https://example.com/api/bookmarks", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${loginBody.token}` },
+  });
+
+  const result = await authenticateRequest(request, env);
+
+  assert.equal(result.authenticated, true);
+  assert.equal(result.user.role, "admin");
 });
 
 test("health reports connected database state when D1 is available", async () => {
@@ -228,16 +267,33 @@ test("token management stays disabled by default in public mode", async () => {
 
 test("token verification uses generated jwt secret instead of a fixed fallback", async () => {
   const env = {
+    ADMIN_PASSWORD: "StrongPass123",
     BOOKMARKS_DB: createDbMock({
       firstError: new Error("db down"),
       runError: new Error("db down"),
     }),
   };
+  const loginResponse = await loginHandler({
+    request: new Request("http://127.0.0.1:8788/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env: {
+      ...env,
+      PUBLIC_API_TOKEN_MANAGEMENT: "enabled",
+      ENVIRONMENT: "development",
+    },
+  });
+  const loginBody = await loginResponse.json();
 
   const createResponse = await tokenCreateHandler({
     request: new Request("http://127.0.0.1:8788/api/auth/token", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
       body: JSON.stringify({ name: "Local Sync" }),
     }),
     env: {

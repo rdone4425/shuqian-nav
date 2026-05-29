@@ -1,70 +1,62 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>公开工作台入口 - 书签导航</title>
-    <meta
-      name="description"
-      content="当前站点以公开工作台模式运行，不再提供登录门。"
-    />
+    <title>登录 - 书签导航</title>
+    <meta name="description" content="登录后管理和访问你的书签导航。" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/css/styles.css" />
-    <link rel="stylesheet" href="/css/workspace-refresh.css" />
+    <link
+      rel="stylesheet"
+      href="/css/workspace-refresh.css?v=nav-20260529-auth"
+    />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
-  <body class="nav-site login-page public-gateway">
-    <main class="login-container gateway-shell">
-      <section class="login-card gateway-card">
-        <div class="login-header gateway-header">
-          <div class="logo">
-            <span class="logo-icon">B</span>
+  <body class="nav-site login-page">
+    <main class="login-container">
+      <section class="login-card">
+        <div class="login-header">
+          <div class="logo login-logo">
+            <span class="logo-icon">N</span>
             <div class="logo-copy">
               <h1 class="logo-text">书签导航</h1>
-              <p class="logo-subtitle">公开书签工作台</p>
+              <p class="logo-subtitle">登录后进入你的导航书签</p>
             </div>
           </div>
-          <span class="hero-badge">公开模式</span>
-          <p class="login-subtitle">这里已经没有登录门，首页就是主入口。</p>
-          <p class="login-hint">
-            搜索、浏览、维护和导入都可以从主工作台进入。只有在需要更深层维护或同步设置时，再进入工具页。
+          <p class="login-subtitle">
+            这里保存的是你的真实书签数据，不再展示硬编码示例站点。
           </p>
         </div>
 
-        <div class="gateway-grid">
-          <a href="/" class="quick-action-card quick-action-primary">
-            <span class="quick-action-kicker">首页</span>
-            <strong class="quick-action-title">打开书签工作台</strong>
-            <span class="quick-action-copy"
-              >在一个页面里完成搜索、筛选、浏览和编辑。</span
-            >
-          </a>
-          <a href="/import.html" class="quick-action-card">
-            <span class="quick-action-kicker">导入</span>
-            <strong class="quick-action-title">导入书签文件</strong>
-            <span class="quick-action-copy"
-              >适合首次迁移、恢复备份和集中更新。</span
-            >
-          </a>
-          <a href="/link-checker.html" class="quick-action-card">
-            <span class="quick-action-kicker">维护</span>
-            <strong class="quick-action-title">检查失效链接</strong>
-            <span class="quick-action-copy"
-              >把可访问性、保留和删除决策放在同一轮处理。</span
-            >
-          </a>
-          <a href="/token.html" class="quick-action-card">
-            <span class="quick-action-kicker">同步</span>
-            <strong class="quick-action-title">查看令牌与同步说明</strong>
-            <span class="quick-action-copy"
-              >只在 Chrome 同步或自动化接入时需要使用。</span
-            >
-          </a>
-        </div>
+        <form id="loginForm" class="login-form">
+          <div class="form-group">
+            <label for="password">管理员密码</label>
+            <input
+              id="password"
+              class="form-input"
+              type="password"
+              autocomplete="current-password"
+              required
+              autofocus
+            />
+          </div>
+          <button
+            id="loginButton"
+            class="btn btn-primary btn-full"
+            type="submit"
+          >
+            登录
+          </button>
+          <p id="loginMessage" class="login-hint" role="status"></p>
+        </form>
       </section>
     </main>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/login.js"></script>
   </body>
 </html>

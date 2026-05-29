@@ -1,4 +1,4 @@
-/* workspace-refresh.css -- v23 */
+/* workspace-refresh.css -- v24 */
 /* Navigation-workbench UI: compact, structured, operations friendly. */
 
 :root {
@@ -232,6 +232,57 @@ body.nav-site::after,
   border: 1px solid var(--wr-line) !important;
   border-radius: var(--wr-radius) !important;
   box-shadow: var(--wr-shadow) !important;
+}
+
+.nav-site .category-rail {
+  min-height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin: -4px 0 18px !important;
+  padding: 8px !important;
+  overflow-x: auto !important;
+  background: rgba(255, 255, 255, 0.7) !important;
+  border: 1px solid var(--wr-line) !important;
+  border-radius: var(--wr-radius) !important;
+}
+
+.nav-site .category-chip {
+  flex: 0 0 auto !important;
+  min-height: 30px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  padding: 0 11px !important;
+  color: var(--wr-text) !important;
+  background: #fff !important;
+  border: 1px solid var(--wr-line) !important;
+  border-radius: 999px !important;
+  font-size: 0.78rem !important;
+  font-weight: 850 !important;
+  font-family: var(--wr-font) !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  transition: color var(--wr-fast), border-color var(--wr-fast), background var(--wr-fast), box-shadow var(--wr-fast) !important;
+}
+
+.nav-site .category-chip:hover,
+.nav-site .category-chip.active {
+  color: var(--chip-color, var(--wr-blue)) !important;
+  border-color: color-mix(in srgb, var(--chip-color, var(--wr-blue)) 44%, var(--wr-line)) !important;
+  background: color-mix(in srgb, var(--chip-color, var(--wr-blue)) 9%, white) !important;
+}
+
+.nav-site .category-chip.active {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--chip-color, var(--wr-blue)) 12%, transparent) !important;
+}
+
+.nav-site .category-chip-dot {
+  width: 7px !important;
+  height: 7px !important;
+  flex: 0 0 7px !important;
+  border-radius: 999px !important;
+  background: var(--chip-color, var(--wr-blue)) !important;
 }
 
 .nav-site .search-container,

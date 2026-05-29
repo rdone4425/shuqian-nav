@@ -1,4 +1,4 @@
-// 书签列表API - 支持分页、搜索、排序
+// Bookmarks list API.
 import { authenticateRequest } from "../auth/verify.js";
 import { ResponseHelper } from "../../utils/response-helper.js";
 
@@ -7,17 +7,10 @@ export async function onRequestGet(context) {
   const url = new URL(request.url);
 
   try {
-    // 验证认证（可选，根据需求决定是否需要认证才能查看）
-    // const auth = await authenticateRequest(request, env);
-    // if (!auth.authenticated) {
-    //   return new Response(JSON.stringify({
-    //     success: false,
-    //     error: auth.error
-    //   }), {
-    //     status: 401,
-    //     headers: { 'Content-Type': 'application/json' }
-    //   });
-    // }
+    const auth = await authenticateRequest(request, env);
+    if (!auth.authenticated) {
+      return ResponseHelper.unauthorized(auth.error);
+    }
 
     // 获取查询参数
     const page = parseInt(url.searchParams.get("page")) || 1;
@@ -134,6 +127,25 @@ export async function onRequestGet(context) {
       },
     });
   } catch (error) {
+    if (String(error.message || "").includes("no such table")) {
+      return ResponseHelper.success({
+        bookmarks: [],
+        pagination: {
+          page: 1,
+          limit: 20,
+          total: 0,
+          totalPages: 1,
+          hasNext: false,
+          hasPrev: false,
+        },
+        filters: {
+          search: "",
+          category: "",
+          sortBy: "created_at",
+          sortOrder: "DESC",
+        },
+      });
+    }
     return ResponseHelper.serverError("获取书签列表失败", error.message);
   }
 }
