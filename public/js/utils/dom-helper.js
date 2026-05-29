@@ -57,7 +57,7 @@ class DOMHelper {
         element = this.get(element);
       }
       if (element) {
-        element.style.display = display;
+        element.style.setProperty("display", display, "important");
       }
     });
   }

@@ -38,6 +38,7 @@
   "devDependencies": {
     "eslint": "^8.57.0",
     "prettier": "^3.2.5",
+    "puppeteer-core": "^25.1.0",
     "wrangler": "^3.28.0"
   },
   "type": "module",
