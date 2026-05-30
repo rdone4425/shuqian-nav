@@ -54,14 +54,19 @@ const SiteMenu = {
     const headerActions = document.querySelector(".header-actions");
     if (!headerActions) return;
 
-    let dropdown = document.getElementById("toolsDropdown");
-    if (!dropdown) {
-      const menu = document.createElement("div");
-      menu.className = "action-group tools-menu";
-      menu.innerHTML = `
+    headerActions.classList.add("site-nav-actions");
+    headerActions.innerHTML = `
+      <nav class="site-nav-strip" aria-label="页面导航">
+        ${this.items.map((item) => this.renderTopLink(item)).join("")}
+      </nav>
+      <button id="logoutBtn" class="action-btn-icon site-logout-btn" type="button">
+        <span class="btn-icon">OUT</span>
+        <span class="action-btn-label">退出</span>
+      </button>
+      <div class="action-group tools-menu site-menu-compact">
         <button
           id="toolsMenuToggle"
-          class="action-btn-icon menu-toggle has-label"
+          class="action-btn-icon menu-toggle has-label site-menu-toggle"
           title="打开菜单"
           aria-expanded="false"
           aria-controls="toolsDropdown"
@@ -71,22 +76,30 @@ const SiteMenu = {
           <span class="action-btn-label">菜单</span>
         </button>
         <div id="toolsDropdown" class="dropdown-menu" role="menu"></div>
-      `;
-      headerActions.appendChild(menu);
-      dropdown = menu.querySelector("#toolsDropdown");
-    }
+      </div>
+    `;
 
+    const dropdown = document.getElementById("toolsDropdown");
     dropdown.setAttribute("role", "menu");
     dropdown.innerHTML = `
       ${this.items.map((item) => this.renderLink(item)).join("")}
       <div class="dropdown-divider"></div>
-      <button id="logoutBtn" class="dropdown-item" role="menuitem" type="button">
+      <button id="logoutMenuBtn" class="dropdown-item" role="menuitem" type="button">
         <span class="item-icon">OUT</span>
         <div class="item-content">
           <span class="item-text">退出登录</span>
           <span class="item-desc">回到登录页</span>
         </div>
       </button>
+    `;
+  },
+
+  renderTopLink(item) {
+    return `
+      <a href="${item.href}" class="site-nav-link" title="${item.desc}">
+        <span class="site-nav-icon">${item.icon}</span>
+        <span>${item.text}</span>
+      </a>
     `;
   },
 
@@ -126,20 +139,23 @@ const SiteMenu = {
       }
     });
 
-    document.getElementById("logoutBtn")?.addEventListener("click", () => {
-      window.Auth?.logout?.({ redirect: true });
+    document.querySelectorAll("#logoutBtn, #logoutMenuBtn").forEach((button) => {
+      button.addEventListener("click", () => {
+        window.Auth?.logout?.({ redirect: true });
+      });
     });
   },
 
   markActive() {
     const path = this.normalizePath(window.location.pathname);
     document
-      .querySelectorAll("#toolsDropdown a.dropdown-item")
+      .querySelectorAll("#toolsDropdown a.dropdown-item, .site-nav-link")
       .forEach((link) => {
         const href = this.normalizePath(link.getAttribute("href") || "");
         const isHome = href === "/" && (path === "/" || path === "/index");
         if (href === path || isHome) {
           link.classList.add("active");
+          link.setAttribute("aria-current", "page");
         }
       });
   },
