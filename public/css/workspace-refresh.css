@@ -926,8 +926,15 @@ body.nav-site::after,
   transition: background var(--wr-fast) !important;
 }
 
-.nav-site .dropdown-item:hover {
+.nav-site .dropdown-item:hover,
+.nav-site .dropdown-item.active {
   background: var(--wr-surface-2) !important;
+}
+
+.nav-site .dropdown-item.active .item-icon {
+  color: #fff !important;
+  background: var(--wr-blue) !important;
+  border-color: var(--wr-blue) !important;
 }
 
 .nav-site .item-icon {

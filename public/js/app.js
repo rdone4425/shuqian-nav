@@ -143,6 +143,10 @@ const App = {
       this.createFullBackup("html");
     });
 
+    document.getElementById("logoutBtn")?.addEventListener("click", () => {
+      window.Auth?.logout?.({ redirect: true });
+    });
+
     document.addEventListener("keydown", (event) => {
       this.handleKeyboardShortcuts(event);
     });

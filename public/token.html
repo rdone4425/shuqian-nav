@@ -123,6 +123,8 @@
       </main>
     </div>
 
+    <script src="/js/auth.js"></script>
+    <script src="/js/site-menu.js"></script>
     <script>
       async function refreshTokenGuardStatus() {
         const statusEl = document.getElementById("tokenGuardStatus");
@@ -133,6 +135,7 @@
             method: "GET",
             headers: {
               Accept: "application/json",
+              ...window.Auth.getAuthHeaders(),
             },
           });
 
