@@ -3,7 +3,7 @@ import { authenticateRequest } from "./verify.js";
 import { JWTKeyManager } from "../../utils/jwt-manager.js";
 
 function isTokenManagementEnabled(env = {}) {
-  return env.PUBLIC_API_TOKEN_MANAGEMENT === "enabled";
+  return env.PUBLIC_API_TOKEN_MANAGEMENT !== "disabled";
 }
 
 function createJsonResponse(body, status = 200) {
@@ -18,7 +18,7 @@ function createDisabledResponse() {
     {
       success: false,
       error:
-        "API token management is disabled in public mode. Set PUBLIC_API_TOKEN_MANAGEMENT=enabled to manage tokens from the web UI.",
+        "API token management is disabled. Remove PUBLIC_API_TOKEN_MANAGEMENT=disabled to manage tokens from the web UI.",
     },
     403,
   );
@@ -89,25 +89,15 @@ export async function onRequestPost(context) {
     const expireDays = expiresIn || 30;
     const expirationTime =
       Math.floor(Date.now() / 1000) + expireDays * 24 * 60 * 60;
-
-    const secret = await getSigningSecret(env);
-    const token = await new SignJWT({
-      sub: "api-access",
-      type: "api-token",
-      name,
-      description: description || "",
-      iat: Math.floor(Date.now() / 1000),
-      exp: expirationTime,
-    })
-      .setProtectedHeader({ alg: "HS256" })
-      .sign(secret);
+    const tokenId = `api_token_${Date.now()}_${crypto.randomUUID?.() || Math.random().toString(36).slice(2)}`;
+    let tokenPersisted = false;
 
     try {
       await env.BOOKMARKS_DB.prepare(
         "INSERT INTO system_config (config_key, config_value, description) VALUES (?, ?, ?)",
       )
         .bind(
-          `api_token_${Date.now()}`,
+          tokenId,
           JSON.stringify({
             name,
             description: description || "",
@@ -117,13 +107,32 @@ export async function onRequestPost(context) {
           `API token: ${name}`,
         )
         .run();
+      tokenPersisted = true;
     } catch (dbError) {
       console.error("Failed to persist API token metadata:", dbError);
     }
 
+    const secret = await getSigningSecret(env);
+    const tokenPayload = {
+      sub: "api-access",
+      type: "api-token",
+      name,
+      description: description || "",
+      iat: Math.floor(Date.now() / 1000),
+      exp: expirationTime,
+    };
+    if (tokenPersisted) {
+      tokenPayload.jti = tokenId;
+    }
+
+    const token = await new SignJWT(tokenPayload)
+      .setProtectedHeader({ alg: "HS256" })
+      .sign(secret);
+
     return createJsonResponse({
       success: true,
       data: {
+        id: tokenPersisted ? tokenId : null,
         token,
         name,
         description: description || "",
@@ -152,6 +161,22 @@ export async function verifyApiToken(token, env) {
 
     if (payload.type !== "api-token") {
       return { valid: false, error: "Invalid token type." };
+    }
+
+    if (payload.jti && env.BOOKMARKS_DB) {
+      try {
+        const tokenRecord = await env.BOOKMARKS_DB.prepare(
+          "SELECT config_key FROM system_config WHERE config_key = ?",
+        )
+          .bind(payload.jti)
+          .first();
+
+        if (!tokenRecord) {
+          return { valid: false, error: "API token has been revoked." };
+        }
+      } catch (error) {
+        console.warn("Failed to check API token metadata:", error);
+      }
     }
 
     return { valid: true, payload };

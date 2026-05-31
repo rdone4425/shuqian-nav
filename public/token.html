@@ -42,13 +42,11 @@
       <main class="token-container token-page-shell">
         <section class="token-intro-card">
           <div class="token-title-block">
-            <span class="token-kicker">高级</span>
-            <h2 class="token-page-title">
-              这个页面只用于同步接入，不是日常首页流程。
-            </h2>
+            <span class="token-kicker">同步</span>
+            <h2 class="token-page-title">生成 Chrome 同步令牌</h2>
             <p class="token-page-copy">
-              平时的搜索、浏览、导入和维护都建议在首页或工具页完成。只有在
-              Chrome 同步或自动化确实需要令牌时，再来这里查看说明。
+              登录管理员后，可以在这里创建用于 Chrome 扩展或自动化同步的
+              <code>X-API-Token</code>。
             </p>
           </div>
 
@@ -62,20 +60,69 @@
               >
             </article>
             <article class="token-mini-card">
-              <strong>公开模式保护</strong>
-              <span
-                >为了避免所有访问者都能创建令牌，网页端令牌管理默认关闭，这个页面主要负责展示状态和说明。</span
-              >
+              <strong>只显示一次</strong>
+              <span>新令牌只在生成后展示一次，请立即复制保存。</span>
             </article>
           </div>
         </section>
 
         <section class="token-guard-card">
           <span class="token-kicker">状态</span>
-          <h3 class="section-title">当前网页令牌管理状态</h3>
+          <h3 class="section-title">同步令牌管理</h3>
           <p id="tokenGuardStatus" class="token-guard-copy">
             正在检查当前配置...
           </p>
+          <form id="tokenForm" class="settings-form hidden">
+            <div class="form-group">
+              <label for="tokenName">令牌名称</label>
+              <input
+                id="tokenName"
+                class="form-input"
+                type="text"
+                value="Chrome 同步"
+                maxlength="80"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="tokenDescription">说明</label>
+              <input
+                id="tokenDescription"
+                class="form-input"
+                type="text"
+                value="用于书签同步"
+                maxlength="160"
+              />
+            </div>
+            <div class="form-group">
+              <label for="tokenExpiresIn">有效期（天）</label>
+              <input
+                id="tokenExpiresIn"
+                class="form-input"
+                type="number"
+                min="1"
+                max="3650"
+                value="365"
+                required
+              />
+            </div>
+            <div class="token-actions-inline">
+              <button id="createTokenBtn" class="btn btn-primary" type="submit">
+                生成令牌
+              </button>
+              <button id="refreshTokensBtn" class="btn btn-soft" type="button">
+                刷新列表
+              </button>
+            </div>
+          </form>
+          <div id="tokenResult" class="token-mini-card hidden">
+            <strong>新令牌</strong>
+            <code id="createdTokenValue"></code>
+            <button id="copyTokenBtn" class="btn btn-soft" type="button">
+              复制令牌
+            </button>
+          </div>
+          <div id="tokenList" class="token-guide-grid"></div>
           <div class="token-actions-inline">
             <button
               id="checkTokenGuardBtn"
@@ -90,29 +137,23 @@
 
         <section class="token-guide-card">
           <span class="token-kicker">说明</span>
-          <h3 class="section-title">如何更安全地启用同步令牌</h3>
+          <h3 class="section-title">同步接入信息</h3>
           <div class="token-guide-grid">
             <article class="token-mini-card">
-              <strong>1. 默认保持关闭</strong>
-              <span>公开书签站不应把令牌创建能力暴露给所有访问者。</span>
+              <strong>服务地址</strong>
+              <span><code id="syncEndpoint"></code></span>
             </article>
             <article class="token-mini-card">
-              <strong>2. 明确开启</strong>
-              <span
-                >仅在受控环境里，把
-                <code>PUBLIC_API_TOKEN_MANAGEMENT</code> 设为
-                <code>enabled</code>。</span
-              >
+              <strong>请求头</strong>
+              <span><code>X-API-Token: 你的令牌</code></span>
             </article>
             <article class="token-mini-card">
-              <strong>3. 按工具分开令牌</strong>
+              <strong>按工具分开</strong>
               <span>不同自动化工具尽量使用不同令牌，后续撤销更简单。</span>
             </article>
             <article class="token-mini-card">
-              <strong>4. 在这里查看接入说明</strong>
-              <span
-                >Chrome 扩展仍然会把用户带到这里查看服务地址和令牌说明。</span
-              >
+              <strong>失效处理</strong>
+              <span>令牌过期或删除后，请重新生成并更新扩展配置。</span>
             </article>
           </div>
           <div class="token-actions-inline">
@@ -126,44 +167,196 @@
     <script src="/js/auth.js"></script>
     <script src="/js/site-menu.js"></script>
     <script>
+      const tokenState = {
+        tokens: [],
+        busy: false,
+      };
+
+      function setTokenStatus(message) {
+        document.getElementById("tokenGuardStatus").textContent = message;
+      }
+
+      function tokenHeaders() {
+        return {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          ...window.Auth.getAuthHeaders(),
+        };
+      }
+
+      function showTokenForm(visible) {
+        document
+          .getElementById("tokenForm")
+          .classList.toggle("hidden", !visible);
+      }
+
+      function renderTokenList() {
+        const listEl = document.getElementById("tokenList");
+        if (!tokenState.tokens.length) {
+          listEl.innerHTML =
+            '<article class="token-mini-card"><strong>暂无令牌</strong><span>点击“生成令牌”创建第一个同步令牌。</span></article>';
+          return;
+        }
+
+        listEl.innerHTML = tokenState.tokens
+          .map(
+            (token) => `
+              <article class="token-mini-card">
+                <strong>${escapeHtml(token.name || "未命名令牌")}</strong>
+                <span>${escapeHtml(token.description || "无说明")}</span>
+                <span>创建：${formatDate(token.created || token.createdAt)}</span>
+                <span>过期：${formatDate(token.expires)}</span>
+                <button class="btn btn-soft delete-token-btn" type="button" data-token-id="${escapeHtml(token.id)}">
+                  删除
+                </button>
+              </article>
+            `,
+          )
+          .join("");
+
+        listEl.querySelectorAll(".delete-token-btn").forEach((button) => {
+          button.addEventListener("click", () =>
+            deleteToken(button.dataset.tokenId),
+          );
+        });
+      }
+
+      function escapeHtml(value) {
+        const div = document.createElement("div");
+        div.textContent = value || "";
+        return div.innerHTML;
+      }
+
+      function formatDate(value) {
+        if (!value) return "未知";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        return date.toLocaleString();
+      }
+
       async function refreshTokenGuardStatus() {
-        const statusEl = document.getElementById("tokenGuardStatus");
-        statusEl.textContent = "正在检查当前配置...";
+        setTokenStatus("正在检查当前配置...");
 
         try {
           const response = await fetch("/api/auth/token", {
             method: "GET",
-            headers: {
-              Accept: "application/json",
-              ...window.Auth.getAuthHeaders(),
-            },
+            headers: tokenHeaders(),
           });
 
           const data = await response.json().catch(() => ({}));
 
           if (response.status === 403) {
-            statusEl.textContent =
-              "公开模式保护已启用。只有在设置 PUBLIC_API_TOKEN_MANAGEMENT=enabled 后，网页端令牌管理才会开放。";
+            showTokenForm(false);
+            setTokenStatus(
+              "令牌管理被配置关闭。请移除 PUBLIC_API_TOKEN_MANAGEMENT=disabled 后再生成令牌。",
+            );
             return;
           }
 
           if (response.ok) {
-            statusEl.textContent =
-              "当前环境已启用网页端令牌管理。请确认只有可信操作人员可以访问这个部署。";
+            tokenState.tokens = data.data || [];
+            showTokenForm(true);
+            renderTokenList();
+            setTokenStatus("已登录管理员，可以生成和管理同步令牌。");
             return;
           }
 
-          statusEl.textContent =
-            data.error || "令牌状态检查失败，HTTP 状态码：" + response.status;
+          setTokenStatus(
+            data.error || "令牌状态检查失败，HTTP 状态码：" + response.status,
+          );
         } catch (error) {
-          statusEl.textContent = "令牌状态检查失败：" + error.message;
+          setTokenStatus("令牌状态检查失败：" + error.message);
         }
       }
 
-      document.addEventListener("DOMContentLoaded", () => {
+      async function createToken(event) {
+        event.preventDefault();
+        if (tokenState.busy) return;
+
+        tokenState.busy = true;
+        const button = document.getElementById("createTokenBtn");
+        const originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = "生成中...";
+
+        try {
+          const response = await fetch("/api/auth/token", {
+            method: "POST",
+            headers: tokenHeaders(),
+            body: JSON.stringify({
+              name: document.getElementById("tokenName").value.trim(),
+              description: document
+                .getElementById("tokenDescription")
+                .value.trim(),
+              expiresIn:
+                parseInt(document.getElementById("tokenExpiresIn").value, 10) ||
+                365,
+            }),
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.success) {
+            throw new Error(data.error || data.message || "生成令牌失败");
+          }
+
+          document.getElementById("createdTokenValue").textContent =
+            data.data.token;
+          document.getElementById("tokenResult").classList.remove("hidden");
+          setTokenStatus("令牌已生成，请立即复制保存。");
+          await refreshTokenGuardStatus();
+        } catch (error) {
+          setTokenStatus("生成令牌失败：" + error.message);
+        } finally {
+          tokenState.busy = false;
+          button.disabled = false;
+          button.textContent = originalText;
+        }
+      }
+
+      async function copyCreatedToken() {
+        const token = document.getElementById("createdTokenValue").textContent;
+        if (!token) return;
+        await navigator.clipboard.writeText(token);
+        setTokenStatus("令牌已复制。");
+      }
+
+      async function deleteToken(tokenId) {
+        if (!tokenId || !confirm("确定删除这个同步令牌吗？")) return;
+
+        try {
+          const response = await fetch("/api/auth/token", {
+            method: "POST",
+            headers: tokenHeaders(),
+            body: JSON.stringify({ action: "delete", tokenId }),
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.success) {
+            throw new Error(data.error || data.message || "删除令牌失败");
+          }
+          setTokenStatus("令牌已删除。");
+          await refreshTokenGuardStatus();
+        } catch (error) {
+          setTokenStatus("删除令牌失败：" + error.message);
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        const authenticated = await window.Auth.init({ requireAuth: true });
+        if (!authenticated) return;
+
+        document.getElementById("syncEndpoint").textContent =
+          window.location.origin + "/api/bookmarks/sync";
         document
           .getElementById("checkTokenGuardBtn")
           .addEventListener("click", refreshTokenGuardStatus);
+        document
+          .getElementById("refreshTokensBtn")
+          .addEventListener("click", refreshTokenGuardStatus);
+        document
+          .getElementById("tokenForm")
+          .addEventListener("submit", createToken);
+        document
+          .getElementById("copyTokenBtn")
+          .addEventListener("click", copyCreatedToken);
         refreshTokenGuardStatus();
       });
     </script>

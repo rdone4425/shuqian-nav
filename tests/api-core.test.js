@@ -384,7 +384,7 @@ test("JWT secret falls back to a cached in-memory value when D1 is unavailable",
   assert.equal(firstSecret.length > 20, true);
 });
 
-test("token management stays disabled by default in public mode", async () => {
+test("token management requires an administrator session by default", async () => {
   const listResponse = await tokenListHandler({
     request: new Request("https://example.com/api/auth/token"),
     env: {
@@ -393,10 +393,10 @@ test("token management stays disabled by default in public mode", async () => {
     },
   });
 
-  assert.equal(listResponse.status, 403);
+  assert.equal(listResponse.status, 401);
   const listBody = await listResponse.json();
   assert.equal(listBody.success, false);
-  assert.match(listBody.error, /disabled in public mode/i);
+  assert.equal(typeof listBody.error, "string");
 
   const createResponse = await tokenCreateHandler({
     request: new Request("https://example.com/api/auth/token", {
@@ -410,10 +410,117 @@ test("token management stays disabled by default in public mode", async () => {
     },
   });
 
-  assert.equal(createResponse.status, 403);
+  assert.equal(createResponse.status, 401);
   const createBody = await createResponse.json();
   assert.equal(createBody.success, false);
-  assert.match(createBody.error, /disabled in public mode/i);
+  assert.equal(typeof createBody.error, "string");
+});
+
+test("token management can be explicitly disabled", async () => {
+  const response = await tokenListHandler({
+    request: new Request("https://example.com/api/auth/token"),
+    env: {
+      PUBLIC_API_TOKEN_MANAGEMENT: "disabled",
+      JWT_SECRET: "test-secret-with-safe-length-1234567890",
+      BOOKMARKS_DB: createDbMock(),
+    },
+  });
+
+  assert.equal(response.status, 403);
+  const body = await response.json();
+  assert.equal(body.success, false);
+  assert.match(body.error, /disabled/i);
+});
+
+test("authenticated admin can create a sync API token by default", async () => {
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock(),
+  };
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await tokenCreateHandler({
+    request: new Request("https://example.com/api/auth/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ name: "Chrome Sync", expiresIn: 365 }),
+    }),
+    env,
+  });
+
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.success, true);
+  assert.equal(typeof body.data.token, "string");
+  assert.equal(body.data.name, "Chrome Sync");
+  assert.match(body.data.id, /^api_token_/);
+});
+
+test("deleted API token metadata revokes newly generated tokens", async () => {
+  let activeTokenId = null;
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return params[0] === activeTokenId
+            ? { config_key: activeTokenId }
+            : null;
+        }
+        return null;
+      },
+      runResult({ params }) {
+        if (String(params[0] || "").startsWith("api_token_")) {
+          activeTokenId = params[0];
+        }
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await tokenCreateHandler({
+    request: new Request("https://example.com/api/auth/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ name: "Chrome Sync", expiresIn: 365 }),
+    }),
+    env,
+  });
+  const body = await response.json();
+
+  const validCheck = await verifyApiToken(body.data.token, env);
+  assert.equal(validCheck.valid, true);
+
+  activeTokenId = null;
+  const revokedCheck = await verifyApiToken(body.data.token, env);
+  assert.equal(revokedCheck.valid, false);
+  assert.match(revokedCheck.error, /revoked/i);
 });
 
 test("token verification uses generated jwt secret instead of a fixed fallback", async () => {
