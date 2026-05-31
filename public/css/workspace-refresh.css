@@ -142,7 +142,7 @@ body.nav-site::after,
 
 .nav-site .nav-menu {
   height: 38px !important;
-  display: flex !important;
+  display: none !important;
   align-items: center !important;
   gap: 2px !important;
   padding: 3px !important;
@@ -259,7 +259,7 @@ body.nav-site::after,
 }
 
 .nav-site .site-menu-compact {
-  display: none !important;
+  display: flex !important;
 }
 
 .nav-site .action-btn-icon {
@@ -1133,6 +1133,13 @@ body.nav-site::after,
   background: var(--wr-line-soft) !important;
 }
 
+.nav-site .dropdown-section-label {
+  padding: 8px 9px 5px !important;
+  color: var(--wr-muted) !important;
+  font-size: 0.68rem !important;
+  font-weight: 900 !important;
+}
+
 .nav-site .pagination-container {
   padding: 20px 0 0 !important;
 }
@@ -1440,7 +1447,6 @@ body.nav-site::after,
     display: none !important;
   }
 
-  .nav-site .site-nav-strip,
   .nav-site .site-logout-btn {
     display: none !important;
   }

@@ -41,6 +41,10 @@ jobs:
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          PAGES_ADMIN_PASSWORD: ${{ secrets.PAGES_ADMIN_PASSWORD }}
+          PAGES_JWT_SECRET: ${{ secrets.PAGES_JWT_SECRET }}
+          PAGES_CRON_SECRET: ${{ secrets.PAGES_CRON_SECRET }}
+          PUBLIC_API_TOKEN_MANAGEMENT: ${{ vars.PUBLIC_API_TOKEN_MANAGEMENT }}
         run: |
           node <<'EOF'
           const configuredAccountId = process.env.CLOUDFLARE_ACCOUNT_ID;
@@ -198,7 +202,26 @@ jobs:
             return id;
           }
 
+          function addOptionalEnvVar(envVars, name, type, value) {
+            if (!value) {
+              return;
+            }
+            envVars[name] = { type, value };
+          }
+
           function buildDeploymentConfig(environment, d1Id) {
+            const envVars = {
+              ENVIRONMENT: {
+                type: 'plain_text',
+                value: environment
+              }
+            };
+
+            addOptionalEnvVar(envVars, 'PUBLIC_API_TOKEN_MANAGEMENT', 'plain_text', process.env.PUBLIC_API_TOKEN_MANAGEMENT);
+            addOptionalEnvVar(envVars, 'ADMIN_PASSWORD', 'secret_text', process.env.PAGES_ADMIN_PASSWORD);
+            addOptionalEnvVar(envVars, 'JWT_SECRET', 'secret_text', process.env.PAGES_JWT_SECRET);
+            addOptionalEnvVar(envVars, 'CRON_SECRET', 'secret_text', process.env.PAGES_CRON_SECRET);
+
             return {
               compatibility_date: compatibilityDate,
               d1_databases: {
@@ -206,12 +229,7 @@ jobs:
                   id: d1Id
                 }
               },
-              env_vars: {
-                ENVIRONMENT: {
-                  type: 'plain_text',
-                  value: environment
-                }
-              }
+              env_vars: envVars
             };
           }
 

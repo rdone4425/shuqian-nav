@@ -17,6 +17,11 @@ import {
 } from "../pages/functions/api/auth/token.js";
 import { onRequestGet as syncListHandler } from "../pages/functions/api/bookmarks/sync.js";
 import { onRequestDelete as bookmarkDeleteHandler } from "../pages/functions/api/bookmarks/[id].js";
+import { onRequestPost as batchMoveHandler } from "../pages/functions/api/bookmarks/batch-move.js";
+import {
+  onRequestDelete as categoryDeleteHandler,
+  onRequestPut as categoryUpdateHandler,
+} from "../pages/functions/api/bookmarks/categories/[id].js";
 import { onRequestPost as bookmarkClearHandler } from "../pages/functions/api/bookmarks/clear.js";
 import { onRequestPost as bookmarkImportHandler } from "../pages/functions/api/bookmarks/import.js";
 import { JWTKeyManager } from "../pages/functions/utils/jwt-manager.js";
@@ -522,6 +527,200 @@ test("clear all bookmarks archives records and requires confirmation", async () 
   assert.equal(body.data.deleted, 1);
   assert.equal(deletionRecordInserted, true);
   assert.equal(deleteAttempted, true);
+});
+
+test("category update rejects duplicate names and updates existing category", async () => {
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        if (sql.includes("SELECT id FROM categories WHERE id = ?")) {
+          return { id: Number(params[0]) };
+        }
+        if (
+          sql.includes("SELECT id FROM categories WHERE name = ? AND id != ?")
+        ) {
+          return params[0] === "Duplicate" ? { id: 9 } : null;
+        }
+        if (sql.includes("FROM categories c")) {
+          return {
+            id: Number(params[0]),
+            name: "Updated",
+            color: "#111111",
+            description: "New description",
+            bookmark_count: 2,
+          };
+        }
+        return null;
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const duplicateResponse = await categoryUpdateHandler({
+    request: new Request("https://example.com/api/bookmarks/categories/2", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ name: "Duplicate" }),
+    }),
+    params: { id: "2" },
+    env,
+  });
+  assert.equal(duplicateResponse.status, 422);
+
+  const response = await categoryUpdateHandler({
+    request: new Request("https://example.com/api/bookmarks/categories/2", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({
+        name: "Updated",
+        color: "#111111",
+        description: "New description",
+      }),
+    }),
+    params: { id: "2" },
+    env,
+  });
+  const body = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(body.success, true);
+  assert.equal(body.data.name, "Updated");
+});
+
+test("category delete migrates bookmarks before removing the category", async () => {
+  let movedTo = undefined;
+  let deletedCategory = false;
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        if (sql.includes("FROM categories c")) {
+          return { id: Number(params[0]), name: "Old", bookmark_count: 3 };
+        }
+        if (sql.includes("SELECT id FROM categories WHERE id = ?")) {
+          return { id: Number(params[0]) };
+        }
+        return null;
+      },
+      runResult({ sql, params }) {
+        if (sql.includes("UPDATE bookmarks SET category_id")) {
+          movedTo = params[0];
+          return { success: true, meta: { changes: 3 } };
+        }
+        if (sql.includes("DELETE FROM categories")) {
+          deletedCategory = true;
+        }
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await categoryDeleteHandler({
+    request: new Request("https://example.com/api/bookmarks/categories/2", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ moveToCategoryId: 4 }),
+    }),
+    params: { id: "2" },
+    env,
+  });
+
+  const body = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(body.success, true);
+  assert.equal(movedTo, 4);
+  assert.equal(deletedCategory, true);
+  assert.equal(body.data.movedCount, 3);
+});
+
+test("batch move updates selected bookmark category in one request", async () => {
+  let updateParams = null;
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        if (sql.includes("SELECT id FROM categories WHERE id = ?")) {
+          return { id: Number(params[0]) };
+        }
+        return null;
+      },
+      runResult({ sql, params }) {
+        if (sql.includes("UPDATE bookmarks")) {
+          updateParams = params;
+          return { success: true, meta: { changes: 2 } };
+        }
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await batchMoveHandler({
+    request: new Request("https://example.com/api/bookmarks/batch-move", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ bookmarkIds: [1, 2, 2], categoryId: 5 }),
+    }),
+    env,
+  });
+
+  const body = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(body.success, true);
+  assert.deepEqual(updateParams, [5, 1, 2]);
+  assert.equal(body.data.movedCount, 2);
 });
 
 test("known protected sites are treated as reachable during link checks", () => {

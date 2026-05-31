@@ -36,8 +36,9 @@ const BookmarkManager = {
     this.bindElements();
     this.bindEvents();
     this.restoreUserPreferences();
-    await this.loadCategories();
+    const categoriesPromise = this.loadCategories();
     await this.loadBookmarks();
+    await categoriesPromise;
   },
 
   bindElements() {
@@ -128,6 +129,31 @@ const BookmarkManager = {
 
     document.getElementById("retryBtn")?.addEventListener("click", () => {
       this.loadBookmarks();
+    });
+
+    this.elements.bookmarksGrid?.addEventListener("click", (event) => {
+      const link = event.target.closest(".bookmark-url");
+      if (link) {
+        const bookmarkCard = link.closest(".bookmark-card");
+        const bookmarkId = bookmarkCard?.dataset.id;
+        if (bookmarkId) {
+          this.recordVisit(bookmarkId);
+        }
+        return;
+      }
+
+      const editButton = event.target.closest(".edit-btn");
+      if (editButton) {
+        event.stopPropagation();
+        this.editBookmark(editButton.dataset.id);
+        return;
+      }
+
+      const deleteButton = event.target.closest(".delete-btn");
+      if (deleteButton) {
+        event.stopPropagation();
+        this.deleteBookmark(deleteButton.dataset.id);
+      }
     });
   },
 
@@ -261,8 +287,6 @@ const BookmarkManager = {
     this.elements.bookmarksGrid.innerHTML = this.bookmarks
       .map((bookmark) => this.createBookmarkCard(bookmark))
       .join("");
-
-    this.bindBookmarkEvents();
   },
 
   createBookmarkCard(bookmark) {
@@ -316,7 +340,7 @@ const BookmarkManager = {
       <article class="bookmark-card" data-id="${bookmark.id}" style="--card-accent: ${catColor}">
         <div class="bookmark-card-top">
           <div class="bookmark-favicon-wrap">
-            <img src="${this.escapeHtml(favicon.src)}" srcset="${this.escapeHtml(favicon.srcSet)}" alt="" aria-hidden="true" class="bookmark-favicon" onerror="this.onerror=null; this.src='${this.escapeHtml(favicon.fallback)}'">
+            <img src="${this.escapeHtml(favicon.src)}" srcset="${this.escapeHtml(favicon.srcSet)}" alt="" aria-hidden="true" class="bookmark-favicon" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='${this.escapeHtml(favicon.fallback)}'">
           </div>
           <div class="bookmark-main">
             <div class="bookmark-title-row">
@@ -414,32 +438,6 @@ const BookmarkManager = {
       return `${Math.floor(diffDays / 7)}${this.t("bookmarkCard.weeksAgo")}`;
     }
     return date.toLocaleDateString();
-  },
-
-  bindBookmarkEvents() {
-    document.querySelectorAll(".bookmark-url").forEach((link) => {
-      link.addEventListener("click", () => {
-        const bookmarkCard = link.closest(".bookmark-card");
-        const bookmarkId = bookmarkCard?.dataset.id;
-        if (bookmarkId) {
-          this.recordVisit(bookmarkId);
-        }
-      });
-    });
-
-    document.querySelectorAll(".edit-btn").forEach((btn) => {
-      btn.addEventListener("click", (event) => {
-        event.stopPropagation();
-        this.editBookmark(btn.dataset.id);
-      });
-    });
-
-    document.querySelectorAll(".delete-btn").forEach((btn) => {
-      btn.addEventListener("click", (event) => {
-        event.stopPropagation();
-        this.deleteBookmark(btn.dataset.id);
-      });
-    });
   },
 
   renderCategoryFilter() {
@@ -698,8 +696,9 @@ const BookmarkManager = {
   },
 
   async refresh() {
-    await this.loadCategories();
+    const categoriesPromise = this.loadCategories();
     await this.loadBookmarks();
+    await categoriesPromise;
   },
 
   initClickSorting() {},

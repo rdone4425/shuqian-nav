@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>分类管理 - 书签导航</title>
+    <meta name="description" content="维护书签分类、颜色和删除迁移规则。" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+SC:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/workspace-refresh.css" />
+    <link rel="stylesheet" href="/css/management.css" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  </head>
+  <body class="nav-site">
+    <div class="container">
+      <header class="header">
+        <div class="header-content">
+          <a class="logo" href="/" aria-label="书签导航首页">
+            <span class="logo-icon">CAT</span>
+            <div class="logo-copy">
+              <h1 class="logo-text">分类管理</h1>
+              <p class="logo-subtitle">维护分类和书签归属</p>
+            </div>
+          </a>
+          <div class="header-actions"></div>
+        </div>
+      </header>
+
+      <section class="workspace-section-heading">
+        <div>
+          <span class="section-kicker">整理</span>
+          <h2 class="section-title">分类清楚，首页才不会全是未分类</h2>
+        </div>
+        <p class="section-copy">
+          在这里新增、改名、调整颜色。删除分类时，分类下的书签会先迁移到你选择的位置。
+        </p>
+      </section>
+
+      <main class="management-shell">
+        <section class="management-panel">
+          <form id="categoryForm" class="management-form">
+            <div class="management-fields">
+              <input id="categoryId" type="hidden" />
+              <label class="field-stack">
+                <span>分类名称</span>
+                <input id="categoryName" class="management-input" required />
+              </label>
+              <label class="field-stack">
+                <span>颜色</span>
+                <input
+                  id="categoryColor"
+                  class="management-input"
+                  type="color"
+                  value="#3B82F6"
+                />
+              </label>
+              <label class="field-stack grow">
+                <span>描述</span>
+                <input id="categoryDescription" class="management-input" />
+              </label>
+              <button
+                id="saveCategoryBtn"
+                class="btn btn-primary"
+                type="submit"
+              >
+                保存分类
+              </button>
+              <button
+                id="resetCategoryBtn"
+                class="btn btn-secondary"
+                type="button"
+              >
+                取消编辑
+              </button>
+            </div>
+          </form>
+
+          <div class="management-table-wrap">
+            <table class="management-table">
+              <thead>
+                <tr>
+                  <th>分类</th>
+                  <th>描述</th>
+                  <th>书签数</th>
+                  <th>更新时间</th>
+                  <th class="text-right">操作</th>
+                </tr>
+              </thead>
+              <tbody id="categoriesTableBody">
+                <tr>
+                  <td colspan="5" class="management-empty">正在加载分类...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/js/utils/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/site-menu.js?v=nav-20260601-manage"></script>
+    <script src="/js/admin-common.js"></script>
+    <script src="/js/category-manager.js?v=nav-20260601-manage"></script>
+  </body>
+</html>

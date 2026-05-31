@@ -1,42 +1,60 @@
 const SiteMenu = {
+  initialized: false,
   items: [
-    { href: "/", icon: "H", text: "首页", desc: "返回书签导航首页" },
+    { href: "/", icon: "首页", text: "首页", desc: "返回书签导航首页" },
+    {
+      href: "/bookmarks-manage.html",
+      icon: "书签",
+      text: "书签管理",
+      desc: "搜索、筛选和批量移动书签",
+    },
+    {
+      href: "/categories.html",
+      icon: "分类",
+      text: "分类管理",
+      desc: "维护分类、颜色和迁移规则",
+    },
     {
       href: "/import.html",
-      icon: "IN",
+      icon: "导入",
       text: "导入",
       desc: "导入书签文件或备份",
     },
     {
       href: "/link-checker.html",
-      icon: "CK",
+      icon: "检查",
       text: "链接检查",
       desc: "检查书签可访问性",
     },
     {
       href: "/deleted-bookmarks",
-      icon: "RC",
+      icon: "回收",
       text: "回收站",
       desc: "查看和恢复删除记录",
     },
     {
-      href: "/notifications.html",
-      icon: "NT",
-      text: "通知",
-      desc: "查看维护通知",
+      href: "/token.html",
+      icon: "令牌",
+      text: "同步令牌",
+      desc: "管理同步访问令牌",
     },
     {
-      href: "/token.html",
-      icon: "AP",
-      text: "同步令牌",
-      desc: "查看同步与令牌说明",
+      href: "/notifications.html",
+      icon: "通知",
+      text: "通知",
+      desc: "查看维护通知",
     },
   ],
 
   async init() {
-    if (window.location.pathname.includes("login")) {
+    if (this.initialized || window.location.pathname.includes("login")) {
       return;
     }
+
+    this.ensureMenu();
+    this.bindMenu();
+    this.markActive();
+    this.initialized = true;
 
     if (window.Auth) {
       const authenticated = await Auth.init({ requireAuth: true });
@@ -44,25 +62,18 @@ const SiteMenu = {
         return;
       }
     }
-
-    this.ensureMenu();
-    this.bindMenu();
-    this.markActive();
   },
 
   ensureMenu() {
     const headerActions = document.querySelector(".header-actions");
     if (!headerActions) return;
 
+    const primaryActions = headerActions.querySelector(".primary-actions");
+    const primaryActionsHTML = primaryActions ? primaryActions.outerHTML : "";
+
     headerActions.classList.add("site-nav-actions");
     headerActions.innerHTML = `
-      <nav class="site-nav-strip" aria-label="页面导航">
-        ${this.items.map((item) => this.renderTopLink(item)).join("")}
-      </nav>
-      <button id="logoutBtn" class="action-btn-icon site-logout-btn" type="button">
-        <span class="btn-icon">OUT</span>
-        <span class="action-btn-label">退出</span>
-      </button>
+      ${primaryActionsHTML}
       <div class="action-group tools-menu site-menu-compact">
         <button
           id="toolsMenuToggle"
@@ -72,34 +83,43 @@ const SiteMenu = {
           aria-controls="toolsDropdown"
           type="button"
         >
-          <span class="btn-icon">☰</span>
-          <span class="action-btn-label">菜单</span>
+          <span class="btn-icon">菜单</span>
+          <span class="action-btn-label">管理</span>
         </button>
-        <div id="toolsDropdown" class="dropdown-menu" role="menu"></div>
+        <div id="toolsDropdown" class="dropdown-menu site-menu-dropdown" role="menu"></div>
       </div>
+      <button id="logoutBtn" class="action-btn-icon site-logout-btn" type="button">
+        <span class="btn-icon">退出</span>
+        <span class="action-btn-label">退出</span>
+      </button>
     `;
 
     const dropdown = document.getElementById("toolsDropdown");
-    dropdown.setAttribute("role", "menu");
     dropdown.innerHTML = `
-      ${this.items.map((item) => this.renderLink(item)).join("")}
-      <div class="dropdown-divider"></div>
-      <button id="logoutMenuBtn" class="dropdown-item" role="menuitem" type="button">
-        <span class="item-icon">OUT</span>
-        <div class="item-content">
-          <span class="item-text">退出登录</span>
-          <span class="item-desc">回到登录页</span>
-        </div>
-      </button>
-    `;
-  },
-
-  renderTopLink(item) {
-    return `
-      <a href="${item.href}" class="site-nav-link" title="${item.desc}">
-        <span class="site-nav-icon">${item.icon}</span>
-        <span>${item.text}</span>
-      </a>
+      <div class="dropdown-section-label">常用管理</div>
+      ${this.items
+        .slice(0, 3)
+        .map((item) => this.renderLink(item))
+        .join("")}
+      <div class="dropdown-section-label">维护工具</div>
+      ${this.items
+        .slice(3)
+        .map((item) => this.renderLink(item))
+        .join("")}
+      ${
+        document.getElementById("settingsPanel")
+          ? `
+            <div class="dropdown-divider"></div>
+            <button id="settingsToggle" class="dropdown-item" role="menuitem" type="button">
+              <span class="item-icon">设置</span>
+              <div class="item-content">
+                <span class="item-text">设置</span>
+                <span class="item-desc">导出、备份和修改密码</span>
+              </div>
+            </button>
+          `
+          : ""
+      }
     `;
   },
 
@@ -133,25 +153,32 @@ const SiteMenu = {
 
     document.addEventListener("click", (event) => {
       if (!toggle.contains(event.target) && !dropdown.contains(event.target)) {
-        dropdown.classList.remove("show");
-        toggle.classList.remove("active");
-        toggle.setAttribute("aria-expanded", "false");
+        this.closeMenu();
       }
     });
 
-    document
-      .querySelectorAll("#logoutBtn, #logoutMenuBtn")
-      .forEach((button) => {
-        button.addEventListener("click", () => {
-          window.Auth?.logout?.({ redirect: true });
-        });
-      });
+    document.getElementById("logoutBtn")?.addEventListener("click", () => {
+      window.Auth?.logout?.({ redirect: true });
+    });
+
+    document.getElementById("settingsToggle")?.addEventListener("click", () => {
+      this.closeMenu();
+      document.getElementById("settingsPanel")?.classList.toggle("hidden");
+    });
+  },
+
+  closeMenu() {
+    const toggle = document.getElementById("toolsMenuToggle");
+    const dropdown = document.getElementById("toolsDropdown");
+    dropdown?.classList.remove("show");
+    toggle?.classList.remove("active");
+    toggle?.setAttribute("aria-expanded", "false");
   },
 
   markActive() {
     const path = this.normalizePath(window.location.pathname);
     document
-      .querySelectorAll("#toolsDropdown a.dropdown-item, .site-nav-link")
+      .querySelectorAll("#toolsDropdown a.dropdown-item")
       .forEach((link) => {
         const href = this.normalizePath(link.getAttribute("href") || "");
         const isHome = href === "/" && (path === "/" || path === "/index");

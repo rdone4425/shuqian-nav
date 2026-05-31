@@ -82,19 +82,21 @@ const App = {
       this.showBookmarkModal();
     });
 
-    this.elements.toolsMenuToggle?.addEventListener("click", (event) => {
-      event.stopPropagation();
-      this.toggleToolsMenu();
-    });
+    if (!window.SiteMenu) {
+      this.elements.toolsMenuToggle?.addEventListener("click", (event) => {
+        event.stopPropagation();
+        this.toggleToolsMenu();
+      });
 
-    document.addEventListener("click", (event) => {
-      if (
-        !this.elements.toolsMenuToggle?.contains(event.target) &&
-        !this.elements.toolsDropdown?.contains(event.target)
-      ) {
-        this.hideToolsMenu();
-      }
-    });
+      document.addEventListener("click", (event) => {
+        if (
+          !this.elements.toolsMenuToggle?.contains(event.target) &&
+          !this.elements.toolsDropdown?.contains(event.target)
+        ) {
+          this.hideToolsMenu();
+        }
+      });
+    }
 
     this.elements.closeModalBtn?.addEventListener("click", () => {
       this.hideBookmarkModal();
@@ -115,9 +117,11 @@ const App = {
       this.saveBookmark();
     });
 
-    this.elements.settingsToggle?.addEventListener("click", () => {
-      this.toggleSettings();
-    });
+    if (!window.SiteMenu) {
+      this.elements.settingsToggle?.addEventListener("click", () => {
+        this.toggleSettings();
+      });
+    }
 
     document
       .getElementById("settingsInlineToggle")
@@ -154,9 +158,11 @@ const App = {
       this.createFullBackup("html");
     });
 
-    document.getElementById("logoutBtn")?.addEventListener("click", () => {
-      window.Auth?.logout?.({ redirect: true });
-    });
+    if (!window.SiteMenu) {
+      document.getElementById("logoutBtn")?.addEventListener("click", () => {
+        window.Auth?.logout?.({ redirect: true });
+      });
+    }
 
     document.addEventListener("keydown", (event) => {
       this.handleKeyboardShortcuts(event);
@@ -217,9 +223,12 @@ const App = {
 
   async loadCategoryOptions(selectedCategoryId = "") {
     try {
-      const response = await BookmarkAPI.getCategories();
-      if (response.success && this.elements.bookmarkCategory) {
-        const optionsHTML = response.data
+      if (!BookmarkManager.categories.length) {
+        await BookmarkManager.loadCategories();
+      }
+
+      if (this.elements.bookmarkCategory) {
+        const optionsHTML = BookmarkManager.categories
           .map(
             (category) =>
               `<option value="${category.id}">${this.escapeHtml(category.name)}</option>`,

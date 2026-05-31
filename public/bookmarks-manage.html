@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>书签管理 - 书签导航</title>
+    <meta name="description" content="搜索、筛选和批量移动已有书签。" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+SC:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/workspace-refresh.css" />
+    <link rel="stylesheet" href="/css/management.css" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  </head>
+  <body class="nav-site">
+    <div class="container">
+      <header class="header">
+        <div class="header-content">
+          <a class="logo" href="/" aria-label="书签导航首页">
+            <span class="logo-icon">BM</span>
+            <div class="logo-copy">
+              <h1 class="logo-text">书签管理</h1>
+              <p class="logo-subtitle">批量整理书签分类</p>
+            </div>
+          </a>
+          <div class="header-actions"></div>
+        </div>
+      </header>
+
+      <section class="workspace-section-heading">
+        <div>
+          <span class="section-kicker">管理</span>
+          <h2 class="section-title">搜索、筛选，然后把书签移动到正确分类</h2>
+        </div>
+        <p class="section-copy">
+          勾选多条书签后可一次移动，也可以直接在单行里切换分类。
+        </p>
+      </section>
+
+      <main class="management-shell">
+        <section class="management-panel">
+          <div class="management-toolbar">
+            <div class="management-fields">
+              <label class="field-stack grow">
+                <span>搜索</span>
+                <input
+                  id="bookmarkSearch"
+                  class="management-input"
+                  type="search"
+                  placeholder="标题、描述或 URL"
+                />
+              </label>
+              <label class="field-stack">
+                <span>分类筛选</span>
+                <select
+                  id="bookmarkCategoryFilter"
+                  class="management-select"
+                ></select>
+              </label>
+              <button
+                id="refreshBookmarksBtn"
+                class="btn btn-secondary"
+                type="button"
+              >
+                刷新
+              </button>
+            </div>
+            <div class="management-actions">
+              <span id="selectedBookmarkCount" class="selection-note"
+                >已选择 0 条</span
+              >
+              <select id="bulkMoveCategory" class="management-select"></select>
+              <button
+                id="bulkMoveBtn"
+                class="btn btn-primary"
+                type="button"
+                disabled
+              >
+                批量移动
+              </button>
+            </div>
+          </div>
+
+          <div class="management-table-wrap">
+            <table class="management-table">
+              <thead>
+                <tr>
+                  <th><input id="selectAllBookmarks" type="checkbox" /></th>
+                  <th>书签</th>
+                  <th>当前分类</th>
+                  <th>移动到</th>
+                  <th>更新时间</th>
+                </tr>
+              </thead>
+              <tbody id="bookmarksManageBody">
+                <tr>
+                  <td colspan="5" class="management-empty">正在加载书签...</td>
+                </tr>
+              </tbody>
+            </table>
+            <div id="bookmarkPagination" class="management-pagination"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/js/utils/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/site-menu.js?v=nav-20260601-manage"></script>
+    <script src="/js/admin-common.js"></script>
+    <script src="/js/bookmark-manager-page.js?v=nav-20260601-manage"></script>
+  </body>
+</html>

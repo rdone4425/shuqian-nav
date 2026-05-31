@@ -182,8 +182,12 @@ const API = {
     });
   },
 
-  async delete(url) {
-    return await this.request(url, { method: "DELETE" });
+  async delete(url, data = null) {
+    const options = { method: "DELETE" };
+    if (data !== null) {
+      options.body = JSON.stringify(data);
+    }
+    return await this.request(url, options);
   },
 
   async upload(url, file, additionalData = {}) {
@@ -264,6 +268,21 @@ const BookmarkAPI = {
 
   async createCategory(data) {
     return await API.post("/api/bookmarks/categories", data);
+  },
+
+  async updateCategory(id, data) {
+    return await API.put(`/api/bookmarks/categories/${id}`, data);
+  },
+
+  async deleteCategory(id, data = {}) {
+    return await API.delete(`/api/bookmarks/categories/${id}`, data);
+  },
+
+  async batchMoveBookmarks(bookmarkIds, categoryId) {
+    return await API.post("/api/bookmarks/batch-move", {
+      bookmarkIds,
+      categoryId,
+    });
   },
 
   async recordVisit(id) {
