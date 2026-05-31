@@ -58,7 +58,7 @@ const API = {
         let timedOut = false;
         const timeoutId = setTimeout(() => {
           timedOut = true;
-          controller.abort();
+          controller.abort("Request timeout");
         }, finalOptions.timeout);
 
         let response;
@@ -68,13 +68,8 @@ const API = {
             signal: controller.signal,
           });
         } catch (error) {
-          if (timedOut && error.name === "AbortError") {
-            const timeoutError = new Error(
-              "请求处理时间较长，请刷新首页确认导入结果，避免重复导入。",
-            );
-            timeoutError.name = "TimeoutError";
-            timeoutError.cause = error;
-            throw timeoutError;
+          if (timedOut && this.isAbortError(error)) {
+            throw this.createTimeoutError(error);
           }
           throw error;
         } finally {
@@ -124,6 +119,24 @@ const API = {
     return await response.text();
   },
 
+  isAbortError(error) {
+    const message = String(error?.message || error || "").toLowerCase();
+    return (
+      error?.name === "AbortError" ||
+      message.includes("aborted") ||
+      message.includes("abort")
+    );
+  },
+
+  createTimeoutError(error) {
+    const timeoutError = new Error(
+      "Request timed out. Please refresh the home page to confirm the result before retrying.",
+    );
+    timeoutError.name = "TimeoutError";
+    timeoutError.cause = error;
+    return timeoutError;
+  },
+
   shouldRetry(error, requestOptions = {}) {
     const method = (requestOptions.method || "GET").toUpperCase();
     const isRetryableMethod = ["GET", "HEAD", "OPTIONS"].includes(method);
@@ -132,7 +145,7 @@ const API = {
       return false;
     }
 
-    if (error.name === "AbortError" || error.name === "TypeError") {
+    if (this.isAbortError(error) || error.name === "TypeError") {
       return true;
     }
 

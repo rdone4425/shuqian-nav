@@ -1,5 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import vm from "node:vm";
 
 import { onRequestPost as loginHandler } from "../pages/functions/api/auth/login.js";
 import { onRequestPost as changePasswordHandler } from "../pages/functions/api/auth/change-password.js";
@@ -79,6 +81,56 @@ function createDbMock({
     },
   };
 }
+
+function loadBrowserApi(fetchImpl) {
+  const code = readFileSync(
+    new URL("../public/js/utils/api.js", import.meta.url),
+    "utf8",
+  );
+  const context = {
+    window: {
+      location: { origin: "https://example.com" },
+      Auth: {
+        getAuthHeaders() {
+          return {};
+        },
+        logout() {},
+      },
+    },
+    document: { referrer: "" },
+    navigator: { userAgent: "node-test" },
+    fetch: fetchImpl,
+    setTimeout,
+    clearTimeout,
+    URLSearchParams,
+    AbortController,
+    APIError: undefined,
+    console,
+  };
+  context.globalThis = context;
+  vm.runInNewContext(`${code}\nglobalThis.__API = API;`, context);
+  return context.__API;
+}
+
+test("browser API treats aborted signal timeout errors as TimeoutError", async () => {
+  const api = loadBrowserApi((url, options) => {
+    return new Promise((resolve, reject) => {
+      options.signal.addEventListener("abort", () => {
+        reject(new TypeError("signal is aborted without reason"));
+      });
+    });
+  });
+  api.config.retryAttempts = 0;
+
+  await assert.rejects(
+    () => api.post("/api/bookmarks/clear", {}, { timeout: 1 }),
+    (error) => {
+      assert.equal(error.name, "TimeoutError");
+      assert.match(error.message, /Request timed out/);
+      return true;
+    },
+  );
+});
 
 test("login endpoint issues a web session token for the admin password", async () => {
   const request = new Request("https://example.com/api/auth/login", {
