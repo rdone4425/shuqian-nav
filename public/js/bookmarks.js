@@ -278,7 +278,7 @@ const BookmarkManager = {
     const lastVisited = localStats.lastVisit || bookmark.last_visited;
     const popularity = SimpleSorter.calculatePopularity(bookmark);
 
-    const faviconUrl = this.getDisplayFaviconUrl(bookmark.favicon_url);
+    const favicon = this.getDisplayFaviconSources(bookmark);
     const title = this.escapeHtml(
       bookmark.title || this.t("bookmarkCard.untitled"),
     );
@@ -316,7 +316,7 @@ const BookmarkManager = {
       <article class="bookmark-card" data-id="${bookmark.id}" style="--card-accent: ${catColor}">
         <div class="bookmark-card-top">
           <div class="bookmark-favicon-wrap">
-            <img src="${this.escapeHtml(faviconUrl)}" alt="" aria-hidden="true" class="bookmark-favicon" onerror="this.src='/favicon.ico'">
+            <img src="${this.escapeHtml(favicon.src)}" srcset="${this.escapeHtml(favicon.srcSet)}" alt="" aria-hidden="true" class="bookmark-favicon" onerror="this.onerror=null; this.src='${this.escapeHtml(favicon.fallback)}'">
           </div>
           <div class="bookmark-main">
             <div class="bookmark-title-row">
@@ -647,7 +647,32 @@ const BookmarkManager = {
     }
   },
 
-  getDisplayFaviconUrl(faviconUrl) {
+  getDisplayFaviconSources(bookmark = {}) {
+    const fallback = this.getNormalizedStoredFavicon(bookmark.favicon_url);
+    const domainIcon = this.getGoogleFaviconUrl(bookmark.url, 128);
+    const retinaIcon = this.getGoogleFaviconUrl(bookmark.url, 256);
+    const src = domainIcon || fallback;
+
+    return {
+      src,
+      srcSet: retinaIcon ? `${src} 1x, ${retinaIcon} 2x` : `${src} 1x`,
+      fallback,
+    };
+  },
+
+  getGoogleFaviconUrl(bookmarkUrl, size = 128) {
+    try {
+      const url = new URL(bookmarkUrl);
+      if (!["http:", "https:"].includes(url.protocol)) {
+        return "";
+      }
+      return `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(url.origin)}&sz=${size}`;
+    } catch {
+      return "";
+    }
+  },
+
+  getNormalizedStoredFavicon(faviconUrl) {
     if (!faviconUrl) {
       return "/favicon.ico";
     }
@@ -658,7 +683,7 @@ const BookmarkManager = {
         url.hostname === "www.google.com" &&
         url.pathname === "/s2/favicons"
       ) {
-        url.searchParams.set("sz", "64");
+        url.searchParams.set("sz", "128");
       }
       return url.toString();
     } catch {

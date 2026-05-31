@@ -170,7 +170,7 @@ export async function onRequestPost(context) {
 
     // 生成favicon URL
     const domain = new URL(url).hostname;
-    const favicon_url = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+    const favicon_url = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
 
     // 插入新书签
     const result = await env.BOOKMARKS_DB.prepare(

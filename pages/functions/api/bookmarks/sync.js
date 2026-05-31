@@ -283,8 +283,8 @@ async function getOrCreateCategory(env, categoryName) {
 function generateFaviconUrl(url) {
   try {
     const domain = new URL(url).hostname;
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+    return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
   } catch (error) {
-    return "https://www.google.com/s2/favicons?domain=example.com&sz=32";
+    return "https://www.google.com/s2/favicons?domain=example.com&sz=128";
   }
 }

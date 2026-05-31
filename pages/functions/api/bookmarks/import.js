@@ -229,7 +229,7 @@ export async function onRequestPost(context) {
         const domain = new URL(bookmark.url).hostname;
         const faviconUrl =
           bookmark.favicon_url ||
-          `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+          `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
 
         // 插入书签
         const result = await env.BOOKMARKS_DB.prepare(
