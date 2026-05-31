@@ -3,6 +3,7 @@ const ImportManager = {
   totalSteps: 4,
   importData: null,
   fileData: null,
+  replaceConfirmationToken: "CONFIRM_REPLACE_BOOKMARKS",
 
   async init() {
     this.bindEvents();
@@ -289,8 +290,24 @@ const ImportManager = {
         document.querySelector('input[name="importMode"]:checked')?.value ||
         "merge";
       const clearExisting = importMode === "replace";
+      let clearExistingConfirmation = "";
       const progressFill = document.getElementById("progressFill");
       const progressText = document.getElementById("progressText");
+
+      if (clearExisting) {
+        const confirmation = window.prompt(
+          "替换导入会先清空当前所有书签。请输入“确认替换”继续：",
+        );
+
+        if (confirmation !== "确认替换") {
+          this.currentStep = 3;
+          this.updateStepDisplay();
+          this.showMessage("已取消替换导入，当前书签不会被清空。", "info");
+          return;
+        }
+
+        clearExistingConfirmation = this.replaceConfirmationToken;
+      }
 
       progressText.textContent = "正在导入书签...";
       progressFill.style.width = "20%";
@@ -301,6 +318,7 @@ const ImportManager = {
           bookmarks: this.importData.bookmarks,
           categories: this.importData.categories || [],
           clearExisting,
+          clearExistingConfirmation,
         },
         { timeout: 180000 },
       );

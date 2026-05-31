@@ -278,7 +278,7 @@ const BookmarkManager = {
     const lastVisited = localStats.lastVisit || bookmark.last_visited;
     const popularity = SimpleSorter.calculatePopularity(bookmark);
 
-    const faviconUrl = bookmark.favicon_url || "/favicon.ico";
+    const faviconUrl = this.getDisplayFaviconUrl(bookmark.favicon_url);
     const title = this.escapeHtml(
       bookmark.title || this.t("bookmarkCard.untitled"),
     );
@@ -644,6 +644,25 @@ const BookmarkManager = {
   async deleteBookmark(bookmarkId) {
     if (window.App?.deleteBookmark) {
       window.App.deleteBookmark(bookmarkId);
+    }
+  },
+
+  getDisplayFaviconUrl(faviconUrl) {
+    if (!faviconUrl) {
+      return "/favicon.ico";
+    }
+
+    try {
+      const url = new URL(faviconUrl, window.location.origin);
+      if (
+        url.hostname === "www.google.com" &&
+        url.pathname === "/s2/favicons"
+      ) {
+        url.searchParams.set("sz", "64");
+      }
+      return url.toString();
+    } catch {
+      return faviconUrl;
     }
   },
 

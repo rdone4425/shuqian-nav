@@ -1,6 +1,8 @@
 // 书签导入API
 import { authenticateRequest } from "../auth/verify.js";
 
+const CLEAR_EXISTING_CONFIRMATION = "CONFIRM_REPLACE_BOOKMARKS";
+
 // 获取或创建分类
 async function getOrCreateCategory(env, categoryName) {
   if (!categoryName || categoryName === "未分类") {
@@ -62,6 +64,7 @@ export async function onRequestPost(context) {
       bookmarks,
       categories,
       clearExisting = false,
+      clearExistingConfirmation = "",
       format = "json",
     } = await request.json();
 
@@ -83,6 +86,22 @@ export async function onRequestPost(context) {
         JSON.stringify({
           success: false,
           error: "没有可导入的书签数据",
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    if (
+      clearExisting &&
+      clearExistingConfirmation !== CLEAR_EXISTING_CONFIRMATION
+    ) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "替换导入需要二次确认，已取消清空当前书签。",
         }),
         {
           status: 400,
@@ -247,7 +266,7 @@ export async function onRequestPost(context) {
     // 标记系统为已有用户数据
     await env.BOOKMARKS_DB.prepare(
       `
-      INSERT OR REPLACE INTO system_config (config_key, config_value, description) 
+      INSERT OR REPLACE INTO system_config (config_key, config_value, description)
       VALUES (?, ?, ?)
     `,
     )

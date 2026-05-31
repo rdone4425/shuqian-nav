@@ -23,7 +23,9 @@
   --wr-radius-sm: 6px;
   --wr-shadow: 0 10px 24px rgba(24, 33, 47, 0.07);
   --wr-shadow-pop: 0 18px 38px rgba(24, 33, 47, 0.12);
-  --wr-font: "Inter", "Noto Sans SC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --wr-font:
+    "Inter", "Noto Sans SC", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
   --wr-fast: 140ms ease;
   --wr-med: 220ms ease;
 }
@@ -34,8 +36,16 @@ body.nav-site,
   color: var(--wr-ink) !important;
   font-family: var(--wr-font) !important;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(238, 242, 246, 0) 220px),
-    repeating-linear-gradient(90deg, rgba(24, 33, 47, 0.035) 0 1px, transparent 1px 88px),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.62),
+      rgba(238, 242, 246, 0) 220px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(24, 33, 47, 0.035) 0 1px,
+      transparent 1px 88px
+    ),
     var(--wr-canvas) !important;
   -webkit-font-smoothing: antialiased !important;
 }
@@ -151,7 +161,9 @@ body.nav-site::after,
   font-size: 0.82rem !important;
   font-weight: 700 !important;
   text-decoration: none !important;
-  transition: background var(--wr-fast), color var(--wr-fast) !important;
+  transition:
+    background var(--wr-fast),
+    color var(--wr-fast) !important;
 }
 
 .nav-site .nav-menu-link:hover {
@@ -205,7 +217,9 @@ body.nav-site::after,
   line-height: 1 !important;
   text-decoration: none !important;
   white-space: nowrap !important;
-  transition: background var(--wr-fast), color var(--wr-fast) !important;
+  transition:
+    background var(--wr-fast),
+    color var(--wr-fast) !important;
 }
 
 .nav-site .site-nav-link:hover,
@@ -261,7 +275,11 @@ body.nav-site::after,
   font-size: 0.82rem !important;
   font-weight: 750 !important;
   cursor: pointer !important;
-  transition: transform var(--wr-fast), border-color var(--wr-fast), box-shadow var(--wr-fast), background var(--wr-fast) !important;
+  transition:
+    transform var(--wr-fast),
+    border-color var(--wr-fast),
+    box-shadow var(--wr-fast),
+    background var(--wr-fast) !important;
 }
 
 .nav-site .action-btn-icon:hover {
@@ -335,18 +353,31 @@ body.nav-site::after,
   font-family: var(--wr-font) !important;
   white-space: nowrap !important;
   cursor: pointer !important;
-  transition: color var(--wr-fast), border-color var(--wr-fast), background var(--wr-fast), box-shadow var(--wr-fast) !important;
+  transition:
+    color var(--wr-fast),
+    border-color var(--wr-fast),
+    background var(--wr-fast),
+    box-shadow var(--wr-fast) !important;
 }
 
 .nav-site .category-chip:hover,
 .nav-site .category-chip.active {
   color: var(--chip-color, var(--wr-blue)) !important;
-  border-color: color-mix(in srgb, var(--chip-color, var(--wr-blue)) 44%, var(--wr-line)) !important;
-  background: color-mix(in srgb, var(--chip-color, var(--wr-blue)) 9%, white) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--chip-color, var(--wr-blue)) 44%,
+    var(--wr-line)
+  ) !important;
+  background: color-mix(
+    in srgb,
+    var(--chip-color, var(--wr-blue)) 9%,
+    white
+  ) !important;
 }
 
 .nav-site .category-chip.active {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--chip-color, var(--wr-blue)) 12%, transparent) !important;
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--chip-color, var(--wr-blue)) 12%, transparent) !important;
 }
 
 .nav-site .category-chip-dot {
@@ -375,7 +406,9 @@ body.nav-site::after,
   border: 1px solid #cdd7e3 !important;
   border-radius: var(--wr-radius) !important;
   box-shadow: none !important;
-  transition: border-color var(--wr-fast), box-shadow var(--wr-fast) !important;
+  transition:
+    border-color var(--wr-fast),
+    box-shadow var(--wr-fast) !important;
 }
 
 .nav-site .search-box:focus-within,
@@ -412,7 +445,9 @@ body.nav-site::after,
   font-size: 0.82rem !important;
   font-weight: 800 !important;
   cursor: pointer !important;
-  transition: background var(--wr-fast), border-color var(--wr-fast) !important;
+  transition:
+    background var(--wr-fast),
+    border-color var(--wr-fast) !important;
 }
 
 .nav-site .search-btn:hover {
@@ -618,10 +653,10 @@ body.nav-site::after,
 .nav-site .bookmark-card,
 .nav-site .bookmark-item {
   min-width: 0 !important;
-  min-height: 182px !important;
+  min-height: 204px !important;
   display: flex !important;
   flex-direction: column !important;
-  padding: 14px !important;
+  padding: 16px !important;
   position: relative !important;
   overflow: hidden !important;
   background: var(--wr-surface) !important;
@@ -630,7 +665,10 @@ body.nav-site::after,
   border-radius: var(--wr-radius) !important;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset !important;
   cursor: default !important;
-  transition: transform var(--wr-med), border-color var(--wr-med), box-shadow var(--wr-med) !important;
+  transition:
+    transform var(--wr-med),
+    border-color var(--wr-med),
+    box-shadow var(--wr-med) !important;
 }
 
 .nav-site .bookmark-card::before {
@@ -648,7 +686,11 @@ body.nav-site::after,
   inset: 0 0 auto auto !important;
   width: 82px !important;
   height: 82px !important;
-  background: color-mix(in srgb, var(--card-accent, var(--wr-blue)) 12%, transparent) !important;
+  background: color-mix(
+    in srgb,
+    var(--card-accent, var(--wr-blue)) 12%,
+    transparent
+  ) !important;
   clip-path: polygon(100% 0, 0 0, 100% 100%) !important;
   pointer-events: none !important;
 }
@@ -664,27 +706,36 @@ body.nav-site::after,
   min-width: 0 !important;
   display: flex !important;
   align-items: flex-start !important;
-  gap: 11px !important;
+  gap: 14px !important;
   position: relative !important;
   z-index: 1 !important;
 }
 
 .nav-site .bookmark-favicon-wrap {
-  width: 42px !important;
-  height: 42px !important;
-  min-width: 42px !important;
+  width: 64px !important;
+  height: 64px !important;
+  min-width: 64px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   overflow: hidden !important;
-  border: 1px solid color-mix(in srgb, var(--card-accent, var(--wr-blue)) 24%, var(--wr-line)) !important;
+  border: 1px solid
+    color-mix(in srgb, var(--card-accent, var(--wr-blue)) 30%, var(--wr-line)) !important;
   border-radius: var(--wr-radius-sm) !important;
-  background: color-mix(in srgb, var(--card-accent, var(--wr-blue)) 10%, white) !important;
+  background:
+    radial-gradient(
+      circle at 35% 30%,
+      rgba(255, 255, 255, 0.94),
+      rgba(255, 255, 255, 0.35) 44%,
+      transparent 45%
+    ),
+    color-mix(in srgb, var(--card-accent, var(--wr-blue)) 12%, white) !important;
+  box-shadow: 0 10px 22px rgba(27, 39, 61, 0.08) !important;
 }
 
 .nav-site .bookmark-favicon {
-  width: 22px !important;
-  height: 22px !important;
+  width: 38px !important;
+  height: 38px !important;
   object-fit: contain !important;
 }
 
@@ -844,7 +895,9 @@ body.nav-site::after,
   gap: 4px !important;
   opacity: 0 !important;
   transform: translateX(4px) !important;
-  transition: opacity var(--wr-fast), transform var(--wr-fast) !important;
+  transition:
+    opacity var(--wr-fast),
+    transform var(--wr-fast) !important;
 }
 
 .nav-site .bookmark-card:hover .bookmark-actions,
@@ -903,6 +956,17 @@ body.nav-site::after,
   grid-template-columns: minmax(260px, 1.35fr) minmax(180px, 0.8fr) auto !important;
   gap: 16px !important;
   align-items: center !important;
+}
+
+.nav-site .bookmarks-grid.list-view .bookmark-favicon-wrap {
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px !important;
+}
+
+.nav-site .bookmarks-grid.list-view .bookmark-favicon {
+  width: 32px !important;
+  height: 32px !important;
 }
 
 .nav-site .bookmarks-grid.list-view .bookmark-description {
@@ -992,7 +1056,10 @@ body.nav-site::after,
   visibility: hidden !important;
   transform: translateY(-6px) !important;
   pointer-events: none !important;
-  transition: opacity var(--wr-fast), transform var(--wr-fast), visibility var(--wr-fast) !important;
+  transition:
+    opacity var(--wr-fast),
+    transform var(--wr-fast),
+    visibility var(--wr-fast) !important;
 }
 
 .nav-site .dropdown-menu.show {
@@ -1475,6 +1542,17 @@ body.nav-site::after,
 
   .nav-site .bookmark-card,
   .nav-site .bookmark-item {
-    min-height: 166px !important;
+    min-height: 188px !important;
+  }
+
+  .nav-site .bookmark-favicon-wrap {
+    width: 56px !important;
+    height: 56px !important;
+    min-width: 56px !important;
+  }
+
+  .nav-site .bookmark-favicon {
+    width: 34px !important;
+    height: 34px !important;
   }
 }

@@ -15,6 +15,7 @@ import {
 } from "../pages/functions/api/auth/token.js";
 import { onRequestGet as syncListHandler } from "../pages/functions/api/bookmarks/sync.js";
 import { onRequestDelete as bookmarkDeleteHandler } from "../pages/functions/api/bookmarks/[id].js";
+import { onRequestPost as bookmarkImportHandler } from "../pages/functions/api/bookmarks/import.js";
 import { JWTKeyManager } from "../pages/functions/utils/jwt-manager.js";
 import {
   getKnownProtectedSiteResult,
@@ -323,6 +324,58 @@ test("bookmark delete removes an inaccessible link and records it", async () => 
   assert.equal(body.success, true);
   assert.equal(deletionRecordInserted, true);
   assert.equal(deleted, true);
+});
+
+test("replace import requires explicit clear confirmation before deleting bookmarks", async () => {
+  let deleteAttempted = false;
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      runResult({ sql }) {
+        if (sql.includes("DELETE FROM bookmarks")) {
+          deleteAttempted = true;
+        }
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await bookmarkImportHandler({
+    request: new Request("https://example.com/api/bookmarks/import", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({
+        bookmarks: [
+          {
+            title: "Example",
+            url: "https://example.com",
+          },
+        ],
+        categories: [],
+        clearExisting: true,
+      }),
+    }),
+    env,
+  });
+
+  const body = await response.json();
+  assert.equal(response.status, 400);
+  assert.equal(body.success, false);
+  assert.equal(deleteAttempted, false);
 });
 
 test("known protected sites are treated as reachable during link checks", () => {
