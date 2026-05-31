@@ -815,6 +815,13 @@ body.nav-site::after,
   border-radius: 999px !important;
 }
 
+.nav-site .bookmark-category span:last-child {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
 .nav-site .hot-badge {
   flex: 0 0 auto !important;
   display: inline-flex !important;

@@ -22,6 +22,7 @@ const BookmarkManager = {
     "bookmarkCard.edit": "\u7f16\u8f91",
     "bookmarkCard.delete": "\u5220\u9664",
     "bookmarkCard.open": "\u6253\u5f00\u94fe\u63a5",
+    "bookmarkCard.orphanCategory": "\u5206\u7c7b #{id}",
     "bookmarkCard.justNow": "\u521a\u521a",
     "bookmarkCard.minutesAgo": "\u5206\u949f\u524d",
     "bookmarkCard.hoursAgo": "\u5c0f\u65f6\u524d",
@@ -138,10 +139,18 @@ const BookmarkManager = {
       value !== key &&
       !value.includes(key)
     ) {
-      return value;
+      return this.interpolate(value, params);
     }
 
-    return this.fallbackTranslations[key] || key;
+    return this.interpolate(this.fallbackTranslations[key] || key, params);
+  },
+
+  interpolate(text, params = {}) {
+    return Object.entries(params).reduce(
+      (result, [name, replacement]) =>
+        result.replace(`{${name}}`, String(replacement)),
+      text,
+    );
   },
 
   debounce(func, wait) {
@@ -278,9 +287,8 @@ const BookmarkManager = {
     const description = bookmark.description
       ? this.escapeHtml(bookmark.description)
       : "";
-    const categoryName = bookmark.category_name
-      ? this.escapeHtml(bookmark.category_name)
-      : "";
+    const category = this.getCategoryDisplay(bookmark);
+    const categoryName = category ? this.escapeHtml(category.name) : "";
 
     const statsParts = [];
     if (visitCount > 0) {
@@ -294,9 +302,7 @@ const BookmarkManager = {
       );
     }
 
-    const catColor = this.escapeHtml(
-      bookmark.category_color || "var(--accent)",
-    );
+    const catColor = this.escapeHtml(category?.color || "var(--accent)");
     const categoryBadge = categoryName
       ? `<div class="bookmark-category" style="background-color: ${catColor}25; color: ${catColor}; border: 1px solid ${catColor}40;"><span class="category-dot" style="background-color: ${catColor};"></span><span>${categoryName}</span></div>`
       : `<span class="bookmark-id">${this.t("bookmarkCard.uncategorized")}</span>`;
@@ -338,6 +344,52 @@ const BookmarkManager = {
         </div>
       </article>
     `;
+  },
+
+  getCategoryDisplay(bookmark) {
+    const directName = bookmark.category_name || bookmark.category;
+    if (directName) {
+      return {
+        name: String(directName),
+        color: bookmark.category_color || this.findCategoryColor(directName),
+      };
+    }
+
+    const categoryId = bookmark.category_id;
+    if (categoryId !== null && categoryId !== undefined && categoryId !== "") {
+      const matchedCategory = this.categories.find(
+        (category) => String(category.id) === String(categoryId),
+      );
+      if (matchedCategory) {
+        return {
+          name: matchedCategory.name,
+          color: bookmark.category_color || matchedCategory.color,
+        };
+      }
+
+      const rawCategoryId = String(categoryId).trim();
+      if (!/^\d+$/.test(rawCategoryId)) {
+        return {
+          name: rawCategoryId,
+          color:
+            bookmark.category_color || this.findCategoryColor(rawCategoryId),
+        };
+      }
+
+      return {
+        name: this.t("bookmarkCard.orphanCategory", { id: rawCategoryId }),
+        color: bookmark.category_color || "var(--accent)",
+      };
+    }
+
+    return null;
+  },
+
+  findCategoryColor(categoryName) {
+    const matchedCategory = this.categories.find(
+      (category) => category.name === categoryName,
+    );
+    return matchedCategory?.color || "var(--accent)";
   },
 
   formatRelativeTime(dateString) {
