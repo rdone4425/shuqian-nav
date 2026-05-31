@@ -14,6 +14,7 @@ const importFixturePath = join(auditDir, "bookmarks-audit.json");
 
 const results = [];
 const failures = [];
+let currentPageName = "browser";
 
 function record(pageName, action, ok, detail = "") {
   const item = { page: pageName, action, ok, detail };
@@ -56,6 +57,15 @@ function createImportFixture() {
   );
 }
 
+function isIgnoredNetworkUrl(url) {
+  return (
+    url.includes("google.com/s2/favicons") ||
+    url.includes("gstatic.com/faviconV2") ||
+    url.includes("fonts.gstatic.com") ||
+    url.includes("fonts.googleapis.com")
+  );
+}
+
 async function watchPage(page, pageName) {
   page.on("console", (msg) => {
     if (msg.type() !== "error") return;
@@ -66,24 +76,30 @@ async function watchPage(page, pageName) {
     if (text.includes("Failed to load resource")) {
       return;
     }
-    record(pageName, "console error", false, text.slice(0, 300));
+    record(
+      currentPageName || pageName,
+      "console error",
+      false,
+      text.slice(0, 300),
+    );
   });
 
   page.on("pageerror", (error) => {
-    record(pageName, "page error", false, error.message.slice(0, 300));
+    record(
+      currentPageName || pageName,
+      "page error",
+      false,
+      error.message.slice(0, 300),
+    );
   });
 
   page.on("requestfailed", (request) => {
     const url = request.url();
-    if (
-      url.includes("google.com/s2/favicons") ||
-      url.includes("fonts.gstatic.com") ||
-      url.includes("fonts.googleapis.com")
-    ) {
+    if (isIgnoredNetworkUrl(url)) {
       return;
     }
     record(
-      pageName,
+      currentPageName || pageName,
       "request failed",
       false,
       `${request.method()} ${url} ${request.failure()?.errorText || ""}`.slice(
@@ -92,14 +108,38 @@ async function watchPage(page, pageName) {
       ),
     );
   });
+
+  page.on("response", (response) => {
+    const status = response.status();
+    if (status < 400) return;
+
+    const url = response.url();
+    if (isIgnoredNetworkUrl(url)) {
+      return;
+    }
+
+    record(
+      currentPageName || pageName,
+      "http error response",
+      false,
+      `${status} ${url}`.slice(0, 300),
+    );
+  });
 }
 
 async function goto(page, pageName, path) {
-  await page.goto(`${base}${path}`, {
+  currentPageName = pageName;
+  const response = await page.goto(`${base}${path}`, {
     waitUntil: "networkidle2",
     timeout: 30000,
   });
-  record(pageName, `open ${path}`, true);
+  const status = response?.status() || 0;
+  record(
+    pageName,
+    `open ${path}`,
+    status > 0 && status < 400,
+    status ? `HTTP ${status}` : "no response",
+  );
 }
 
 async function login(page) {
@@ -208,6 +248,51 @@ async function seed(page) {
       body: JSON.stringify({ reason: "manual_delete" }),
     });
   }
+  const secondTrash = await assertApiOk(page, "seed", "/api/bookmarks", {
+    method: "POST",
+    body: JSON.stringify({
+      title: `E2E Deleted Spare ${suffix}`,
+      url: `https://example.com/deleted-spare-${suffix}`,
+      description: "spare deleted record for button audit",
+      category_id: categoryId,
+    }),
+  });
+  const secondTrashId = secondTrash.body?.data?.id || null;
+  if (secondTrashId) {
+    await assertApiOk(page, "seed", `/api/bookmarks/${secondTrashId}`, {
+      method: "DELETE",
+      body: JSON.stringify({ reason: "manual_delete" }),
+    });
+  }
+
+  const currentBookmarks = await assertApiOk(
+    page,
+    "seed",
+    "/api/bookmarks?page=1&limit=1",
+  );
+  const totalBookmarks =
+    currentBookmarks.body?.data?.pagination?.total ||
+    currentBookmarks.body?.data?.bookmarks?.length ||
+    0;
+  const requiredTotal = 35;
+  const missingCount = Math.max(0, requiredTotal - totalBookmarks);
+  for (let index = 0; index < missingCount; index += 1) {
+    await assertApiOk(page, "seed", "/api/bookmarks", {
+      method: "POST",
+      body: JSON.stringify({
+        title: `E2E Page ${suffix}-${index + 1}`,
+        url: `https://example.com/page-${suffix}-${index + 1}`,
+        description: "pagination audit",
+        category_id: categoryId,
+      }),
+    });
+  }
+  record(
+    "seed",
+    "ensure pagination data",
+    true,
+    missingCount ? `created ${missingCount}` : "already enough",
+  );
 
   return { suffix, categoryId, bookmarkId: bookmark.body?.data?.id || null };
 }
@@ -279,6 +364,49 @@ async function recordEnabled(page, pageName, selector, label) {
   return enabled;
 }
 
+async function selectFirstNonEmptyOption(page, pageName, selector, label) {
+  const value = await page
+    .$eval(selector, (select) => {
+      const option = [...select.options].find((item) => item.value);
+      return option?.value || "";
+    })
+    .catch(() => "");
+
+  if (!value) {
+    record(pageName, label, true, "no non-empty option available");
+    return false;
+  }
+
+  await page.select(selector, value);
+  await sleep(700);
+  record(pageName, label, true, value);
+  return true;
+}
+
+async function clearInput(page, selector) {
+  await page.$eval(selector, (input) => {
+    input.value = "";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+}
+
+async function setChecked(page, pageName, selector, checked, label) {
+  const ok = await page
+    .$eval(
+      selector,
+      (input, targetChecked) => {
+        input.checked = targetChecked;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+        return input.checked === targetChecked;
+      },
+      checked,
+    )
+    .catch(() => false);
+  record(pageName, label, ok, selector);
+  return ok;
+}
+
 async function waitForEnabled(page, pageName, selector, label, timeout = 2000) {
   try {
     await page.waitForFunction(
@@ -308,10 +436,58 @@ async function waitForEnabled(page, pageName, selector, label, timeout = 2000) {
 
 async function commonMenu(page, pageName) {
   await clickIf(page, pageName, "#toolsMenuToggle", "open management menu");
-  const links = await page.$$eval("#toolsDropdown a.dropdown-item", (items) =>
-    items.map((item) => item.textContent.trim()).filter(Boolean),
+  const menuItems = await page.$$eval(
+    "#toolsDropdown a.dropdown-item",
+    (items) =>
+      items.map((item) => ({
+        href: item.getAttribute("href") || "",
+        text: item.textContent.trim().replace(/\s+/g, " "),
+      })),
   );
-  record(pageName, "menu has links", links.length >= 6, links.join(" / "));
+  record(
+    pageName,
+    "menu has links",
+    menuItems.length >= 6,
+    menuItems.map((item) => `${item.text} -> ${item.href}`).join(" / "),
+  );
+
+  const expectedMenuTargets = [
+    "/",
+    "/bookmarks-manage.html",
+    "/categories.html",
+    "/import.html",
+    "/link-checker.html",
+    "/deleted-bookmarks",
+    "/token.html",
+    "/notifications.html",
+  ];
+  const missingTargets = expectedMenuTargets.filter(
+    (target) => !menuItems.some((item) => item.href === target),
+  );
+  record(
+    pageName,
+    "menu exposes every target",
+    missingTargets.length === 0,
+    missingTargets.join(", "),
+  );
+
+  const targetChecks = await page.evaluate(async (targets) => {
+    const entries = [];
+    for (const target of targets) {
+      const response = await fetch(target, { method: "GET" });
+      entries.push({ target, status: response.status, ok: response.ok });
+    }
+    return entries;
+  }, expectedMenuTargets);
+  const brokenTargets = targetChecks.filter((item) => !item.ok);
+  record(
+    pageName,
+    "menu target pages respond",
+    brokenTargets.length === 0,
+    brokenTargets
+      .map((item) => `${item.target} HTTP ${item.status}`)
+      .join(", "),
+  );
   await page.evaluate(() => {
     document.getElementById("toolsDropdown")?.classList.remove("show");
     document
@@ -339,15 +515,41 @@ async function testHome(page) {
     "#categoryRail .category-chip:not([data-category-id=''])",
     "category rail category chip",
   );
+  await selectFirstNonEmptyOption(
+    page,
+    name,
+    "#categoryFilter",
+    "category select filter",
+  );
+  await page.select("#categoryFilter", "");
+  await sleep(700);
+  record(name, "category select all option", true);
+  await page.select("#sortSelect", "title:asc");
+  await sleep(700);
+  record(name, "sort select title ascending", true);
   await clickIf(page, name, "#searchToggle", "search button");
   await page.type("#searchInput", "E2E");
   await clickIf(page, name, "#searchBtn", "search submit button");
   await clickIf(page, name, "#clearSearchBtn", "clear search button");
   await clickIf(page, name, "#addBookmarkBtn", "open add bookmark modal");
+  await clickIf(
+    page,
+    name,
+    "#closeModalBtn",
+    "close add bookmark modal button",
+  );
+  await clickIf(page, name, "#addBookmarkBtn", "open add bookmark modal again");
   await clickIf(page, name, "#cancelBtn", "cancel add bookmark modal");
   await clickIf(page, name, "#addBookmarkBtn", "reopen add bookmark modal");
   await page.type("#bookmarkTitle", `Button Audit ${Date.now()}`);
   await page.type("#bookmarkUrl", `https://example.org/${Date.now()}`);
+  await page.type("#bookmarkDescription", "button audit description");
+  await selectFirstNonEmptyOption(
+    page,
+    name,
+    "#bookmarkCategory",
+    "bookmark category select",
+  );
   await clickIf(page, name, "#saveBtn", "save bookmark button", { wait: 1000 });
   await page.evaluate(() => window.Storage?.search?.clear?.());
   await goto(page, name, "/?view=grid");
@@ -374,6 +576,25 @@ async function testHome(page) {
     "bookmark delete button cancel dialog",
     { wait: 700 },
   );
+  await clickIf(page, name, "#nextPageBtn", "home next page button", {
+    wait: 1000,
+  });
+  await clickIf(page, name, "#prevPageBtn", "home previous page button", {
+    wait: 1000,
+  });
+  if (await page.$(".page-btn:not(.active)")) {
+    await clickVisible(
+      page,
+      name,
+      ".page-btn:not(.active)",
+      "home page number button",
+      {
+        wait: 1000,
+      },
+    );
+  } else {
+    record(name, "home page number button", true, "single visible page");
+  }
   await clickIf(page, name, "#toolsMenuToggle", "open menu for settings");
   await clickVisible(page, name, "#settingsToggle", "open settings panel");
   await clickIf(page, name, "#exportBtn", "settings export html button", {
@@ -400,12 +621,22 @@ async function testHome(page) {
     page,
     name,
     "#changePasswordBtn",
-    "change password validation button",
+    "change password required validation button",
+  );
+  await page.type("#currentPassword", password);
+  await page.type("#newPassword", "abcdef");
+  await page.type("#confirmPassword", "ghijkl");
+  await clickIf(
+    page,
+    name,
+    "#changePasswordBtn",
+    "change password mismatch validation button",
   );
   await clickIf(page, name, "#settingsClose", "close settings panel");
+  await goto(page, name, "/?view=grid");
   await clickIf(page, name, "#toolsMenuToggle", "open menu for import");
   await clickVisible(page, name, "#settingsToggle", "reopen settings panel");
-  await clickIf(page, name, "#importBtn", "settings import button", {
+  await clickVisible(page, name, "#importBtn", "settings import button", {
     wait: 1000,
   });
   record(
@@ -423,8 +654,33 @@ async function testBookmarkManage(page) {
   await page.type("#bookmarkSearch", "E2E");
   await sleep(800);
   record(name, "search input filters", true);
+  await clearInput(page, "#bookmarkSearch");
+  await sleep(800);
+  record(name, "search input clears", true);
+  await selectFirstNonEmptyOption(
+    page,
+    name,
+    "#bookmarkCategoryFilter",
+    "category filter select",
+  );
+  await page.select("#bookmarkCategoryFilter", "");
+  await sleep(700);
+  record(name, "category filter all option", true);
   await clickIf(page, name, "#refreshBookmarksBtn", "refresh button");
+  await clickVisible(
+    page,
+    name,
+    "[data-bookmark-check]",
+    "single row checkbox",
+    { wait: 500 },
+  );
   await clickIf(page, name, "#selectAllBookmarks", "select all checkbox");
+  await selectFirstNonEmptyOption(
+    page,
+    name,
+    "#bulkMoveCategory",
+    "bulk move target select",
+  );
   const bulkEnabled = await page.$eval(
     "#bulkMoveBtn",
     (button) => !button.disabled,
@@ -441,6 +697,17 @@ async function testBookmarkManage(page) {
   } else {
     record(name, "single row move select", false, "no row select");
   }
+  if (await page.$("#bookmarkPagination [data-page]:not([disabled])")) {
+    await clickVisible(
+      page,
+      name,
+      "#bookmarkPagination [data-page]:not([disabled])",
+      "pagination button",
+      { wait: 1000 },
+    );
+  } else {
+    record(name, "pagination button", true, "single page or disabled");
+  }
 }
 
 async function testCategories(page) {
@@ -448,6 +715,11 @@ async function testCategories(page) {
   await goto(page, name, "/categories.html");
   await commonMenu(page, name);
   await page.type("#categoryName", `Button Category ${Date.now()}`);
+  await page.$eval("#categoryColor", (input) => {
+    input.value = "#0EA5E9";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  record(name, "category color input", true);
   await page.type("#categoryDescription", "created from audit");
   await clickIf(page, name, "#saveCategoryBtn", "save category button", {
     wait: 1000,
@@ -473,8 +745,52 @@ async function testImport(page) {
   await fileChooser.accept([importFixturePath]);
   await sleep(800);
   await recordEnabled(page, name, "#nextBtn", "next button enabled after file");
-  await clickIf(page, name, "#nextBtn", "next step button");
+  await clickIf(page, name, "#nextBtn", "preview step button");
+  await clickIf(page, name, "#nextBtn", "options step button");
+  await setChecked(
+    page,
+    name,
+    'input[name="importMode"][value="replace"]',
+    true,
+    "replace mode radio",
+  );
+  await setChecked(
+    page,
+    name,
+    'input[name="importMode"][value="merge"]',
+    true,
+    "merge mode radio",
+  );
+  await setChecked(
+    page,
+    name,
+    "#skipDuplicates",
+    false,
+    "skip duplicates checkbox",
+  );
+  await setChecked(
+    page,
+    name,
+    "#createCategories",
+    false,
+    "create categories checkbox",
+  );
+  await setChecked(
+    page,
+    name,
+    "#createCategories",
+    true,
+    "restore create categories checkbox",
+  );
   await clickIf(page, name, "#prevBtn", "previous step button");
+  await clickIf(page, name, "#nextBtn", "return to options step button");
+  await clickIf(page, name, "#importBtn", "execute import button", {
+    wait: 2500,
+  });
+  await clickIf(page, name, "#finishBtn", "finish import button", {
+    wait: 1000,
+  });
+  await goto(page, name, "/import.html");
   await clickIf(
     page,
     name,
@@ -514,6 +830,12 @@ async function testLinkChecker(page) {
     name,
     '.stat-item[data-filter="accessible"]',
     "filter accessible button",
+  );
+  await clickIf(
+    page,
+    name,
+    '.stat-item[data-filter="checked"]',
+    "filter checked button",
   );
   await clickIf(
     page,
@@ -591,6 +913,18 @@ async function testDeleted(page) {
   await commonMenu(page, name);
   await clickIf(page, name, "#refreshBtn", "refresh button");
   await waitForAny(page, name, ".record-item", "deleted record rows render");
+  await page.select("#filterSelect", "manual_delete");
+  await sleep(800);
+  record(name, "deleted filter select", true);
+  await page.select("#filterSelect", "all");
+  await sleep(800);
+  record(name, "deleted filter all option", true);
+  await page.type("#searchInput", "E2E");
+  await sleep(800);
+  record(name, "deleted search input", true);
+  await clearInput(page, "#searchInput");
+  await sleep(800);
+  record(name, "deleted search clears", true);
   await clickVisible(page, name, ".detail-btn", "deleted detail button");
   await clickIf(page, name, "#closeDetailModal", "close deleted detail modal");
   await clickVisible(
@@ -599,7 +933,40 @@ async function testDeleted(page) {
     ".restore-btn",
     "deleted restore button opens modal",
   );
+  await clickIf(
+    page,
+    name,
+    "#closeRestoreModal",
+    "close deleted restore modal",
+  );
+  await clickVisible(
+    page,
+    name,
+    ".restore-btn",
+    "deleted restore button reopens modal",
+  );
   await clickIf(page, name, "#cancelRestore", "cancel deleted restore modal");
+  await clickVisible(
+    page,
+    name,
+    ".restore-btn",
+    "deleted restore button opens confirm modal",
+  );
+  await clickIf(
+    page,
+    name,
+    "#confirmRestore",
+    "confirm deleted restore button",
+    {
+      wait: 1000,
+    },
+  );
+  await waitForAny(
+    page,
+    name,
+    ".record-item",
+    "deleted rows remain after restore",
+  );
   await clickVisible(
     page,
     name,
@@ -655,17 +1022,36 @@ async function testToken(page) {
     );
   }
 
+  await clickVisible(
+    page,
+    name,
+    "#checkTokenGuardBtn",
+    "check token guard button",
+  );
   await clickVisible(page, name, "#refreshTokensBtn", "refresh tokens button");
   await page.$eval("#tokenName", (input) => {
     input.value = "";
   });
   await page.type("#tokenName", `Button Token ${Date.now()}`);
+  await page.type("#tokenDescription", "button audit token");
+  await clearInput(page, "#tokenExpiresIn");
+  await page.type("#tokenExpiresIn", "30");
+  record(name, "token description and expiry inputs", true);
   await clickVisible(page, name, "#createTokenBtn", "create token button", {
     wait: 1000,
   });
   if (await page.$("#copyTokenBtn")) {
     await clickVisible(page, name, "#copyTokenBtn", "copy token button");
   }
+  await clickVisible(
+    page,
+    name,
+    ".delete-token-btn",
+    "delete token cancel dialog",
+    {
+      wait: 700,
+    },
+  );
   if (await page.$("#closeTokenResultBtn")) {
     await clickIf(
       page,
@@ -681,6 +1067,17 @@ async function testNotifications(page) {
   await goto(page, name, "/notifications.html");
   await commonMenu(page, name);
   await clickIf(page, name, "#refreshBtn", "refresh button");
+  const loaded = await page
+    .$eval("#notificationsList", (node) => {
+      const text = node.textContent.trim();
+      return text && !text.includes("正在加载");
+    })
+    .catch(() => false);
+  record(name, "notifications list resolves", Boolean(loaded));
+  const totalText = await page.$eval("#totalChecks", (node) =>
+    node.textContent.trim(),
+  );
+  record(name, "notification summary renders", totalText.length > 0, totalText);
 }
 
 async function testAdminDashboard(page) {
