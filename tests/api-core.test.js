@@ -669,6 +669,59 @@ test("category delete migrates bookmarks before removing the category", async ()
   assert.equal(body.data.movedCount, 3);
 });
 
+test("category delete rejects invalid migration target values", async () => {
+  let moved = false;
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        if (sql.includes("FROM categories c")) {
+          return { id: Number(params[0]), name: "Old", bookmark_count: 3 };
+        }
+        return null;
+      },
+      runResult({ sql }) {
+        if (sql.includes("UPDATE bookmarks SET category_id")) {
+          moved = true;
+        }
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await categoryDeleteHandler({
+    request: new Request("https://example.com/api/bookmarks/categories/2", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ moveToCategoryId: "abc" }),
+    }),
+    params: { id: "2" },
+    env,
+  });
+
+  const body = await response.json();
+  assert.equal(response.status, 400);
+  assert.equal(body.success, false);
+  assert.equal(moved, false);
+});
+
 test("batch move updates selected bookmark category in one request", async () => {
   let updateParams = null;
   const env = {

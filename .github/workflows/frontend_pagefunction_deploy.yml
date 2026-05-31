@@ -209,8 +209,14 @@ jobs:
             envVars[name] = { type, value };
           }
 
-          function buildDeploymentConfig(environment, d1Id) {
+          function getExistingDeploymentConfig(project, environment) {
+            return project?.deployment_configs?.[environment] || {};
+          }
+
+          function buildDeploymentConfig(environment, d1Id, existingProject = null) {
+            const existingConfig = getExistingDeploymentConfig(existingProject, environment);
             const envVars = {
+              ...(existingConfig.env_vars || {}),
               ENVIRONMENT: {
                 type: 'plain_text',
                 value: environment
@@ -223,8 +229,10 @@ jobs:
             addOptionalEnvVar(envVars, 'CRON_SECRET', 'secret_text', process.env.PAGES_CRON_SECRET);
 
             return {
+              ...existingConfig,
               compatibility_date: compatibilityDate,
               d1_databases: {
+                ...(existingConfig.d1_databases || {}),
                 [bindingName]: {
                   id: d1Id
                 }
@@ -234,6 +242,11 @@ jobs:
           }
 
           async function ensurePagesProject(d1Id) {
+            const current = await request('GET', `/pages/projects/${encodeURIComponent(projectName)}`, undefined, {
+              allow404: true
+            });
+
+            const existingProject = current.found ? current.data.result : null;
             const payload = {
               name: projectName,
               production_branch: productionBranch,
@@ -242,14 +255,10 @@ jobs:
                 root_dir: '/'
               },
               deployment_configs: {
-                preview: buildDeploymentConfig('preview', d1Id),
-                production: buildDeploymentConfig('production', d1Id)
+                preview: buildDeploymentConfig('preview', d1Id, existingProject),
+                production: buildDeploymentConfig('production', d1Id, existingProject)
               }
             };
-
-            const current = await request('GET', `/pages/projects/${encodeURIComponent(projectName)}`, undefined, {
-              allow404: true
-            });
 
             if (!current.found) {
               await request('POST', '/pages/projects', payload);

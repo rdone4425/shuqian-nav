@@ -12,7 +12,8 @@ const BookmarkManagePage = {
 
     this.bindElements();
     this.bindEvents();
-    await Promise.all([this.loadCategories(), this.loadBookmarks()]);
+    await this.loadCategories();
+    await this.loadBookmarks();
   },
 
   bindElements() {

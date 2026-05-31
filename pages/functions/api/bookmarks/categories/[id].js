@@ -119,7 +119,15 @@ export async function onRequestDelete(context) {
     }
 
     const body = await request.json().catch(() => ({}));
+    const hasMoveTarget =
+      body.moveToCategoryId !== null &&
+      body.moveToCategoryId !== undefined &&
+      body.moveToCategoryId !== "";
     const moveToCategoryId = normalizeCategoryId(body.moveToCategoryId);
+
+    if (hasMoveTarget && !moveToCategoryId) {
+      return ResponseHelper.validationError("迁移目标分类无效");
+    }
 
     if (moveToCategoryId === categoryId) {
       return ResponseHelper.validationError("迁移目标不能是当前分类");

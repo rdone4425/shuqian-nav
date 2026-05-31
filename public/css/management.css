@@ -169,6 +169,33 @@
   color: var(--wr-red);
 }
 
+.message-toast {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 2000;
+  max-width: min(360px, calc(100vw - 40px));
+  padding: 12px 14px;
+  border: 1px solid var(--wr-line);
+  border-radius: var(--wr-radius);
+  background: var(--wr-ink);
+  color: #fff;
+  box-shadow: var(--wr-shadow-pop);
+  font-size: 0.86rem;
+  font-weight: 800;
+  transition: opacity var(--wr-fast);
+}
+
+.message-toast.error {
+  border-color: #f0c6c6;
+  background: var(--wr-red);
+}
+
+.message-toast.warning {
+  border-color: #f2d8a8;
+  background: var(--wr-amber);
+}
+
 @media (max-width: 820px) {
   .management-toolbar {
     grid-template-columns: 1fr;
