@@ -13,6 +13,23 @@ const BookmarkManager = {
   },
 
   elements: {},
+  fallbackTranslations: {
+    "bookmarkCard.uncategorized": "\u672a\u5206\u7c7b",
+    "bookmarkCard.untitled": "\u672a\u547d\u540d\u7ad9\u70b9",
+    "bookmarkCard.hot": "\u5e38\u7528\u7ad9\u70b9",
+    "bookmarkCard.visitCount": "\u8bbf\u95ee",
+    "bookmarkCard.lastVisited": "\u6700\u8fd1\u8bbf\u95ee",
+    "bookmarkCard.edit": "\u7f16\u8f91",
+    "bookmarkCard.delete": "\u5220\u9664",
+    "bookmarkCard.open": "\u6253\u5f00\u94fe\u63a5",
+    "bookmarkCard.justNow": "\u521a\u521a",
+    "bookmarkCard.minutesAgo": "\u5206\u949f\u524d",
+    "bookmarkCard.hoursAgo": "\u5c0f\u65f6\u524d",
+    "bookmarkCard.daysAgo": "\u5929\u524d",
+    "bookmarkCard.weeksAgo": "\u5468\u524d",
+    "filter.allCategories": "\u5168\u90e8\u5206\u7c7b",
+    "messages.loadBookmarksFailed": "\u52a0\u8f7d\u4e66\u7b7e\u5931\u8d25",
+  },
 
   async init() {
     this.bindElements();
@@ -115,28 +132,16 @@ const BookmarkManager = {
 
   t(key, params = {}) {
     const value = window.I18n?.t?.(key, params);
-    if (value && value !== key) {
+    if (
+      typeof value === "string" &&
+      value &&
+      value !== key &&
+      !value.includes(key)
+    ) {
       return value;
     }
 
-    const fallback = {
-      "bookmarkCard.uncategorized": "未分类",
-      "bookmarkCard.untitled": "未命名站点",
-      "bookmarkCard.hot": "常用站点",
-      "bookmarkCard.visitCount": "访问",
-      "bookmarkCard.lastVisited": "最近访问",
-      "bookmarkCard.edit": "编辑",
-      "bookmarkCard.delete": "删除",
-      "bookmarkCard.open": "打开链接",
-      "bookmarkCard.justNow": "刚刚",
-      "bookmarkCard.minutesAgo": "分钟前",
-      "bookmarkCard.hoursAgo": "小时前",
-      "bookmarkCard.daysAgo": "天前",
-      "bookmarkCard.weeksAgo": "周前",
-      "filter.allCategories": "全部分类",
-      "messages.loadBookmarksFailed": "加载书签失败",
-    };
-    return fallback[key] || key;
+    return this.fallbackTranslations[key] || key;
   },
 
   debounce(func, wait) {

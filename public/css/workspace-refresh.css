@@ -830,6 +830,8 @@ body.nav-site::after,
 }
 
 .nav-site .bookmark-actions {
+  flex: 0 0 auto !important;
+  max-width: 46% !important;
   display: inline-flex !important;
   align-items: center !important;
   gap: 4px !important;
@@ -846,9 +848,11 @@ body.nav-site::after,
 
 .nav-site .bookmark-action-btn,
 .nav-site .action-btn {
+  max-width: 72px !important;
   min-height: 28px !important;
   display: inline-flex !important;
   align-items: center !important;
+  justify-content: center !important;
   gap: 5px !important;
   padding: 0 8px !important;
   border: 1px solid var(--wr-line) !important;
@@ -858,6 +862,13 @@ body.nav-site::after,
   font-size: 0.72rem !important;
   font-weight: 800 !important;
   cursor: pointer !important;
+}
+
+.nav-site .action-text {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
 }
 
 .nav-site .bookmark-action-btn:hover,
