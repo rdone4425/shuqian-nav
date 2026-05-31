@@ -1,3 +1,7 @@
+import { mkdirSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 import puppeteer from "puppeteer-core";
 
 const base = process.env.AUDIT_BASE_URL || "http://127.0.0.1:8788";
@@ -5,6 +9,8 @@ const executablePath =
   process.env.CHROME_PATH ||
   "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const password = process.env.AUDIT_PASSWORD || "admin123";
+const auditDir = join(tmpdir(), "shuqian-nav-audit");
+const importFixturePath = join(auditDir, "bookmarks-audit.json");
 
 const results = [];
 const failures = [];
@@ -20,6 +26,34 @@ function record(pageName, action, ok, detail = "") {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function createImportFixture() {
+  mkdirSync(auditDir, { recursive: true });
+  writeFileSync(
+    importFixturePath,
+    JSON.stringify(
+      {
+        bookmarks: [
+          {
+            title: "Audit import preview",
+            url: "https://example.net/audit-import",
+            description: "fixture for button audit",
+            category_name: "Audit Import",
+          },
+        ],
+        categories: [
+          {
+            name: "Audit Import",
+            color: "#14B8A6",
+            description: "fixture category",
+          },
+        ],
+      },
+      null,
+      2,
+    ),
+  );
 }
 
 async function watchPage(page, pageName) {
@@ -158,6 +192,23 @@ async function seed(page) {
       category_id: categoryId,
     }),
   });
+  const trash = await assertApiOk(page, "seed", "/api/bookmarks", {
+    method: "POST",
+    body: JSON.stringify({
+      title: `E2E Deleted ${suffix}`,
+      url: `https://example.com/deleted-${suffix}`,
+      description: "deleted record for button audit",
+      category_id: categoryId,
+    }),
+  });
+  const trashId = trash.body?.data?.id || null;
+  if (trashId) {
+    await assertApiOk(page, "seed", `/api/bookmarks/${trashId}`, {
+      method: "DELETE",
+      body: JSON.stringify({ reason: "manual_delete" }),
+    });
+  }
+
   return { suffix, categoryId, bookmarkId: bookmark.body?.data?.id || null };
 }
 
@@ -209,6 +260,52 @@ async function clickVisible(page, pageName, selector, label, options = {}) {
   return false;
 }
 
+async function waitForAny(page, pageName, selector, label, timeout = 8000) {
+  try {
+    await page.waitForSelector(selector, { timeout });
+    record(pageName, label, true);
+    return true;
+  } catch {
+    record(pageName, label, false, `missing ${selector}`);
+    return false;
+  }
+}
+
+async function recordEnabled(page, pageName, selector, label) {
+  const enabled = await page
+    .$eval(selector, (node) => !node.disabled)
+    .catch(() => false);
+  record(pageName, label, enabled);
+  return enabled;
+}
+
+async function waitForEnabled(page, pageName, selector, label, timeout = 2000) {
+  try {
+    await page.waitForFunction(
+      (targetSelector) => {
+        const node = document.querySelector(targetSelector);
+        return Boolean(node && !node.disabled);
+      },
+      { timeout },
+      selector,
+    );
+    record(pageName, label, true);
+    return true;
+  } catch {
+    const detail = await page
+      .$eval(selector, (node) =>
+        JSON.stringify({
+          disabled: node.disabled,
+          text: node.textContent.trim(),
+          selected: document.getElementById("selectedCount")?.textContent,
+        }),
+      )
+      .catch(() => `missing ${selector}`);
+    record(pageName, label, false, detail);
+    return false;
+  }
+}
+
 async function commonMenu(page, pageName) {
   await clickIf(page, pageName, "#toolsMenuToggle", "open management menu");
   const links = await page.$$eval("#toolsDropdown a.dropdown-item", (items) =>
@@ -228,6 +325,20 @@ async function testHome(page) {
   const name = "home";
   await goto(page, name, "/");
   await commonMenu(page, name);
+  await clickIf(page, name, "#listViewBtn", "switch list view button");
+  await clickIf(page, name, "#gridViewBtn", "switch grid view button");
+  await clickVisible(
+    page,
+    name,
+    '#categoryRail .category-chip[data-category-id=""]',
+    "category rail all chip",
+  );
+  await clickVisible(
+    page,
+    name,
+    "#categoryRail .category-chip:not([data-category-id=''])",
+    "category rail category chip",
+  );
   await clickIf(page, name, "#searchToggle", "search button");
   await page.type("#searchInput", "E2E");
   await clickIf(page, name, "#searchBtn", "search submit button");
@@ -238,9 +349,71 @@ async function testHome(page) {
   await page.type("#bookmarkTitle", `Button Audit ${Date.now()}`);
   await page.type("#bookmarkUrl", `https://example.org/${Date.now()}`);
   await clickIf(page, name, "#saveBtn", "save bookmark button", { wait: 1000 });
+  await page.evaluate(() => window.Storage?.search?.clear?.());
+  await goto(page, name, "/?view=grid");
+  await waitForAny(
+    page,
+    name,
+    ".bookmark-card .edit-btn",
+    "bookmark card actions render",
+  );
+  await clickVisible(
+    page,
+    name,
+    ".bookmark-card .edit-btn",
+    "bookmark edit button",
+    {
+      wait: 1000,
+    },
+  );
+  await clickIf(page, name, "#cancelBtn", "cancel edit bookmark modal");
+  await clickVisible(
+    page,
+    name,
+    ".bookmark-card .delete-btn",
+    "bookmark delete button cancel dialog",
+    { wait: 700 },
+  );
   await clickIf(page, name, "#toolsMenuToggle", "open menu for settings");
   await clickVisible(page, name, "#settingsToggle", "open settings panel");
+  await clickIf(page, name, "#exportBtn", "settings export html button", {
+    wait: 1000,
+  });
+  await clickIf(page, name, "#exportJSONBtn", "settings export json button", {
+    wait: 1000,
+  });
+  await clickIf(
+    page,
+    name,
+    "#fullBackupJSONBtn",
+    "settings full backup json button",
+    { wait: 1000 },
+  );
+  await clickIf(
+    page,
+    name,
+    "#fullBackupHTMLBtn",
+    "settings full backup html button",
+    { wait: 1000 },
+  );
+  await clickIf(
+    page,
+    name,
+    "#changePasswordBtn",
+    "change password validation button",
+  );
   await clickIf(page, name, "#settingsClose", "close settings panel");
+  await clickIf(page, name, "#toolsMenuToggle", "open menu for import");
+  await clickVisible(page, name, "#settingsToggle", "reopen settings panel");
+  await clickIf(page, name, "#importBtn", "settings import button", {
+    wait: 1000,
+  });
+  record(
+    name,
+    "settings import navigates to import page",
+    page.url().includes("/import"),
+    page.url(),
+  );
 }
 
 async function testBookmarkManage(page) {
@@ -293,7 +466,21 @@ async function testImport(page) {
   const name = "import";
   await goto(page, name, "/import.html");
   await commonMenu(page, name);
-  await clickIf(page, name, "#nextBtn", "next button disabled safe");
+  const [fileChooser] = await Promise.all([
+    page.waitForFileChooser({ timeout: 5000 }),
+    clickIf(page, name, "#selectFileBtn", "select file button"),
+  ]);
+  await fileChooser.accept([importFixturePath]);
+  await sleep(800);
+  await recordEnabled(page, name, "#nextBtn", "next button enabled after file");
+  await clickIf(page, name, "#nextBtn", "next step button");
+  await clickIf(page, name, "#prevBtn", "previous step button");
+  await clickIf(
+    page,
+    name,
+    "#clearAllBookmarksBtn",
+    "clear all bookmarks cancel prompt",
+  );
   const buttons = await page.$$eval("button", (items) =>
     items.map((button) => ({
       id: button.id,
@@ -328,6 +515,66 @@ async function testLinkChecker(page) {
     '.stat-item[data-filter="accessible"]',
     "filter accessible button",
   );
+  await clickIf(
+    page,
+    name,
+    '.stat-item[data-filter="inaccessible"]',
+    "filter inaccessible button",
+  );
+  await clickIf(
+    page,
+    name,
+    '.stat-item[data-filter="review"]',
+    "filter review button",
+  );
+  await clickIf(
+    page,
+    name,
+    '.stat-item[data-filter="kept"]',
+    "filter kept button",
+  );
+  await clickIf(
+    page,
+    name,
+    '.stat-item[data-filter="deleted"]',
+    "filter deleted button",
+  );
+  await clickIf(
+    page,
+    name,
+    '.stat-item[data-filter="all"]',
+    "return to all filter button",
+  );
+  await waitForAny(page, name, '[data-action="check"]', "link rows render");
+  await clickVisible(page, name, '[data-action="check"]', "row check button", {
+    wait: 2500,
+  });
+  await clickVisible(page, name, '[data-action="keep"]', "row keep button", {
+    wait: 1000,
+  });
+  await clickVisible(
+    page,
+    name,
+    '[data-action="unkeep"]',
+    "row unkeep button",
+    {
+      wait: 1000,
+    },
+  );
+  await clickVisible(
+    page,
+    name,
+    '[data-action="delete"]',
+    "row delete button cancel dialog",
+    { wait: 700 },
+  );
+  await clickIf(
+    page,
+    name,
+    "#deleteInaccessibleBtn",
+    "delete inaccessible button safe path",
+    { wait: 700 },
+  );
   await clickIf(page, name, "#startCheckBtn", "start check button", {
     wait: 1500,
   });
@@ -343,7 +590,46 @@ async function testDeleted(page) {
   await goto(page, name, "/deleted-bookmarks");
   await commonMenu(page, name);
   await clickIf(page, name, "#refreshBtn", "refresh button");
-  await clickIf(page, name, "#selectAllRecords", "select all checkbox");
+  await waitForAny(page, name, ".record-item", "deleted record rows render");
+  await clickVisible(page, name, ".detail-btn", "deleted detail button");
+  await clickIf(page, name, "#closeDetailModal", "close deleted detail modal");
+  await clickVisible(
+    page,
+    name,
+    ".restore-btn",
+    "deleted restore button opens modal",
+  );
+  await clickIf(page, name, "#cancelRestore", "cancel deleted restore modal");
+  await clickVisible(
+    page,
+    name,
+    ".delete-btn",
+    "permanent delete cancel dialog",
+    {
+      wait: 700,
+    },
+  );
+  await clickIf(page, name, "#selectAllRecords", "select all checkbox", {
+    wait: 1000,
+  });
+  await waitForEnabled(
+    page,
+    name,
+    "#batchRestoreBtn",
+    "batch restore enabled after selection",
+  );
+  await waitForEnabled(
+    page,
+    name,
+    "#batchDeleteBtn",
+    "batch delete enabled after selection",
+  );
+  await clickIf(page, name, "#batchRestoreBtn", "batch restore cancel dialog", {
+    wait: 700,
+  });
+  await clickIf(page, name, "#batchDeleteBtn", "batch delete cancel dialog", {
+    wait: 700,
+  });
   await clickIf(page, name, "#prevPage", "prev page button");
   await clickIf(page, name, "#nextPage", "next page button");
 }
@@ -435,6 +721,16 @@ const page = await browser.newPage();
 page.setDefaultTimeout(12000);
 await watchPage(page, "browser");
 page.on("dialog", async (dialog) => dialog.dismiss());
+createImportFixture();
+
+try {
+  await page._client().send("Page.setDownloadBehavior", {
+    behavior: "allow",
+    downloadPath: auditDir,
+  });
+} catch {
+  record("setup", "download behavior fallback", true, "not required");
+}
 
 try {
   await login(page);

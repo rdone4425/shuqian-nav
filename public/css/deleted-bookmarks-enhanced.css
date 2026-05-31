@@ -106,6 +106,11 @@ body {
     z-index: 100;
 }
 
+/* Keep batch controls clickable after row actions scroll the page upward. */
+body.nav-site .header {
+    position: static !important;
+}
+
 .header-content {
     display: flex;
     justify-content: space-between;

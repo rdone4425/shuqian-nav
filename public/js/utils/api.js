@@ -306,6 +306,7 @@ const SystemAPI = {
       method: "GET",
       headers: {
         Accept: format === "json" ? "application/json" : "text/html",
+        ...API.getAuthHeaders(),
       },
     });
 
