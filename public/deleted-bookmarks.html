@@ -74,13 +74,26 @@
             <button id="refreshBtn" class="btn btn-primary" type="button">
               刷新列表
             </button>
+            <label class="bulk-select-inline">
+              <input id="selectAllRecords" type="checkbox" />
+              <span>全选本页</span>
+            </label>
+            <span id="selectedCount" class="selected-count">已选择 0 条</span>
             <button
-              id="clearAllBtn"
+              id="batchRestoreBtn"
+              class="btn btn-secondary"
+              type="button"
+              disabled
+            >
+              批量恢复
+            </button>
+            <button
+              id="batchDeleteBtn"
               class="btn btn-danger"
               type="button"
               disabled
             >
-              暂不支持批量清空
+              批量永久删除
             </button>
           </div>
           <div class="actions-right">
@@ -153,6 +166,6 @@
     <script src="/js/auth.js"></script>
     <script src="/js/site-menu.js"></script>
     <script src="/js/admin-common.js"></script>
-    <script src="/js/deleted-bookmarks.js"></script>
+    <script src="/js/deleted-bookmarks.js?v=20260531-batch"></script>
   </body>
 </html>

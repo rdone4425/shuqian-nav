@@ -816,3 +816,34 @@ body {
 .text-right {
     text-align: right;
 }
+
+.bulk-select-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    color: var(--text-secondary);
+    font-size: var(--font-sm);
+    font-weight: 600;
+}
+
+.bulk-select-inline input,
+.record-select {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-color);
+}
+
+.selected-count {
+    color: var(--text-muted);
+    font-size: var(--font-sm);
+    white-space: nowrap;
+}
+
+.record-select-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+}

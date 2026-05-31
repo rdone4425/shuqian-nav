@@ -4,3 +4,5 @@
 /setup-password.html /
 /diagnose /api/health
 /diagnose.html /api/health
+/deleted-bookmarks /deleted-bookmarks.html 200
+/deleted-bookmarks/ /deleted-bookmarks.html 200

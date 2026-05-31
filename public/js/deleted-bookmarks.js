@@ -7,6 +7,7 @@ class DeletedBookmarksManager {
     this.searchQuery = "";
     this.deletedRecords = [];
     this.pendingRestoreId = null;
+    this.selectedRecordIds = new Set();
   }
 
   async init() {
@@ -19,9 +20,19 @@ class DeletedBookmarksManager {
       this.loadDeletedRecords();
     });
 
-    document.getElementById("clearAllBtn").addEventListener("click", () => {
-      AdminUI.showToast("暂不支持批量清空。", "error");
+    document.getElementById("batchRestoreBtn").addEventListener("click", () => {
+      this.batchRestoreSelected();
     });
+
+    document.getElementById("batchDeleteBtn").addEventListener("click", () => {
+      this.batchPermanentDeleteSelected();
+    });
+
+    document
+      .getElementById("selectAllRecords")
+      .addEventListener("change", (event) => {
+        this.selectAllVisible(event.target.checked);
+      });
 
     document
       .getElementById("filterSelect")
@@ -104,6 +115,15 @@ class DeletedBookmarksManager {
         this.permanentDelete(deleteButton.dataset.recordId);
       }
     });
+
+    document.addEventListener("change", (event) => {
+      const checkbox = event.target.closest(".record-select");
+      if (!checkbox) {
+        return;
+      }
+
+      this.toggleRecordSelection(checkbox.dataset.recordId, checkbox.checked);
+    });
   }
 
   async loadDeletedRecords() {
@@ -133,15 +153,19 @@ class DeletedBookmarksManager {
 
       this.deletedRecords = response.data?.bookmarks || [];
       this.totalPages = response.data?.pagination?.totalPages || 1;
+      this.selectedRecordIds.clear();
 
       this.displayRecords();
       this.updatePagination();
       this.updateStats();
+      this.updateBulkControls();
     } catch (error) {
       this.deletedRecords = [];
+      this.selectedRecordIds.clear();
       recordsList.innerHTML = `<div class="empty-state">加载失败：${AdminUI.escapeHtml(error.message)}</div>`;
       this.updatePagination();
       this.updateStats();
+      this.updateBulkControls();
     }
   }
 
@@ -150,12 +174,14 @@ class DeletedBookmarksManager {
     if (!this.deletedRecords.length) {
       recordsList.innerHTML =
         '<div class="empty-state">暂时没有已删除书签记录。</div>';
+      this.updateBulkControls();
       return;
     }
 
     recordsList.innerHTML = this.deletedRecords
       .map((record) => this.renderRecord(record))
       .join("");
+    this.updateBulkControls();
   }
 
   renderRecord(record) {
@@ -164,12 +190,21 @@ class DeletedBookmarksManager {
     const reasonText = this.getReasonText(record.deleted_reason);
     const safeTitle = AdminUI.escapeHtml(record.title || "未命名书签");
     const safeUrl = AdminUI.escapeHtml(record.url || "");
+    const recordId = String(record.id);
 
     return `
       <article class="record-item">
+        <label class="record-select-wrap" title="选择这条记录">
+          <input
+            class="record-select"
+            type="checkbox"
+            data-record-id="${AdminUI.escapeHtml(recordId)}"
+            ${this.selectedRecordIds.has(recordId) ? "checked" : ""}
+          />
+        </label>
         <img
           src="${AdminUI.escapeHtml(record.favicon_url || "/favicon.ico")}"
-          alt="favicon"
+          alt=""
           class="record-favicon"
           onerror="this.src='/favicon.ico'"
         />
@@ -184,13 +219,13 @@ class DeletedBookmarksManager {
           <span class="record-time">${deletedTime}</span>
         </div>
         <div class="record-actions">
-          <button class="btn btn-primary btn-sm restore-btn" data-record-id="${record.id}">
+          <button class="btn btn-primary btn-sm restore-btn" type="button" data-record-id="${AdminUI.escapeHtml(recordId)}">
             恢复
           </button>
-          <button class="btn btn-secondary btn-sm detail-btn" data-record-id="${record.id}">
+          <button class="btn btn-secondary btn-sm detail-btn" type="button" data-record-id="${AdminUI.escapeHtml(recordId)}">
             详情
           </button>
-          <button class="btn btn-danger btn-sm delete-btn" data-record-id="${record.id}">
+          <button class="btn btn-danger btn-sm delete-btn" type="button" data-record-id="${AdminUI.escapeHtml(recordId)}">
             永久删除
           </button>
         </div>
@@ -264,6 +299,144 @@ class DeletedBookmarksManager {
     document.getElementById("manualDeleted").textContent = manual;
     document.getElementById("autoDeleted").textContent = auto;
     document.getElementById("todayDeleted").textContent = today;
+  }
+
+  toggleRecordSelection(recordId, selected) {
+    if (!recordId) {
+      return;
+    }
+
+    if (selected) {
+      this.selectedRecordIds.add(String(recordId));
+    } else {
+      this.selectedRecordIds.delete(String(recordId));
+    }
+
+    this.updateBulkControls();
+  }
+
+  selectAllVisible(selected) {
+    this.deletedRecords.forEach((record) => {
+      const recordId = String(record.id);
+      if (selected) {
+        this.selectedRecordIds.add(recordId);
+      } else {
+        this.selectedRecordIds.delete(recordId);
+      }
+    });
+
+    document.querySelectorAll(".record-select").forEach((checkbox) => {
+      checkbox.checked = selected;
+    });
+
+    this.updateBulkControls();
+  }
+
+  getSelectedRecords() {
+    return this.deletedRecords.filter((record) =>
+      this.selectedRecordIds.has(String(record.id)),
+    );
+  }
+
+  updateBulkControls() {
+    const selectedRecords = this.getSelectedRecords();
+    const selectedCount = selectedRecords.length;
+    const totalVisible = this.deletedRecords.length;
+    const selectAll = document.getElementById("selectAllRecords");
+    const selectedCountEl = document.getElementById("selectedCount");
+    const batchRestoreBtn = document.getElementById("batchRestoreBtn");
+    const batchDeleteBtn = document.getElementById("batchDeleteBtn");
+
+    selectedCountEl.textContent = `已选择 ${selectedCount} 条`;
+    batchRestoreBtn.disabled = selectedCount === 0;
+    batchDeleteBtn.disabled = selectedCount === 0;
+
+    selectAll.checked = totalVisible > 0 && selectedCount === totalVisible;
+    selectAll.indeterminate = selectedCount > 0 && selectedCount < totalVisible;
+    selectAll.disabled = totalVisible === 0;
+  }
+
+  async batchRestoreSelected() {
+    const targets = this.getSelectedRecords();
+    if (!targets.length) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `确定恢复选中的 ${targets.length} 条记录吗？`,
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    await this.runBatchAction({
+      targets,
+      busyText: "正在恢复...",
+      successText: "恢复",
+      action: async (record) =>
+        API.post("/api/bookmarks/deleted", {
+          deletedId: record.id,
+        }),
+    });
+  }
+
+  async batchPermanentDeleteSelected() {
+    const targets = this.getSelectedRecords();
+    if (!targets.length) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `确定永久删除选中的 ${targets.length} 条记录吗？此操作不可撤销。`,
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    await this.runBatchAction({
+      targets,
+      busyText: "正在删除...",
+      successText: "删除",
+      action: async (record) =>
+        API.delete(`/api/bookmarks/deleted?id=${record.id}`),
+    });
+  }
+
+  async runBatchAction({ targets, busyText, successText, action }) {
+    const batchRestoreBtn = document.getElementById("batchRestoreBtn");
+    const batchDeleteBtn = document.getElementById("batchDeleteBtn");
+    const originalRestoreText = batchRestoreBtn.textContent;
+    const originalDeleteText = batchDeleteBtn.textContent;
+
+    batchRestoreBtn.disabled = true;
+    batchDeleteBtn.disabled = true;
+    batchRestoreBtn.textContent = busyText;
+    batchDeleteBtn.textContent = busyText;
+
+    let successCount = 0;
+    let failedCount = 0;
+
+    for (const record of targets) {
+      try {
+        const response = await action(record);
+        if (!response.success) {
+          throw new Error(response.error || `${successText}失败`);
+        }
+        successCount += 1;
+      } catch {
+        failedCount += 1;
+      }
+    }
+
+    batchRestoreBtn.textContent = originalRestoreText;
+    batchDeleteBtn.textContent = originalDeleteText;
+    this.selectedRecordIds.clear();
+
+    AdminUI.showToast(
+      `${successText}完成：成功 ${successCount} 条${failedCount ? `，失败 ${failedCount} 条` : ""}`,
+      failedCount ? "error" : "success",
+    );
+    await this.loadDeletedRecords();
   }
 
   showRestoreModal(recordId) {
@@ -372,6 +545,11 @@ class DeletedBookmarksManager {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  const authenticated = await AdminUI.requireAuth();
+  if (!authenticated) {
+    return;
+  }
+
   const manager = new DeletedBookmarksManager();
   await manager.init();
 });
