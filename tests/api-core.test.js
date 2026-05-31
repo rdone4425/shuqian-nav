@@ -13,6 +13,7 @@ import {
   onRequestPost as tokenCreateHandler,
   verifyApiToken,
 } from "../pages/functions/api/auth/token.js";
+import { onRequestGet as syncListHandler } from "../pages/functions/api/bookmarks/sync.js";
 import { onRequestDelete as bookmarkDeleteHandler } from "../pages/functions/api/bookmarks/[id].js";
 import { JWTKeyManager } from "../pages/functions/utils/jwt-manager.js";
 import {
@@ -24,7 +25,14 @@ import {
   classifyNetworkError,
 } from "../pages/functions/utils/link-checker-status.js";
 
-function createDbMock({ firstResult, firstError, runResult, runError } = {}) {
+function createDbMock({
+  firstResult,
+  firstError,
+  runResult,
+  runError,
+  allResult,
+  allError,
+} = {}) {
   function createExecution(sql, params = []) {
     return {
       async first() {
@@ -46,7 +54,13 @@ function createDbMock({ firstResult, firstError, runResult, runError } = {}) {
         return runResult ?? { success: true, changes: 1 };
       },
       async all() {
-        return { results: [] };
+        if (allError) {
+          throw allError;
+        }
+        if (typeof allResult === "function") {
+          return allResult({ sql, params });
+        }
+        return allResult ?? { results: [] };
       },
     };
   }
@@ -543,6 +557,85 @@ test("deleted API token metadata revokes newly generated tokens", async () => {
   const revokedCheck = await verifyApiToken(body.data.token, env);
   assert.equal(revokedCheck.valid, false);
   assert.match(revokedCheck.error, /revoked/i);
+});
+
+test("sync list endpoint accepts API tokens and returns JSON bookmarks", async () => {
+  let activeTokenId = null;
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return params[0] === activeTokenId
+            ? { config_key: activeTokenId }
+            : null;
+        }
+        return null;
+      },
+      runResult({ params }) {
+        if (String(params[0] || "").startsWith("api_token_")) {
+          activeTokenId = params[0];
+        }
+        return { success: true, changes: 1 };
+      },
+      allResult({ sql }) {
+        if (sql.includes("FROM bookmarks b")) {
+          return {
+            results: [
+              {
+                id: 1,
+                title: "Example",
+                url: "https://example.com",
+                category_name: "测试",
+              },
+            ],
+          };
+        }
+        return { results: [] };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+  const createResponse = await tokenCreateHandler({
+    request: new Request("https://example.com/api/auth/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ name: "Chrome Sync" }),
+    }),
+    env,
+  });
+  const createBody = await createResponse.json();
+
+  const response = await syncListHandler({
+    request: new Request(
+      "https://example.com/api/bookmarks/sync?page=1&limit=100",
+      {
+        headers: {
+          "X-API-Token": createBody.data.token,
+        },
+      },
+    ),
+    env,
+  });
+
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("Content-Type"), /application\/json/);
+  const body = await response.json();
+  assert.equal(body.success, true);
+  assert.equal(body.data.bookmarks.length, 1);
 });
 
 test("token verification uses generated jwt secret instead of a fixed fallback", async () => {

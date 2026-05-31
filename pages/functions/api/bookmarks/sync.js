@@ -19,6 +19,75 @@ async function authenticateApiRequest(request, env) {
 }
 
 // 批量同步书签
+export async function onRequestGet(context) {
+  const { request, env } = context;
+
+  try {
+    const auth = await authenticateApiRequest(request, env);
+    if (!auth.authenticated) {
+      return createCorsJsonResponse(
+        {
+          success: false,
+          error: auth.error,
+        },
+        401,
+      );
+    }
+
+    const url = new URL(request.url);
+    const page = Math.max(parseInt(url.searchParams.get("page"), 10) || 1, 1);
+    const limit = Math.min(
+      Math.max(parseInt(url.searchParams.get("limit"), 10) || 100, 1),
+      500,
+    );
+    const offset = (page - 1) * limit;
+
+    const result = await env.BOOKMARKS_DB.prepare(
+      `
+      SELECT
+        b.id,
+        b.title,
+        b.url,
+        b.description,
+        b.category_id,
+        b.favicon_url,
+        b.created_at,
+        b.updated_at,
+        c.name as category_name
+      FROM bookmarks b
+      LEFT JOIN categories c ON b.category_id = c.id
+      ORDER BY b.id ASC
+      LIMIT ? OFFSET ?
+    `,
+    )
+      .bind(limit, offset)
+      .all();
+
+    return createCorsJsonResponse({
+      success: true,
+      data: {
+        bookmarks: result.results || [],
+        pagination: {
+          page,
+          limit,
+          count: (result.results || []).length,
+          hasNext: (result.results || []).length === limit,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("读取同步书签失败:", error);
+    return createCorsJsonResponse(
+      {
+        success: false,
+        error: "读取同步书签失败",
+        message: error.message,
+      },
+      500,
+    );
+  }
+}
+
 export async function onRequestPost(context) {
   const { request, env } = context;
 
@@ -26,38 +95,24 @@ export async function onRequestPost(context) {
     // 验证API令牌
     const auth = await authenticateApiRequest(request, env);
     if (!auth.authenticated) {
-      return new Response(
-        JSON.stringify({
+      return createCorsJsonResponse(
+        {
           success: false,
           error: auth.error,
-        }),
-        {
-          status: 401,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, X-API-Token",
-          },
         },
+        401,
       );
     }
 
     const { bookmarks } = await request.json();
 
     if (!Array.isArray(bookmarks)) {
-      return new Response(
-        JSON.stringify({
+      return createCorsJsonResponse(
+        {
           success: false,
           error: "书签数据格式错误",
-        }),
-        {
-          status: 400,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-          },
         },
+        400,
       );
     }
 
@@ -100,7 +155,7 @@ export async function onRequestPost(context) {
 
         // 插入书签
         await env.BOOKMARKS_DB.prepare(
-          `INSERT INTO bookmarks (title, url, description, category_id, favicon_url) 
+          `INSERT INTO bookmarks (title, url, description, category_id, favicon_url)
                     VALUES (?, ?, ?, ?, ?)`,
         )
           .bind(
@@ -120,42 +175,25 @@ export async function onRequestPost(context) {
       }
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        data: {
-          total: bookmarks.length,
-          successCount,
-          errorCount,
-          errors: errors.slice(0, 10), // 只返回前10个错误
-        },
-        message: `同步完成: 成功 ${successCount} 个，失败 ${errorCount} 个`,
-      }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, X-API-Token",
-        },
+    return createCorsJsonResponse({
+      success: true,
+      data: {
+        total: bookmarks.length,
+        successCount,
+        errorCount,
+        errors: errors.slice(0, 10), // 只返回前10个错误
       },
-    );
+      message: `同步完成: 成功 ${successCount} 个，失败 ${errorCount} 个`,
+    });
   } catch (error) {
     console.error("书签同步失败:", error);
-    return new Response(
-      JSON.stringify({
+    return createCorsJsonResponse(
+      {
         success: false,
         error: "书签同步失败",
         message: error.message,
-      }),
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
       },
+      500,
     );
   }
 }
@@ -164,12 +202,24 @@ export async function onRequestPost(context) {
 export async function onRequestOptions(context) {
   return new Response(null, {
     status: 200,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, X-API-Token",
-      "Access-Control-Max-Age": "86400",
-    },
+    headers: corsHeaders(),
+  });
+}
+
+function corsHeaders() {
+  return {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, X-API-Token",
+    "Access-Control-Max-Age": "86400",
+  };
+}
+
+function createCorsJsonResponse(body, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: corsHeaders(),
   });
 }
 

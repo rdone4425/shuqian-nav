@@ -46,7 +46,8 @@ export async function onRequest(context) {
   const isValidOrigin = originUrl
     ? isLocalDev
       ? isLocalHostname(originUrl.hostname)
-      : originUrl.protocol === "https:" && originUrl.host === host
+      : originUrl.protocol === "chrome-extension:" ||
+        (originUrl.protocol === "https:" && originUrl.host === host)
     : false;
 
   const securityHeaders = {
