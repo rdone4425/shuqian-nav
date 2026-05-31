@@ -324,11 +324,9 @@ const BookmarkManager = {
           <div class="bookmark-meta">${categoryBadge}</div>
           <div class="bookmark-actions">
             <button class="action-btn edit-btn" data-id="${bookmark.id}" title="${this.escapeHtml(editLabel)}">
-              <span class="action-icon">Edit</span>
               <span class="action-text">${this.escapeHtml(editLabel)}</span>
             </button>
             <button class="action-btn delete-btn" data-id="${bookmark.id}" title="${this.escapeHtml(deleteLabel)}">
-              <span class="action-icon">Del</span>
               <span class="action-text">${this.escapeHtml(deleteLabel)}</span>
             </button>
           </div>
