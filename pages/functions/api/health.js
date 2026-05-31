@@ -1,3 +1,5 @@
+import { getMissingCoreTables } from "../utils/schema-manager.js";
+
 function corsHeaders() {
   return {
     "Content-Type": "application/json",
@@ -23,7 +25,16 @@ export async function onRequestGet(context) {
       try {
         const result =
           await env.BOOKMARKS_DB.prepare("SELECT 1 as test").first();
-        dbStatus = result ? "connected" : "error";
+        const missingTables = result
+          ? await getMissingCoreTables(env.BOOKMARKS_DB)
+          : ["connection"];
+
+        if (missingTables.length) {
+          dbStatus = "error";
+          dbError = `Missing core tables: ${missingTables.join(", ")}`;
+        } else {
+          dbStatus = "connected";
+        }
       } catch (error) {
         dbStatus = "error";
         dbError = error.message;

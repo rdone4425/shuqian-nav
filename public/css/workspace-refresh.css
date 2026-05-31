@@ -1047,6 +1047,9 @@ body.nav-site::after,
   top: calc(100% + 10px) !important;
   right: 0 !important;
   min-width: 276px !important;
+  max-height: min(620px, calc(100vh - 128px)) !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
   padding: 7px !important;
   background: rgba(255, 255, 255, 0.98) !important;
   border: 1px solid var(--wr-line) !important;
@@ -1060,6 +1063,15 @@ body.nav-site::after,
     opacity var(--wr-fast),
     transform var(--wr-fast),
     visibility var(--wr-fast) !important;
+}
+
+.nav-site .dropdown-menu::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+.nav-site .dropdown-menu::-webkit-scrollbar-thumb {
+  background: #cbd7e6 !important;
+  border-radius: 999px !important;
 }
 
 .nav-site .dropdown-menu.show {

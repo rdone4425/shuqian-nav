@@ -809,7 +809,17 @@ test("health reports connected database state when D1 is available", async () =>
   const response = await healthHandler({
     env: {
       ENVIRONMENT: "test",
-      BOOKMARKS_DB: createDbMock({ firstResult: { test: 1 } }),
+      BOOKMARKS_DB: createDbMock({
+        firstResult({ sql, params }) {
+          if (sql.includes("SELECT 1")) {
+            return { test: 1 };
+          }
+          if (sql.includes("sqlite_master")) {
+            return { name: params[0] };
+          }
+          return null;
+        },
+      }),
     },
   });
 
@@ -820,6 +830,30 @@ test("health reports connected database state when D1 is available", async () =>
   assert.equal(body.status, "healthy");
   assert.equal(body.database.status, "connected");
   assert.equal(body.environment, "test");
+});
+
+test("health reports missing core database tables", async () => {
+  const response = await healthHandler({
+    env: {
+      ENVIRONMENT: "test",
+      BOOKMARKS_DB: createDbMock({
+        firstResult({ sql }) {
+          if (sql.includes("SELECT 1")) {
+            return { test: 1 };
+          }
+          return null;
+        },
+      }),
+    },
+  });
+
+  assert.equal(response.status, 503);
+
+  const body = await response.json();
+  assert.equal(body.success, true);
+  assert.equal(body.status, "warning");
+  assert.equal(body.database.status, "error");
+  assert.match(body.database.error, /Missing core tables/);
 });
 
 test("health degrades to warning when database probe fails", async () => {
