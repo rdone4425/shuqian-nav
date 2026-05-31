@@ -1040,3 +1040,64 @@ body {
 .form-actions .btn {
     min-width: 100px;
 }
+
+/* 链接检查页使用紧凑行列表，避免继承首页书签卡片的大块布局。 */
+.nav-site .checker-container .stat-item {
+    appearance: none;
+    width: 100%;
+    color: inherit;
+    font: inherit;
+}
+
+.nav-site .checker-container .bookmark-item {
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-columns: 56px minmax(220px, 1fr) minmax(220px, auto) auto !important;
+    align-items: center !important;
+    gap: var(--spacing-md) !important;
+    padding: 14px 18px !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--border-light) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    cursor: default !important;
+}
+
+.nav-site .checker-container .bookmark-item:hover {
+    transform: none !important;
+    border-color: var(--border-light) !important;
+    box-shadow: none !important;
+}
+
+.nav-site .checker-container .bookmark-status {
+    width: 44px !important;
+    height: 32px !important;
+    border-radius: var(--radius-sm) !important;
+    font-size: var(--font-sm) !important;
+}
+
+.nav-site .checker-container .bookmark-info {
+    min-width: 0 !important;
+    text-align: left !important;
+}
+
+.nav-site .checker-container .bookmark-title,
+.nav-site .checker-container .bookmark-url {
+    text-align: left !important;
+}
+
+.nav-site .checker-container .bookmark-meta {
+    justify-content: flex-end !important;
+}
+
+@media (max-width: 920px) {
+    .nav-site .checker-container .bookmark-item {
+        grid-template-columns: 48px minmax(0, 1fr) !important;
+    }
+
+    .nav-site .checker-container .bookmark-meta,
+    .nav-site .checker-container .bookmark-actions-container {
+        grid-column: 2 !important;
+        justify-content: flex-start !important;
+    }
+}

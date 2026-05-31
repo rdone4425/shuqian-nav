@@ -91,31 +91,61 @@
           <div class="progress-bar">
             <div id="progressFill" class="progress-fill"></div>
           </div>
-          <div class="stats-grid">
-            <div class="stat-item">
+          <div class="stats-grid" id="statsGrid">
+            <button
+              class="stat-item active"
+              type="button"
+              data-filter="all"
+              aria-pressed="true"
+            >
               <span class="stat-value" id="totalBookmarks">0</span>
               <span class="stat-label">总计</span>
-            </div>
-            <div class="stat-item">
+            </button>
+            <button
+              class="stat-item"
+              type="button"
+              data-filter="checked"
+              aria-pressed="false"
+            >
               <span class="stat-value" id="checkedCount">0</span>
               <span class="stat-label">已检查</span>
-            </div>
-            <div class="stat-item">
+            </button>
+            <button
+              class="stat-item"
+              type="button"
+              data-filter="accessible"
+              aria-pressed="false"
+            >
               <span class="stat-value" id="accessibleCount">0</span>
               <span class="stat-label">可访问</span>
-            </div>
-            <div class="stat-item">
+            </button>
+            <button
+              class="stat-item"
+              type="button"
+              data-filter="inaccessible"
+              aria-pressed="false"
+            >
               <span class="stat-value" id="inaccessibleCount">0</span>
               <span class="stat-label">不可访问</span>
-            </div>
-            <div class="stat-item">
+            </button>
+            <button
+              class="stat-item"
+              type="button"
+              data-filter="kept"
+              aria-pressed="false"
+            >
               <span class="stat-value" id="keptCount">0</span>
               <span class="stat-label">已保留</span>
-            </div>
-            <div class="stat-item">
+            </button>
+            <button
+              class="stat-item"
+              type="button"
+              data-filter="deleted"
+              aria-pressed="false"
+            >
               <span class="stat-value" id="deletedCount">0</span>
               <span class="stat-label">已删除</span>
-            </div>
+            </button>
           </div>
         </section>
 
@@ -155,7 +185,62 @@
     <script src="/js/site-menu.js"></script>
     <script src="/js/admin-common.js"></script>
     <script>
-      const state = { bookmarks: [], checking: false, stopRequested: false };
+      const state = {
+        bookmarks: [],
+        checking: false,
+        stopRequested: false,
+        activeFilter: "all",
+      };
+
+      const filterLabels = {
+        all: "全部",
+        checked: "已检查",
+        accessible: "可访问",
+        inaccessible: "不可访问",
+        kept: "已保留",
+        deleted: "已删除",
+      };
+
+      function isCheckedBookmark(bookmark) {
+        return (
+          bookmark.checked ||
+          bookmark.deleted ||
+          bookmark.status === "accessible" ||
+          bookmark.status === "inaccessible"
+        );
+      }
+
+      function matchesActiveFilter(bookmark) {
+        switch (state.activeFilter) {
+          case "checked":
+            return isCheckedBookmark(bookmark);
+          case "accessible":
+            return bookmark.status === "accessible" && !bookmark.deleted;
+          case "inaccessible":
+            return bookmark.status === "inaccessible" && !bookmark.deleted;
+          case "kept":
+            return bookmark.keepStatus === "keep" && !bookmark.deleted;
+          case "deleted":
+            return bookmark.deleted;
+          case "all":
+          default:
+            return true;
+        }
+      }
+
+      function getFilteredBookmarks() {
+        return state.bookmarks.filter(matchesActiveFilter);
+      }
+
+      function updateFilterControls() {
+        document
+          .querySelectorAll(".stat-item[data-filter]")
+          .forEach((button) => {
+            const isActive = button.dataset.filter === state.activeFilter;
+            button.classList.toggle("active", isActive);
+            button.setAttribute("aria-pressed", String(isActive));
+          });
+      }
 
       function getBookmarkClass(bookmark) {
         if (bookmark.deleted) return "deleted";
@@ -199,10 +284,21 @@
           return;
         }
 
-        document.getElementById("filterStatus").textContent =
-          `已加载 ${state.bookmarks.length} 条书签`;
+        const filteredBookmarks = getFilteredBookmarks();
+        const activeLabel = filterLabels[state.activeFilter] || "全部";
 
-        list.innerHTML = state.bookmarks
+        document.getElementById("filterStatus").textContent =
+          state.activeFilter === "all"
+            ? `已加载 ${state.bookmarks.length} 条书签`
+            : `${activeLabel} ${filteredBookmarks.length}/${state.bookmarks.length}`;
+
+        if (!filteredBookmarks.length) {
+          list.innerHTML = `<div class="empty-state">暂无${AdminUI.escapeHtml(activeLabel)}书签。</div>`;
+          updateStats();
+          return;
+        }
+
+        list.innerHTML = filteredBookmarks
           .map((bookmark) => {
             const bookmarkClass = getBookmarkClass(bookmark);
             const keepAction =
@@ -242,12 +338,7 @@
 
       function updateStats() {
         const total = state.bookmarks.length;
-        const checked = state.bookmarks.filter(
-          (bookmark) =>
-            bookmark.status === "accessible" ||
-            bookmark.status === "inaccessible" ||
-            bookmark.deleted,
-        ).length;
+        const checked = state.bookmarks.filter(isCheckedBookmark).length;
         const accessible = state.bookmarks.filter(
           (bookmark) => bookmark.status === "accessible",
         ).length;
@@ -270,6 +361,7 @@
         document.getElementById("deletedCount").textContent = deleted;
         document.getElementById("progressPercent").textContent = `${percent}%`;
         document.getElementById("progressFill").style.width = `${percent}%`;
+        updateFilterControls();
       }
 
       async function loadBookmarks() {
@@ -531,6 +623,18 @@
         document
           .getElementById("deleteInaccessibleBtn")
           .addEventListener("click", deleteInaccessibleBookmarks);
+        document
+          .getElementById("statsGrid")
+          .addEventListener("click", (event) => {
+            const filterButton = event.target.closest("[data-filter]");
+            if (!filterButton) return;
+
+            state.activeFilter = filterButton.dataset.filter || "all";
+            renderBookmarks();
+            document
+              .getElementById("bookmarksCard")
+              .scrollIntoView({ behavior: "smooth", block: "start" });
+          });
         document
           .getElementById("bookmarksList")
           .addEventListener("click", (event) => {
