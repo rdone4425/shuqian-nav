@@ -55,17 +55,31 @@ const API = {
     for (let attempt = 0; attempt <= this.config.retryAttempts; attempt += 1) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(
-          () => controller.abort(),
-          finalOptions.timeout,
-        );
+        let timedOut = false;
+        const timeoutId = setTimeout(() => {
+          timedOut = true;
+          controller.abort();
+        }, finalOptions.timeout);
 
-        const response = await fetch(fullUrl, {
-          ...finalOptions,
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
+        let response;
+        try {
+          response = await fetch(fullUrl, {
+            ...finalOptions,
+            signal: controller.signal,
+          });
+        } catch (error) {
+          if (timedOut && error.name === "AbortError") {
+            const timeoutError = new Error(
+              "请求处理时间较长，请刷新首页确认导入结果，避免重复导入。",
+            );
+            timeoutError.name = "TimeoutError";
+            timeoutError.cause = error;
+            throw timeoutError;
+          }
+          throw error;
+        } finally {
+          clearTimeout(timeoutId);
+        }
 
         for (const interceptor of this.interceptors.response) {
           await interceptor(response);
@@ -139,15 +153,17 @@ const API = {
     return await this.request(fullUrl, { method: "GET" });
   },
 
-  async post(url, data = {}) {
+  async post(url, data = {}, options = {}) {
     return await this.request(url, {
+      ...options,
       method: "POST",
       body: JSON.stringify(data),
     });
   },
 
-  async put(url, data = {}) {
+  async put(url, data = {}, options = {}) {
     return await this.request(url, {
+      ...options,
       method: "PUT",
       body: JSON.stringify(data),
     });

@@ -295,11 +295,15 @@ const ImportManager = {
       progressText.textContent = "正在导入书签...";
       progressFill.style.width = "20%";
 
-      const response = await API.post("/api/bookmarks/import", {
-        bookmarks: this.importData.bookmarks,
-        categories: this.importData.categories || [],
-        clearExisting,
-      });
+      const response = await API.post(
+        "/api/bookmarks/import",
+        {
+          bookmarks: this.importData.bookmarks,
+          categories: this.importData.categories || [],
+          clearExisting,
+        },
+        { timeout: 180000 },
+      );
 
       progressFill.style.width = "100%";
       progressText.textContent = "导入完成";
@@ -308,9 +312,18 @@ const ImportManager = {
         throw new Error(response.error || "导入失败");
       }
 
+      Storage.viewMode.set("grid");
       this.showImportResult(response.data);
     } catch (error) {
       console.error("导入失败:", error);
+      if (error.name === "TimeoutError") {
+        Storage.viewMode.set("grid");
+        document.getElementById("progressFill").style.width = "100%";
+        document.getElementById("progressText").textContent =
+          "导入仍在后台完成，请回首页刷新确认";
+        this.showImportPending(error.message);
+        return;
+      }
       this.showImportError(error.message);
     }
   },
@@ -364,8 +377,25 @@ const ImportManager = {
     `;
   },
 
+  showImportPending(message) {
+    const resultDiv = document.getElementById("importResult");
+    if (!resultDiv) {
+      return;
+    }
+
+    resultDiv.className = "import-result";
+    resultDiv.innerHTML = `
+      <div class="result-success">
+        <div class="result-icon">OK</div>
+        <h3>导入请求已提交</h3>
+        <p class="error-message">${this.escapeHtml(message)}</p>
+      </div>
+    `;
+  },
+
   finish() {
-    window.location.href = "/";
+    Storage.viewMode.set("grid");
+    window.location.href = "/?view=grid";
   },
 
   showMessage(text, type = "info") {

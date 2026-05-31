@@ -47,7 +47,13 @@ class ViewManager {
 
   enhanceUI() {
     // 恢复用户视图偏好
-    const savedView = Storage.viewMode.get() || "grid";
+    const requestedView = new URLSearchParams(window.location.search).get(
+      "view",
+    );
+    const savedView =
+      requestedView === "grid" || requestedView === "list"
+        ? requestedView
+        : "grid";
     this.switchView(savedView);
 
     // 添加快捷键支持

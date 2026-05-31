@@ -67,6 +67,13 @@
               开始检查
             </button>
             <button
+              id="deleteInaccessibleBtn"
+              class="btn btn-danger"
+              type="button"
+            >
+              删除不可访问
+            </button>
+            <button
               id="stopCheckBtn"
               class="btn btn-secondary hidden"
               type="button"
@@ -415,6 +422,64 @@
         }
       }
 
+      async function deleteInaccessibleBookmarks() {
+        const targets = state.bookmarks.filter(
+          (bookmark) =>
+            bookmark.status === "inaccessible" &&
+            bookmark.keepStatus !== "keep" &&
+            !bookmark.deleted,
+        );
+
+        if (!targets.length) {
+          AdminUI.showToast("当前没有可删除的不可访问书签。", "error");
+          return;
+        }
+
+        const confirmed = window.confirm(
+          `确定删除 ${targets.length} 个不可访问书签吗？已标记保留的书签会跳过。`,
+        );
+        if (!confirmed) return;
+
+        const button = document.getElementById("deleteInaccessibleBtn");
+        button.disabled = true;
+        button.textContent = "正在删除...";
+
+        let successCount = 0;
+        let failedCount = 0;
+
+        for (const bookmark of targets) {
+          try {
+            const response = await BookmarkAPI.deleteBookmark(bookmark.id, {
+              reason: "link_check_failed",
+              checkStatus: bookmark.status,
+              statusCode: bookmark.statusCode,
+              errorMessage: bookmark.error,
+              keepStatus: bookmark.keepStatus,
+            });
+
+            if (!response.success) {
+              throw new Error(response.error || "删除书签失败");
+            }
+
+            bookmark.deleted = true;
+            bookmark.status = "deleted";
+            successCount += 1;
+          } catch (error) {
+            failedCount += 1;
+            bookmark.error = error.message;
+          }
+
+          renderBookmarks();
+        }
+
+        button.disabled = false;
+        button.textContent = "删除不可访问";
+        AdminUI.showToast(
+          `删除完成：成功 ${successCount} 个${failedCount ? `，失败 ${failedCount} 个` : ""}`,
+          failedCount ? "error" : "success",
+        );
+      }
+
       async function loadHistory() {
         try {
           const response = await API.get("/api/system/check-links");
@@ -449,6 +514,11 @@
       }
 
       document.addEventListener("DOMContentLoaded", async () => {
+        const authenticated = await AdminUI.requireAuth();
+        if (!authenticated) {
+          return;
+        }
+
         document
           .getElementById("reloadBookmarksBtn")
           .addEventListener("click", loadBookmarks);
@@ -458,6 +528,9 @@
         document
           .getElementById("stopCheckBtn")
           .addEventListener("click", stopBatchCheck);
+        document
+          .getElementById("deleteInaccessibleBtn")
+          .addEventListener("click", deleteInaccessibleBookmarks);
         document
           .getElementById("bookmarksList")
           .addEventListener("click", (event) => {

@@ -28,8 +28,14 @@ jobs:
         with:
           node-version: 22
 
+      - name: Install project dependencies
+        run: npm ci
+
+      - name: Run quality checks
+        run: npm test
+
       - name: Install Pages deployment dependencies
-        run: npm --prefix pages install
+        run: npm ci --prefix pages
 
       - name: Ensure Pages project and D1 database
         env:

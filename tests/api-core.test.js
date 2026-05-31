@@ -13,6 +13,7 @@ import {
   onRequestPost as tokenCreateHandler,
   verifyApiToken,
 } from "../pages/functions/api/auth/token.js";
+import { onRequestDelete as bookmarkDeleteHandler } from "../pages/functions/api/bookmarks/[id].js";
 import { JWTKeyManager } from "../pages/functions/utils/jwt-manager.js";
 
 function createDbMock({ firstResult, firstError, runResult, runError } = {}) {
@@ -104,6 +105,67 @@ test("change-password requires an authenticated session", async () => {
   assert.match(body.error, /令牌|登录/i);
 });
 
+test("change-password updates the stored password after env-password login", async () => {
+  const config = new Map([["admin_password", "admin123"]]);
+  const env = {
+    ADMIN_PASSWORD: "EnvPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        if (sql.includes("system_config") && params[0] === "admin_password") {
+          return { config_value: config.get("admin_password") };
+        }
+        return null;
+      },
+      runResult({ sql, params }) {
+        if (sql.includes("system_config") && params[0] === "admin_password") {
+          config.set("admin_password", params[1]);
+        }
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "EnvPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const changeResponse = await changePasswordHandler({
+    request: new Request("https://example.com/api/auth/change-password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({
+        currentPassword: "EnvPass123",
+        newPassword: "NewPass456",
+      }),
+    }),
+    env,
+  });
+
+  assert.equal(changeResponse.status, 200);
+  assert.equal(config.get("admin_password"), "NewPass456");
+
+  const reloginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "NewPass456" }),
+    }),
+    env,
+  });
+
+  assert.equal(reloginResponse.status, 200);
+});
+
 test("verify helper accepts a login token", async () => {
   const env = {
     ADMIN_PASSWORD: "StrongPass123",
@@ -165,6 +227,80 @@ test("authenticateRequest accepts a login token", async () => {
 
   assert.equal(result.authenticated, true);
   assert.equal(result.user.role, "admin");
+});
+
+test("bookmark delete removes an inaccessible link and records it", async () => {
+  let deleted = false;
+  let deletionRecordInserted = false;
+  const bookmark = {
+    id: 42,
+    title: "Broken Link",
+    url: "https://broken.example",
+    description: "Broken test link",
+    favicon_url: null,
+    created_at: "2026-05-31T00:00:00.000Z",
+    updated_at: "2026-05-31T00:00:00.000Z",
+    category_name: "测试",
+    keep_status: "normal",
+  };
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql }) {
+        if (sql.includes("FROM bookmarks b")) {
+          return deleted ? null : bookmark;
+        }
+        if (sql.includes("FROM deleted_bookmarks")) {
+          return null;
+        }
+        return null;
+      },
+      runResult({ sql }) {
+        if (sql.includes("INSERT INTO deleted_bookmarks")) {
+          deletionRecordInserted = true;
+        }
+        if (sql.includes("DELETE FROM bookmarks")) {
+          deleted = true;
+        }
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await bookmarkDeleteHandler({
+    request: new Request("https://example.com/api/bookmarks/42", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({
+        reason: "link_check_failed",
+        checkStatus: "inaccessible",
+        statusCode: 0,
+        errorMessage: "Network Error",
+      }),
+    }),
+    params: { id: "42" },
+    env,
+  });
+
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.success, true);
+  assert.equal(deletionRecordInserted, true);
+  assert.equal(deleted, true);
 });
 
 test("health reports connected database state when D1 is available", async () => {

@@ -1,9 +1,7 @@
 import { authenticateRequest } from "./verify.js";
 
 async function readAdminPassword(env = {}) {
-  if (env.ADMIN_PASSWORD) {
-    return env.ADMIN_PASSWORD;
-  }
+  let storedPassword = null;
 
   if (typeof env.BOOKMARKS_DB?.prepare === "function") {
     try {
@@ -13,14 +11,22 @@ async function readAdminPassword(env = {}) {
         .bind("admin_password")
         .first();
       if (row?.config_value) {
-        return row.config_value;
+        storedPassword = row.config_value;
       }
     } catch (error) {
       console.warn("Falling back to default admin password:", error.message);
     }
   }
 
-  return "admin123";
+  if (storedPassword && storedPassword !== "admin123") {
+    return storedPassword;
+  }
+
+  if (env.ADMIN_PASSWORD) {
+    return env.ADMIN_PASSWORD;
+  }
+
+  return storedPassword || "admin123";
 }
 
 function json(data, status = 200) {
@@ -46,16 +52,6 @@ export async function onRequestPost(context) {
 
   if (!newPassword || newPassword.length < 6) {
     return json({ success: false, error: "新密码至少需要 6 位。" }, 400);
-  }
-
-  if (env.ADMIN_PASSWORD) {
-    return json(
-      {
-        success: false,
-        error: "当前密码来自环境变量 ADMIN_PASSWORD，请在部署配置中修改。",
-      },
-      409,
-    );
   }
 
   if (typeof env.BOOKMARKS_DB?.prepare !== "function") {

@@ -1,40 +1,78 @@
 // 全局中间件 - 处理CORS和基础安全
+function getHostname(value = "") {
+  return value.split(":")[0];
+}
+
+function isLocalHostname(hostname = "") {
+  return hostname === "localhost" || hostname === "127.0.0.1";
+}
+
+function parseOrigin(origin) {
+  if (!origin) {
+    return null;
+  }
+
+  try {
+    return new URL(origin);
+  } catch {
+    return null;
+  }
+}
+
+function addHeaders(headers, values) {
+  for (const [key, value] of Object.entries(values)) {
+    headers.set(key, value);
+  }
+}
+
+function stripAccessControlHeaders(headers) {
+  for (const key of Array.from(headers.keys())) {
+    if (key.toLowerCase().startsWith("access-control-")) {
+      headers.delete(key);
+    }
+  }
+}
+
 export async function onRequest(context) {
-  const { request, next, env } = context;
-  const url = new URL(request.url);
+  const { request, next } = context;
 
   // 获取请求来源
   const origin = request.headers.get("Origin");
   const host = request.headers.get("Host");
-
-  // 允许的域名列表（包括本地开发和生产域名）
-  const allowedOrigins = [
-    `https://${host}`, // 当前域名
-    `http://${host}`, // HTTP版本（仅本地开发）
-    "http://localhost:8788", // 本地开发
-    "http://127.0.0.1:8788", // 本地开发
-    // 可以在这里添加其他允许的域名
-  ];
+  const originUrl = parseOrigin(origin);
 
   // 如果是本地开发环境，允许localhost和127.0.0.1的所有端口
-  const isLocalDev = host?.includes("localhost") || host?.includes("127.0.0.1");
-  const isValidOrigin = isLocalDev
-    ? origin?.includes("localhost") || origin?.includes("127.0.0.1")
-    : allowedOrigins.includes(origin);
+  const isLocalDev = isLocalHostname(getHostname(host));
+  const isValidOrigin = originUrl
+    ? isLocalDev
+      ? isLocalHostname(originUrl.hostname)
+      : originUrl.protocol === "https:" && originUrl.host === host
+    : false;
 
-  // CORS 配置
-  const corsHeaders = {
-    "Access-Control-Allow-Origin": isValidOrigin ? origin : "null",
-    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-API-Token",
-    "Access-Control-Allow-Credentials": "true",
-    "Access-Control-Max-Age": "86400",
+  const securityHeaders = {
     // 安全头
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
     "X-XSS-Protection": "1; mode=block",
     "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
   };
+
+  // CORS 配置：只对合法跨域请求写入 CORS 头，避免和静态 _headers 叠加出非法值。
+  const corsHeaders = {
+    ...securityHeaders,
+    Vary: "Origin",
+  };
+
+  if (origin && isValidOrigin) {
+    corsHeaders["Access-Control-Allow-Origin"] = origin;
+    corsHeaders["Access-Control-Allow-Methods"] =
+      "GET, POST, PUT, DELETE, OPTIONS";
+    corsHeaders["Access-Control-Allow-Headers"] =
+      "Content-Type, Authorization, X-API-Token";
+    corsHeaders["Access-Control-Allow-Credentials"] = "true";
+    corsHeaders["Access-Control-Max-Age"] = "86400";
+  }
 
   // 处理 OPTIONS 预检请求
   if (request.method === "OPTIONS") {
@@ -67,15 +105,15 @@ export async function onRequest(context) {
   // 处理实际请求
   try {
     const response = await next();
+    const responseHeaders = new Headers(response.headers);
+    stripAccessControlHeaders(responseHeaders);
+    addHeaders(responseHeaders, corsHeaders);
 
     // 为所有响应添加安全头和CORS头
     const newResponse = new Response(response.body, {
       status: response.status,
       statusText: response.statusText,
-      headers: {
-        ...Object.fromEntries(response.headers),
-        ...corsHeaders,
-      },
+      headers: responseHeaders,
     });
 
     return newResponse;

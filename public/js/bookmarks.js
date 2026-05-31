@@ -114,7 +114,29 @@ const BookmarkManager = {
   },
 
   t(key, params = {}) {
-    return window.I18n?.t(key, params) || key;
+    const value = window.I18n?.t?.(key, params);
+    if (value && value !== key) {
+      return value;
+    }
+
+    const fallback = {
+      "bookmarkCard.uncategorized": "未分类",
+      "bookmarkCard.untitled": "未命名站点",
+      "bookmarkCard.hot": "常用站点",
+      "bookmarkCard.visitCount": "访问",
+      "bookmarkCard.lastVisited": "最近访问",
+      "bookmarkCard.edit": "编辑",
+      "bookmarkCard.delete": "删除",
+      "bookmarkCard.open": "打开链接",
+      "bookmarkCard.justNow": "刚刚",
+      "bookmarkCard.minutesAgo": "分钟前",
+      "bookmarkCard.hoursAgo": "小时前",
+      "bookmarkCard.daysAgo": "天前",
+      "bookmarkCard.weeksAgo": "周前",
+      "filter.allCategories": "全部分类",
+      "messages.loadBookmarksFailed": "加载书签失败",
+    };
+    return fallback[key] || key;
   },
 
   debounce(func, wait) {

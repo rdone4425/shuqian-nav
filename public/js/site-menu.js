@@ -139,11 +139,13 @@ const SiteMenu = {
       }
     });
 
-    document.querySelectorAll("#logoutBtn, #logoutMenuBtn").forEach((button) => {
-      button.addEventListener("click", () => {
-        window.Auth?.logout?.({ redirect: true });
+    document
+      .querySelectorAll("#logoutBtn, #logoutMenuBtn")
+      .forEach((button) => {
+        button.addEventListener("click", () => {
+          window.Auth?.logout?.({ redirect: true });
+        });
       });
-    });
   },
 
   markActive() {

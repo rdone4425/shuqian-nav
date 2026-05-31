@@ -22,7 +22,14 @@ const AdminUI = {
   },
 
   async requireAuth() {
-    return true;
+    if (!window.Auth) {
+      window.location.href = `/login.html?next=${encodeURIComponent(
+        `${window.location.pathname}${window.location.search}`,
+      )}`;
+      return false;
+    }
+
+    return await Auth.init({ requireAuth: true });
   },
 
   initToolsMenu(activePath = window.location.pathname) {

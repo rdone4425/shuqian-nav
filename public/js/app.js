@@ -15,6 +15,7 @@ const App = {
       this.bindElements();
       this.bindEvents();
       await BookmarkManager.init();
+      this.openRequestedPanel();
       this.isInitialized = true;
       console.log("应用初始化完成");
     } catch (error) {
@@ -52,6 +53,11 @@ const App = {
       fullBackupJSONBtn: "fullBackupJSONBtn",
       fullBackupHTMLBtn: "fullBackupHTMLBtn",
       importBtn: "importBtn",
+      changePasswordForm: "changePasswordForm",
+      currentPassword: "currentPassword",
+      newPassword: "newPassword",
+      confirmPassword: "confirmPassword",
+      changePasswordBtn: "changePasswordBtn",
       messageContainer: "messageContainer",
       messageText: "messageText",
     };
@@ -133,6 +139,11 @@ const App = {
 
     this.elements.importBtn?.addEventListener("click", () => {
       this.importBookmarks();
+    });
+
+    this.elements.changePasswordForm?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      this.changePassword();
     });
 
     this.elements.fullBackupJSONBtn?.addEventListener("click", () => {
@@ -371,6 +382,16 @@ const App = {
     this.elements.settingsPanel?.classList.add("hidden");
   },
 
+  openRequestedPanel() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("settings") !== "security") {
+      return;
+    }
+
+    this.elements.settingsPanel?.classList.remove("hidden");
+    this.elements.currentPassword?.focus();
+  },
+
   async exportBookmarks() {
     this.executeExport("html");
   },
@@ -546,6 +567,57 @@ const App = {
 
   importBookmarks() {
     window.location.href = "/import.html";
+  },
+
+  async changePassword() {
+    const currentPassword = this.elements.currentPassword?.value || "";
+    const newPassword = this.elements.newPassword?.value || "";
+    const confirmPassword = this.elements.confirmPassword?.value || "";
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      this.showMessage("请填写完整的密码信息。", "error");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      this.showMessage("新密码至少需要 6 位。", "error");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      this.showMessage("两次输入的新密码不一致。", "error");
+      return;
+    }
+
+    const button = this.elements.changePasswordBtn;
+    const previousText = button?.textContent || "修改密码";
+
+    try {
+      if (button) {
+        button.disabled = true;
+        button.textContent = "正在修改...";
+      }
+
+      const response = await API.post("/api/auth/change-password", {
+        currentPassword,
+        newPassword,
+      });
+
+      if (!response.success) {
+        throw new Error(response.error || "修改密码失败");
+      }
+
+      this.elements.changePasswordForm?.reset();
+      this.showMessage("密码已修改，请使用新密码重新登录。", "success");
+      window.Auth?.logout?.({ redirect: true });
+    } catch (error) {
+      this.showMessage(`修改密码失败：${error.message}`, "error");
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.textContent = previousText;
+      }
+    }
   },
 
   handleKeyboardShortcuts(event) {

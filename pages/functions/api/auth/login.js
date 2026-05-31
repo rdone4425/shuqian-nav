@@ -2,9 +2,7 @@ import { SignJWT } from "jose";
 import { JWTKeyManager } from "../../utils/jwt-manager.js";
 
 async function readAdminPassword(env = {}) {
-  if (env.ADMIN_PASSWORD) {
-    return env.ADMIN_PASSWORD;
-  }
+  let storedPassword = null;
 
   if (typeof env.BOOKMARKS_DB?.prepare === "function") {
     try {
@@ -14,14 +12,22 @@ async function readAdminPassword(env = {}) {
         .bind("admin_password")
         .first();
       if (row?.config_value) {
-        return row.config_value;
+        storedPassword = row.config_value;
       }
     } catch (error) {
       console.warn("Falling back to default admin password:", error.message);
     }
   }
 
-  return "admin123";
+  if (storedPassword && storedPassword !== "admin123") {
+    return storedPassword;
+  }
+
+  if (env.ADMIN_PASSWORD) {
+    return env.ADMIN_PASSWORD;
+  }
+
+  return storedPassword || "admin123";
 }
 
 function json(data, status = 200) {

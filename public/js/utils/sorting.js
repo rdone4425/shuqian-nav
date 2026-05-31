@@ -164,7 +164,12 @@ const SimpleSorter = {
   },
 
   getDefaultDirection(field) {
-    const descFields = ["created_at", "updated_at", "visit_count", "popularity"];
+    const descFields = [
+      "created_at",
+      "updated_at",
+      "visit_count",
+      "popularity",
+    ];
     return descFields.includes(field) ? this.DESC : this.ASC;
   },
 
