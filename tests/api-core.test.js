@@ -15,6 +15,10 @@ import {
 } from "../pages/functions/api/auth/token.js";
 import { onRequestDelete as bookmarkDeleteHandler } from "../pages/functions/api/bookmarks/[id].js";
 import { JWTKeyManager } from "../pages/functions/utils/jwt-manager.js";
+import {
+  getKnownProtectedSiteResult,
+  isKnownProtectedSite,
+} from "../pages/functions/utils/link-checker-protection.js";
 
 function createDbMock({ firstResult, firstError, runResult, runError } = {}) {
   function createExecution(sql, params = []) {
@@ -301,6 +305,17 @@ test("bookmark delete removes an inaccessible link and records it", async () => 
   assert.equal(body.success, true);
   assert.equal(deletionRecordInserted, true);
   assert.equal(deleted, true);
+});
+
+test("known protected sites are treated as reachable during link checks", () => {
+  assert.equal(isKnownProtectedSite("https://linux.do/"), true);
+  assert.equal(isKnownProtectedSite("https://www.linux.do/t/topic"), true);
+  assert.equal(isKnownProtectedSite("https://broken.example/"), false);
+
+  const result = getKnownProtectedSiteResult("https://linux.do/");
+  assert.equal(result.accessible, true);
+  assert.equal(result.status, 200);
+  assert.equal(result.method, "PROTECTED_SITE");
 });
 
 test("health reports connected database state when D1 is available", async () => {

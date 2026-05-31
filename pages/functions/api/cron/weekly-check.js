@@ -2,7 +2,17 @@
 // 这个API可以通过Cloudflare Cron触发器或外部定时服务调用
 
 // 检查单个URL的可访问性
+import { getKnownProtectedSiteResult } from "../../utils/link-checker-protection.js";
+
 async function checkUrl(url, timeout = 10000) {
+  const protectedSiteResult = getKnownProtectedSiteResult(
+    url,
+    "PROTECTED_SITE_WEEKLY",
+  );
+  if (protectedSiteResult) {
+    return protectedSiteResult;
+  }
+
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -52,7 +62,7 @@ async function sendNotification(env, deletedBookmarks, inaccessibleBookmarks) {
     };
 
     await env.BOOKMARKS_DB.prepare(
-      `INSERT INTO system_config (config_key, config_value, description) 
+      `INSERT INTO system_config (config_key, config_value, description)
                 VALUES (?, ?, ?)`,
     )
       .bind(
@@ -166,7 +176,7 @@ export async function onRequestPost(context) {
     };
 
     await env.BOOKMARKS_DB.prepare(
-      `INSERT INTO system_config (config_key, config_value, description) 
+      `INSERT INTO system_config (config_key, config_value, description)
                 VALUES (?, ?, ?)`,
     )
       .bind(
@@ -226,11 +236,11 @@ export async function onRequestGet(context) {
   try {
     // 获取最近的通知记录
     const notifications = await env.BOOKMARKS_DB.prepare(
-      `SELECT config_key, config_value, description, created_at 
-                FROM system_config 
-                WHERE config_key LIKE 'weekly_notification_%' 
+      `SELECT config_key, config_value, description, created_at
+                FROM system_config
+                WHERE config_key LIKE 'weekly_notification_%'
                    OR config_key LIKE 'weekly_check_%'
-                ORDER BY created_at DESC 
+                ORDER BY created_at DESC
                 LIMIT 10`,
     ).all();
 

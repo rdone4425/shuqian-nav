@@ -1,10 +1,16 @@
 // 流式链接检查API - 实时返回检查结果
 import { authenticateRequest } from "../auth/verify.js";
 import { insertDeletedBookmarkSafe } from "../../utils/deleted-bookmarks.js";
+import { getKnownProtectedSiteResult } from "../../utils/link-checker-protection.js";
 
 // 检查单个URL的可访问性 - 优化版本，更好地处理Cloudflare等防护
 async function checkUrl(url, timeout = 8000) {
   // 更真实的浏览器User-Agent
+  const protectedSiteResult = getKnownProtectedSiteResult(url);
+  if (protectedSiteResult) {
+    return protectedSiteResult;
+  }
+
   const userAgents = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",

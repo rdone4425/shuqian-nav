@@ -1,9 +1,15 @@
 // 链接检查和清理API
 import { authenticateRequest } from "../auth/verify.js";
 import { insertDeletedBookmarksBatch } from "../../utils/deleted-bookmarks.js";
+import { getKnownProtectedSiteResult } from "../../utils/link-checker-protection.js";
 
 // 检查单个URL的可访问性
 async function checkUrl(url, timeout = 15000) {
+  const protectedSiteResult = getKnownProtectedSiteResult(url);
+  if (protectedSiteResult) {
+    return protectedSiteResult;
+  }
+
   try {
     // 使用Promise.race来实现超时控制，避免AbortController问题
     const fetchPromise = fetch(url, {
@@ -209,7 +215,7 @@ export async function onRequestPost(context) {
     };
 
     await env.BOOKMARKS_DB.prepare(
-      `INSERT INTO system_config (config_key, config_value, description) 
+      `INSERT INTO system_config (config_key, config_value, description)
                 VALUES (?, ?, ?)`,
     )
       .bind(
@@ -333,10 +339,10 @@ export async function onRequestGet(context) {
 
     // 获取检查历史记录
     const records = await env.BOOKMARKS_DB.prepare(
-      `SELECT config_key, config_value, description, created_at 
-                FROM system_config 
-                WHERE config_key LIKE 'link_check_%' 
-                ORDER BY created_at DESC 
+      `SELECT config_key, config_value, description, created_at
+                FROM system_config
+                WHERE config_key LIKE 'link_check_%'
+                ORDER BY created_at DESC
                 LIMIT 20`,
     ).all();
 
