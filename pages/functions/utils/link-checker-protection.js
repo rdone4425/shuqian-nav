@@ -21,6 +21,9 @@ export function getKnownProtectedSiteResult(url, method = "PROTECTED_SITE") {
   return {
     url,
     accessible: true,
+    deleteCandidate: false,
+    reviewRequired: false,
+    resultType: "accessible",
     status: 200,
     statusText: "Protected site",
     error: null,

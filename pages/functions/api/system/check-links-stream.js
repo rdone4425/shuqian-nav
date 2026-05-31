@@ -2,6 +2,10 @@
 import { authenticateRequest } from "../auth/verify.js";
 import { insertDeletedBookmarkSafe } from "../../utils/deleted-bookmarks.js";
 import { getKnownProtectedSiteResult } from "../../utils/link-checker-protection.js";
+import {
+  classifyHttpResponse,
+  classifyNetworkError,
+} from "../../utils/link-checker-status.js";
 
 // 检查单个URL的可访问性 - 优化版本，更好地处理Cloudflare等防护
 async function checkUrl(url, timeout = 8000) {
@@ -53,6 +57,9 @@ async function checkUrl(url, timeout = 8000) {
       return {
         url,
         accessible: true,
+        deleteCandidate: false,
+        reviewRequired: false,
+        resultType: "accessible",
         status: headResponse.status,
         statusText: headResponse.statusText,
         error: null,
@@ -82,22 +89,23 @@ async function checkUrl(url, timeout = 8000) {
     ]);
 
     // 检查响应状态
-    const isAccessible = isResponseAccessible(getResponse);
+    const classification = classifyHttpResponse(getResponse);
 
     return {
       url,
-      accessible: isAccessible,
+      ...classification,
       status: getResponse.status,
       statusText: getResponse.statusText,
-      error: isAccessible ? null : getErrorMessage(getResponse),
+      error: classification.accessible ? null : getErrorMessage(getResponse),
       method: "GET",
       checkedAt: new Date().toISOString(),
     };
   } catch (getError) {
+    const classification = classifyNetworkError(getError.message);
     // 最终失败，返回错误信息
     return {
       url,
-      accessible: false,
+      ...classification,
       status: 0,
       statusText: "Network Error",
       error: categorizeError(getError.message),
@@ -105,38 +113,6 @@ async function checkUrl(url, timeout = 8000) {
       checkedAt: new Date().toISOString(),
     };
   }
-}
-
-// 判断响应是否表示网站可访问
-function isResponseAccessible(response) {
-  // 2xx 状态码表示成功
-  if (response.status >= 200 && response.status < 300) {
-    return true;
-  }
-
-  // 3xx 重定向也认为是可访问的
-  if (response.status >= 300 && response.status < 400) {
-    return true;
-  }
-
-  // 特殊情况：Cloudflare的挑战页面
-  if (response.status === 403 || response.status === 503) {
-    const server = response.headers.get("server") || "";
-    const cfRay = response.headers.get("cf-ray");
-
-    // 如果是Cloudflare服务器返回的403/503，可能是防护机制，不一定是网站失效
-    if (server.toLowerCase().includes("cloudflare") || cfRay) {
-      return true; // 认为网站存在，只是有防护
-    }
-  }
-
-  // 401 未授权也认为网站存在，只是需要登录
-  if (response.status === 401) {
-    return true;
-  }
-
-  // 其他4xx和5xx错误
-  return false;
 }
 
 // 获取错误信息
@@ -342,8 +318,8 @@ export async function onRequestPost(context) {
     let deleted = false;
     let deleteError = null;
 
-    // 如果启用自动删除且链接不可访问，则删除书签
-    if (autoDelete && !result.accessible) {
+    // 如果启用自动删除，只删除明确坏链；超时、拦截、临时错误留给人工确认。
+    if (autoDelete && result.deleteCandidate) {
       try {
         // 先获取书签信息
         const bookmark = await env.BOOKMARKS_DB.prepare(

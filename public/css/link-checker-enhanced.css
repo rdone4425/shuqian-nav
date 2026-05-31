@@ -574,6 +574,14 @@ body {
     background: var(--error-color);
 }
 
+.bookmark-item.review {
+    background: var(--warning-light);
+}
+
+.bookmark-item.review::before {
+    background: var(--warning-color);
+}
+
 .bookmark-item.kept {
     background: var(--info-light);
 }

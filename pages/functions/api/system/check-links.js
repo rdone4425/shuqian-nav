@@ -2,6 +2,10 @@
 import { authenticateRequest } from "../auth/verify.js";
 import { insertDeletedBookmarksBatch } from "../../utils/deleted-bookmarks.js";
 import { getKnownProtectedSiteResult } from "../../utils/link-checker-protection.js";
+import {
+  classifyHttpResponse,
+  classifyNetworkError,
+} from "../../utils/link-checker-status.js";
 
 // 检查单个URL的可访问性
 async function checkUrl(url, timeout = 15000) {
@@ -27,12 +31,14 @@ async function checkUrl(url, timeout = 15000) {
 
     const response = await Promise.race([fetchPromise, timeoutPromise]);
 
+    const classification = classifyHttpResponse(response);
+
     return {
       url,
-      accessible: response.ok,
+      ...classification,
       status: response.status,
       statusText: response.statusText,
-      error: null,
+      error: classification.accessible ? null : response.statusText,
       checkedAt: new Date().toISOString(),
     };
   } catch (error) {
@@ -52,18 +58,21 @@ async function checkUrl(url, timeout = 15000) {
         }),
       ]);
 
+      const classification = classifyHttpResponse(getResponse);
+
       return {
         url,
-        accessible: getResponse.ok,
+        ...classification,
         status: getResponse.status,
         statusText: getResponse.statusText,
-        error: null,
+        error: classification.accessible ? null : getResponse.statusText,
         checkedAt: new Date().toISOString(),
       };
     } catch (getError) {
+      const classification = classifyNetworkError(getError.message);
       return {
         url,
-        accessible: false,
+        ...classification,
         status: 0,
         statusText: "Network Error",
         error: error.message.includes("timeout")
@@ -192,7 +201,7 @@ export async function onRequestPost(context) {
         checkedCount++;
         if (result.accessible) {
           accessibleCount++;
-        } else {
+        } else if (result.deleteCandidate) {
           inaccessibleCount++;
           inaccessibleBookmarks.push(result);
         }

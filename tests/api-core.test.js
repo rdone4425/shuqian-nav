@@ -19,6 +19,10 @@ import {
   getKnownProtectedSiteResult,
   isKnownProtectedSite,
 } from "../pages/functions/utils/link-checker-protection.js";
+import {
+  classifyHttpResponse,
+  classifyNetworkError,
+} from "../pages/functions/utils/link-checker-status.js";
 
 function createDbMock({ firstResult, firstError, runResult, runError } = {}) {
   function createExecution(sql, params = []) {
@@ -314,8 +318,26 @@ test("known protected sites are treated as reachable during link checks", () => 
 
   const result = getKnownProtectedSiteResult("https://linux.do/");
   assert.equal(result.accessible, true);
+  assert.equal(result.deleteCandidate, false);
   assert.equal(result.status, 200);
   assert.equal(result.method, "PROTECTED_SITE");
+});
+
+test("link checker only marks hard failures as delete candidates", () => {
+  const notFound = classifyHttpResponse(new Response("", { status: 404 }));
+  assert.equal(notFound.accessible, false);
+  assert.equal(notFound.deleteCandidate, true);
+  assert.equal(notFound.reviewRequired, false);
+
+  const forbidden = classifyHttpResponse(new Response("", { status: 403 }));
+  assert.equal(forbidden.accessible, false);
+  assert.equal(forbidden.deleteCandidate, false);
+  assert.equal(forbidden.reviewRequired, true);
+
+  const timeout = classifyNetworkError("GET request timeout");
+  assert.equal(timeout.accessible, false);
+  assert.equal(timeout.deleteCandidate, false);
+  assert.equal(timeout.reviewRequired, true);
 });
 
 test("health reports connected database state when D1 is available", async () => {

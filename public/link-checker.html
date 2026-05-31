@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="/css/workspace-refresh.css" />
     <link
       rel="stylesheet"
-      href="/css/link-checker-enhanced.css?v=20260531-compact"
+      href="/css/link-checker-enhanced.css?v=20260531-safe-delete"
     />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
@@ -74,7 +74,7 @@
               class="btn btn-danger"
               type="button"
             >
-              删除不可访问
+              删除明确异常
             </button>
             <button
               id="stopCheckBtn"
@@ -129,7 +129,16 @@
               aria-pressed="false"
             >
               <span class="stat-value" id="inaccessibleCount">0</span>
-              <span class="stat-label">不可访问</span>
+              <span class="stat-label">明确异常</span>
+            </button>
+            <button
+              class="stat-item"
+              type="button"
+              data-filter="review"
+              aria-pressed="false"
+            >
+              <span class="stat-value" id="reviewCount">0</span>
+              <span class="stat-label">待确认</span>
             </button>
             <button
               class="stat-item"
@@ -199,7 +208,8 @@
         all: "全部",
         checked: "已检查",
         accessible: "可访问",
-        inaccessible: "不可访问",
+        inaccessible: "明确异常",
+        review: "待确认",
         kept: "已保留",
         deleted: "已删除",
       };
@@ -209,7 +219,8 @@
           bookmark.checked ||
           bookmark.deleted ||
           bookmark.status === "accessible" ||
-          bookmark.status === "inaccessible"
+          bookmark.status === "inaccessible" ||
+          bookmark.status === "review"
         );
       }
 
@@ -221,6 +232,8 @@
             return bookmark.status === "accessible" && !bookmark.deleted;
           case "inaccessible":
             return bookmark.status === "inaccessible" && !bookmark.deleted;
+          case "review":
+            return bookmark.status === "review" && !bookmark.deleted;
           case "kept":
             return bookmark.keepStatus === "keep" && !bookmark.deleted;
           case "deleted":
@@ -251,12 +264,14 @@
         if (bookmark.keepStatus === "keep") return "kept";
         if (bookmark.status === "accessible") return "accessible";
         if (bookmark.status === "inaccessible") return "inaccessible";
+        if (bookmark.status === "review") return "review";
         return "";
       }
 
       function getStatusBadgeText(bookmarkClass) {
         if (bookmarkClass === "accessible") return "正常";
         if (bookmarkClass === "inaccessible") return "异常";
+        if (bookmarkClass === "review") return "待确认";
         if (bookmarkClass === "kept") return "保留";
         if (bookmarkClass === "deleted") return "已删";
         if (bookmarkClass === "checking") return "检查中";
@@ -271,6 +286,9 @@
         }
         if (bookmark.status === "inaccessible") {
           return bookmark.error || `${bookmark.statusCode || 0} 不可访问`;
+        }
+        if (bookmark.status === "review") {
+          return bookmark.error || "检查不确定，请人工确认";
         }
         if (bookmark.keepStatus === "keep") return "已标记保留";
         return "待检查";
@@ -348,6 +366,9 @@
         const inaccessible = state.bookmarks.filter(
           (bookmark) => bookmark.status === "inaccessible" && !bookmark.deleted,
         ).length;
+        const review = state.bookmarks.filter(
+          (bookmark) => bookmark.status === "review" && !bookmark.deleted,
+        ).length;
         const kept = state.bookmarks.filter(
           (bookmark) => bookmark.keepStatus === "keep" && !bookmark.deleted,
         ).length;
@@ -360,6 +381,7 @@
         document.getElementById("checkedCount").textContent = checked;
         document.getElementById("accessibleCount").textContent = accessible;
         document.getElementById("inaccessibleCount").textContent = inaccessible;
+        document.getElementById("reviewCount").textContent = review;
         document.getElementById("keptCount").textContent = kept;
         document.getElementById("deletedCount").textContent = deleted;
         document.getElementById("progressPercent").textContent = `${percent}%`;
@@ -384,6 +406,8 @@
             checked: false,
             statusCode: null,
             error: "",
+            deleteCandidate: false,
+            reviewRequired: false,
           }));
 
           document.getElementById("progressText").textContent =
@@ -420,12 +444,20 @@
 
           const result = response.data;
           bookmark.checked = true;
-          bookmark.status = result.accessible ? "accessible" : "inaccessible";
+          bookmark.deleteCandidate = Boolean(result.deleteCandidate);
+          bookmark.reviewRequired = Boolean(result.reviewRequired);
+          bookmark.status = result.accessible
+            ? "accessible"
+            : result.deleteCandidate
+              ? "inaccessible"
+              : "review";
           bookmark.statusCode = result.status;
           bookmark.error = result.error || "";
         } catch (error) {
           bookmark.checked = true;
-          bookmark.status = "inaccessible";
+          bookmark.status = "review";
+          bookmark.deleteCandidate = false;
+          bookmark.reviewRequired = true;
           bookmark.error = error.message;
         }
 
@@ -494,10 +526,9 @@
 
         try {
           const response = await BookmarkAPI.deleteBookmark(bookmark.id, {
-            reason:
-              bookmark.status === "inaccessible"
-                ? "link_check_failed"
-                : "manual_delete",
+            reason: bookmark.deleteCandidate
+              ? "link_check_failed"
+              : "manual_delete",
             checkStatus: bookmark.status,
             statusCode: bookmark.statusCode,
             errorMessage: bookmark.error,
@@ -521,17 +552,18 @@
         const targets = state.bookmarks.filter(
           (bookmark) =>
             bookmark.status === "inaccessible" &&
+            bookmark.deleteCandidate &&
             bookmark.keepStatus !== "keep" &&
             !bookmark.deleted,
         );
 
         if (!targets.length) {
-          AdminUI.showToast("当前没有可删除的不可访问书签。", "error");
+          AdminUI.showToast("当前没有可删除的明确异常书签。", "error");
           return;
         }
 
         const confirmed = window.confirm(
-          `确定删除 ${targets.length} 个不可访问书签吗？已标记保留的书签会跳过。`,
+          `确定删除 ${targets.length} 个明确异常书签吗？待确认和已标记保留的书签会跳过。`,
         );
         if (!confirmed) return;
 
@@ -568,7 +600,7 @@
         }
 
         button.disabled = false;
-        button.textContent = "删除不可访问";
+        button.textContent = "删除明确异常";
         AdminUI.showToast(
           `删除完成：成功 ${successCount} 个${failedCount ? `，失败 ${failedCount} 个` : ""}`,
           failedCount ? "error" : "success",
