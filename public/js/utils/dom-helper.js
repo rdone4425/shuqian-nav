@@ -183,7 +183,7 @@ class DOMHelper {
 
     // 上一页按钮
     const prevDisabled = currentPage <= 1 ? "disabled" : "";
-    html += `<button class="pagination-btn ${prevDisabled}" 
+    html += `<button class="pagination-btn ${prevDisabled}"
              onclick="(${onPageChange})(${Math.max(1, currentPage - 1)})">上一页</button>`;
 
     // 页码按钮
@@ -199,7 +199,7 @@ class DOMHelper {
 
     for (let i = startPage; i <= endPage; i++) {
       const activeClass = i === currentPage ? "active" : "";
-      html += `<button class="pagination-btn ${activeClass}" 
+      html += `<button class="pagination-btn ${activeClass}"
                onclick="(${onPageChange})(${i})">${i}</button>`;
     }
 
@@ -212,7 +212,7 @@ class DOMHelper {
 
     // 下一页按钮
     const nextDisabled = currentPage >= totalPages ? "disabled" : "";
-    html += `<button class="pagination-btn ${nextDisabled}" 
+    html += `<button class="pagination-btn ${nextDisabled}"
              onclick="(${onPageChange})(${Math.min(totalPages, currentPage + 1)})">下一页</button>`;
 
     html += "</div>";
