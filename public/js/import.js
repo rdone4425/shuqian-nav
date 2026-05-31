@@ -4,6 +4,7 @@ const ImportManager = {
   importData: null,
   fileData: null,
   replaceConfirmationToken: "CONFIRM_REPLACE_BOOKMARKS",
+  clearAllConfirmationToken: "CONFIRM_CLEAR_ALL_BOOKMARKS",
 
   async init() {
     this.bindEvents();
@@ -50,6 +51,9 @@ const ImportManager = {
     document
       .getElementById("finishBtn")
       ?.addEventListener("click", () => this.finish());
+    document
+      .getElementById("clearAllBookmarksBtn")
+      ?.addEventListener("click", () => this.clearAllBookmarks());
   },
 
   async handleFileSelect(file) {
@@ -414,6 +418,53 @@ const ImportManager = {
   finish() {
     Storage.viewMode.set("grid");
     window.location.href = "/?view=grid";
+  },
+
+  async clearAllBookmarks() {
+    const button = document.getElementById("clearAllBookmarksBtn");
+    const confirmation = window.prompt(
+      "此操作会删除当前全部书签，并写入删除记录。请输入“清空全部”继续：",
+    );
+
+    if (confirmation !== "清空全部") {
+      this.showMessage("已取消清空全部书签。", "info");
+      return;
+    }
+
+    const originalText = button?.textContent || "一键删除所有书签";
+
+    try {
+      if (button) {
+        button.disabled = true;
+        button.textContent = "正在删除...";
+      }
+
+      const response = await API.post(
+        "/api/bookmarks/clear",
+        {
+          confirmation: this.clearAllConfirmationToken,
+        },
+        { timeout: 180000 },
+      );
+
+      if (!response.success) {
+        throw new Error(response.error || "清空全部书签失败");
+      }
+
+      const deleted = response.data?.deleted || 0;
+      this.showMessage(
+        `已删除 ${deleted} 个书签，可在删除记录中查看。`,
+        "success",
+      );
+    } catch (error) {
+      console.error("清空全部书签失败:", error);
+      this.showMessage(error.message || "清空全部书签失败", "error");
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.textContent = originalText;
+      }
+    }
   },
 
   showMessage(text, type = "info") {

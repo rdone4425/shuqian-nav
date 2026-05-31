@@ -15,6 +15,7 @@ import {
 } from "../pages/functions/api/auth/token.js";
 import { onRequestGet as syncListHandler } from "../pages/functions/api/bookmarks/sync.js";
 import { onRequestDelete as bookmarkDeleteHandler } from "../pages/functions/api/bookmarks/[id].js";
+import { onRequestPost as bookmarkClearHandler } from "../pages/functions/api/bookmarks/clear.js";
 import { onRequestPost as bookmarkImportHandler } from "../pages/functions/api/bookmarks/import.js";
 import { JWTKeyManager } from "../pages/functions/utils/jwt-manager.js";
 import {
@@ -376,6 +377,99 @@ test("replace import requires explicit clear confirmation before deleting bookma
   assert.equal(response.status, 400);
   assert.equal(body.success, false);
   assert.equal(deleteAttempted, false);
+});
+
+test("clear all bookmarks archives records and requires confirmation", async () => {
+  let deletionRecordInserted = false;
+  let deleteAttempted = false;
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql }) {
+        if (sql.includes("FROM deleted_bookmarks")) {
+          return null;
+        }
+        return null;
+      },
+      allResult({ sql }) {
+        if (sql.includes("FROM bookmarks b")) {
+          return {
+            results: [
+              {
+                id: 1,
+                title: "Example",
+                url: "https://example.com",
+                description: "",
+                favicon_url: null,
+                created_at: "2026-05-31T00:00:00.000Z",
+                updated_at: "2026-05-31T00:00:00.000Z",
+                category_name: "测试",
+                keep_status: "normal",
+              },
+            ],
+          };
+        }
+        return { results: [] };
+      },
+      runResult({ sql }) {
+        if (sql.includes("INSERT INTO deleted_bookmarks")) {
+          deletionRecordInserted = true;
+        }
+        if (sql.includes("DELETE FROM bookmarks")) {
+          deleteAttempted = true;
+        }
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const blockedResponse = await bookmarkClearHandler({
+    request: new Request("https://example.com/api/bookmarks/clear", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ confirmation: "" }),
+    }),
+    env,
+  });
+
+  assert.equal(blockedResponse.status, 400);
+  assert.equal(deleteAttempted, false);
+  assert.equal(deletionRecordInserted, false);
+
+  const response = await bookmarkClearHandler({
+    request: new Request("https://example.com/api/bookmarks/clear", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({
+        confirmation: "CONFIRM_CLEAR_ALL_BOOKMARKS",
+      }),
+    }),
+    env,
+  });
+
+  const body = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(body.success, true);
+  assert.equal(body.data.deleted, 1);
+  assert.equal(deletionRecordInserted, true);
+  assert.equal(deleteAttempted, true);
 });
 
 test("known protected sites are treated as reachable during link checks", () => {

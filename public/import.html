@@ -107,6 +107,23 @@
                 </ul>
               </div>
             </div>
+
+            <section class="danger-zone" aria-labelledby="clearAllTitle">
+              <div class="danger-zone-copy">
+                <span class="danger-kicker">危险操作</span>
+                <h3 id="clearAllTitle">清空全部书签</h3>
+                <p>
+                  用于重新整理前先清空当前书签库。执行前会写入删除记录，并要求输入确认文字。
+                </p>
+              </div>
+              <button
+                class="btn btn-danger"
+                id="clearAllBookmarksBtn"
+                type="button"
+              >
+                一键删除所有书签
+              </button>
+            </section>
           </div>
         </div>
 
@@ -270,6 +287,6 @@
     <script src="/js/utils/api.js"></script>
     <script src="/js/auth.js"></script>
     <script src="/js/site-menu.js"></script>
-    <script src="/js/import.js?v=20260531-clear-guard"></script>
+    <script src="/js/import.js?v=20260531-clear-all"></script>
   </body>
 </html>
