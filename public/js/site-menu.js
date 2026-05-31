@@ -14,7 +14,7 @@ const SiteMenu = {
       desc: "检查书签可访问性",
     },
     {
-      href: "/deleted-bookmarks.html",
+      href: "/deleted-bookmarks",
       icon: "RC",
       text: "回收站",
       desc: "查看和恢复删除记录",
