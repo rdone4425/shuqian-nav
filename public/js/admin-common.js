@@ -33,45 +33,10 @@ const AdminUI = {
   },
 
   initToolsMenu(activePath = window.location.pathname) {
-    const toolsMenuToggle = document.getElementById("toolsMenuToggle");
-    const toolsDropdown = document.getElementById("toolsDropdown");
-
-    if (toolsMenuToggle && toolsDropdown) {
-      toolsMenuToggle.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        toolsDropdown.classList.toggle("show");
-        toolsMenuToggle.classList.toggle("active");
-      });
-
-      document.addEventListener("click", (event) => {
-        if (
-          !toolsMenuToggle.contains(event.target) &&
-          !toolsDropdown.contains(event.target)
-        ) {
-          toolsDropdown.classList.remove("show");
-          toolsMenuToggle.classList.remove("active");
-        }
-      });
+    const host = document.querySelector("[data-site-header]");
+    if (host && window.SiteMenu?.markActive) {
+      window.SiteMenu.markActive(host, activePath);
     }
-
-    document
-      .querySelectorAll("#toolsDropdown a.dropdown-item")
-      .forEach((link) => {
-        const href = link.getAttribute("href");
-        if (!href) {
-          return;
-        }
-
-        const matches =
-          href === activePath ||
-          (href === "/" && activePath === "/index.html") ||
-          activePath.endsWith(href.replace(/^\//, ""));
-
-        if (matches) {
-          link.classList.add("active");
-        }
-      });
   },
 
   showToast(message, type = "success") {
