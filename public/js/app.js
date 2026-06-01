@@ -6,10 +6,7 @@ const App = {
   async init() {
     try {
       if (window.Auth) {
-        const authenticated = await Auth.init({ requireAuth: true });
-        if (!authenticated) {
-          return;
-        }
+        await Auth.init({ requireAuth: false });
       }
 
       this.bindElements();
@@ -202,6 +199,16 @@ const App = {
     return window.I18n?.t(key, params) || key;
   },
 
+  requireAdminAction() {
+    if (!window.Auth || window.Auth.isAuthenticated) {
+      return true;
+    }
+
+    this.showMessage("请先登录后台再进行管理操作。", "warning");
+    window.Auth.redirectToLogin?.();
+    return false;
+  },
+
   focusSearch() {
     this.elements.searchContainer?.classList.remove("hidden");
     document.getElementById("searchInput")?.focus();
@@ -227,6 +234,10 @@ const App = {
   },
 
   showBookmarkModal(bookmark = null) {
+    if (!this.requireAdminAction()) {
+      return;
+    }
+
     this.currentBookmark = bookmark;
 
     if (bookmark) {
@@ -295,6 +306,10 @@ const App = {
   },
 
   async createCategoryFromModal() {
+    if (!this.requireAdminAction()) {
+      return;
+    }
+
     const name = this.elements.quickCategoryName?.value.trim();
     if (!name) {
       this.showMessage("请填写分类名称", "error");
@@ -340,6 +355,10 @@ const App = {
   },
 
   async saveBookmark() {
+    if (!this.requireAdminAction()) {
+      return;
+    }
+
     try {
       const formData = {
         title: this.elements.bookmarkTitle.value.trim(),
@@ -393,6 +412,10 @@ const App = {
   },
 
   async editBookmark(bookmarkId) {
+    if (!this.requireAdminAction()) {
+      return;
+    }
+
     try {
       const response = await BookmarkAPI.getBookmark(bookmarkId);
       if (!response.success) {
@@ -410,6 +433,10 @@ const App = {
   },
 
   async deleteBookmark(bookmarkId) {
+    if (!this.requireAdminAction()) {
+      return;
+    }
+
     const bookmark = BookmarkManager.bookmarks.find(
       (item) => String(item.id) === String(bookmarkId),
     );
@@ -472,6 +499,10 @@ const App = {
   },
 
   toggleSettings() {
+    if (!this.requireAdminAction()) {
+      return;
+    }
+
     if (!this.elements.settingsPanel) {
       return;
     }
@@ -488,11 +519,17 @@ const App = {
     const params = new URLSearchParams(window.location.search);
     if (params.get("new") === "bookmark") {
       this.showBookmarkModal();
-      window.history.replaceState({}, "", window.location.pathname);
+      if (window.Auth?.isAuthenticated) {
+        window.history.replaceState({}, "", window.location.pathname);
+      }
       return;
     }
 
     if (params.get("settings") !== "security") {
+      return;
+    }
+
+    if (!this.requireAdminAction()) {
       return;
     }
 
@@ -509,6 +546,10 @@ const App = {
   },
 
   async executeExport(format) {
+    if (!this.requireAdminAction()) {
+      return;
+    }
+
     try {
       this.showMessage(this.t("messages.exportPreparing"), "info");
       const allBookmarks = await this.getAllBookmarksForExport();
@@ -674,10 +715,18 @@ const App = {
   },
 
   importBookmarks() {
+    if (!this.requireAdminAction()) {
+      return;
+    }
+
     window.location.href = "/import.html";
   },
 
   async changePassword() {
+    if (!this.requireAdminAction()) {
+      return;
+    }
+
     const currentPassword = this.elements.currentPassword?.value || "";
     const newPassword = this.elements.newPassword?.value || "";
     const confirmPassword = this.elements.confirmPassword?.value || "";
@@ -736,6 +785,9 @@ const App = {
 
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "n") {
       event.preventDefault();
+      if (!this.requireAdminAction()) {
+        return;
+      }
       this.showBookmarkModal();
     }
 
@@ -766,6 +818,10 @@ const App = {
   },
 
   async createFullBackup(format) {
+    if (!this.requireAdminAction()) {
+      return;
+    }
+
     try {
       this.showMessage(
         this.t("messages.backupPreparing", { format: format.toUpperCase() }),

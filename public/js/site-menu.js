@@ -113,8 +113,10 @@ const SiteMenu = {
       this.initialized = true;
 
       if (window.Auth) {
-        const ok = await Auth.init({ requireAuth: true });
-        if (!ok) return;
+        const requireAuth = host.getAttribute("data-require-auth") !== "false";
+        const ok = await Auth.init({ requireAuth });
+        if (requireAuth && !ok) return;
+        this.syncAuthState(host, requireAuth);
       }
 
       if (window.I18n?.apply) {
@@ -268,13 +270,62 @@ const SiteMenu = {
     });
 
     host.querySelector("#logoutBtn")?.addEventListener("click", () => {
-      window.Auth?.logout?.({ redirect: true });
+      if (window.Auth?.isAuthenticated) {
+        window.Auth.logout({ redirect: true });
+        return;
+      }
+
+      this.redirectToLogin();
     });
 
     host.querySelector("#settingsToggle")?.addEventListener("click", () => {
+      if (!this.requireAdmin()) {
+        return;
+      }
+
       this.closeMenu(host);
       document.getElementById("settingsPanel")?.classList.toggle("hidden");
     });
+  },
+
+  syncAuthState(host, requireAuth) {
+    const logoutBtn = host.querySelector("#logoutBtn");
+    if (!logoutBtn) return;
+
+    const authenticated = Boolean(window.Auth?.isAuthenticated);
+    logoutBtn.classList.toggle("is-login-action", !authenticated);
+    logoutBtn.title = authenticated ? "退出登录" : "登录后台";
+    logoutBtn.querySelector(".btn-icon").textContent = authenticated
+      ? "退出"
+      : "登录";
+    logoutBtn.querySelector(".action-btn-label").textContent = authenticated
+      ? "退出"
+      : "登录后台";
+
+    if (!requireAuth && !authenticated) {
+      host
+        .querySelector("#settingsToggle")
+        ?.setAttribute("data-auth-required", "true");
+    }
+  },
+
+  requireAdmin() {
+    if (window.Auth?.isAuthenticated) {
+      return true;
+    }
+
+    this.redirectToLogin();
+    return false;
+  },
+
+  redirectToLogin() {
+    if (window.Auth?.redirectToLogin) {
+      window.Auth.redirectToLogin();
+      return;
+    }
+
+    const next = `${window.location.pathname}${window.location.search}`;
+    window.location.href = `/login.html?next=${encodeURIComponent(next)}`;
   },
 
   closeMenu(host) {

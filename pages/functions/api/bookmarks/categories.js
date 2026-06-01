@@ -4,14 +4,9 @@ import { ResponseHelper } from "../../utils/response-helper.js";
 
 // 获取所有分类
 export async function onRequestGet(context) {
-  const { request, env } = context;
+  const { env } = context;
 
   try {
-    const auth = await authenticateRequest(request, env);
-    if (!auth.authenticated) {
-      return ResponseHelper.unauthorized(auth.error);
-    }
-
     // 获取分类列表，包含每个分类的书签数量
     const categories = await env.BOOKMARKS_DB.prepare(
       `

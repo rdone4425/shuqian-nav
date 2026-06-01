@@ -16,8 +16,16 @@ import {
   verifyApiToken,
 } from "../pages/functions/api/auth/token.js";
 import { onRequestGet as syncListHandler } from "../pages/functions/api/bookmarks/sync.js";
+import {
+  onRequestGet as bookmarkListHandler,
+  onRequestPost as bookmarkCreateHandler,
+} from "../pages/functions/api/bookmarks/index.js";
 import { onRequestDelete as bookmarkDeleteHandler } from "../pages/functions/api/bookmarks/[id].js";
 import { onRequestPost as batchMoveHandler } from "../pages/functions/api/bookmarks/batch-move.js";
+import {
+  onRequestGet as categoryListHandler,
+  onRequestPost as categoryCreateHandler,
+} from "../pages/functions/api/bookmarks/categories.js";
 import {
   onRequestDelete as categoryDeleteHandler,
   onRequestPut as categoryUpdateHandler,
@@ -308,6 +316,100 @@ test("authenticateRequest accepts a login token", async () => {
 
   assert.equal(result.authenticated, true);
   assert.equal(result.user.role, "admin");
+});
+
+test("bookmark and category lists are public read-only endpoints", async () => {
+  const env = {
+    ENVIRONMENT: "production",
+    BOOKMARKS_DB: createDbMock({
+      allResult({ sql }) {
+        if (sql.includes("FROM bookmarks b")) {
+          return {
+            results: [
+              {
+                id: 1,
+                title: "Example",
+                url: "https://example.com",
+                description: "",
+                favicon_url: null,
+                keep_status: "normal",
+                visit_count: 0,
+                last_visited: null,
+                created_at: "2026-06-01T00:00:00.000Z",
+                updated_at: "2026-06-01T00:00:00.000Z",
+                category_id: 2,
+                category_name: "Tools",
+                category_color: "#2563eb",
+              },
+            ],
+          };
+        }
+
+        if (sql.includes("FROM categories c")) {
+          return {
+            results: [
+              {
+                id: 2,
+                name: "Tools",
+                color: "#2563eb",
+                description: "",
+                bookmark_count: 1,
+              },
+            ],
+          };
+        }
+
+        return { results: [] };
+      },
+      firstResult({ sql }) {
+        if (sql.includes("COUNT(*) as total")) {
+          return { total: 1 };
+        }
+        return null;
+      },
+    }),
+  };
+
+  const bookmarksResponse = await bookmarkListHandler({
+    request: new Request("https://example.com/api/bookmarks"),
+    env,
+  });
+  const categoriesResponse = await categoryListHandler({
+    request: new Request("https://example.com/api/bookmarks/categories"),
+    env,
+  });
+
+  assert.equal(bookmarksResponse.status, 200);
+  assert.equal(categoriesResponse.status, 200);
+  assert.equal((await bookmarksResponse.json()).data.bookmarks.length, 1);
+  assert.equal((await categoriesResponse.json()).data.length, 1);
+});
+
+test("bookmark and category writes still require login", async () => {
+  const env = {
+    ENVIRONMENT: "production",
+    BOOKMARKS_DB: createDbMock(),
+  };
+
+  const bookmarkResponse = await bookmarkCreateHandler({
+    request: new Request("https://example.com/api/bookmarks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: "Example", url: "https://example.com" }),
+    }),
+    env,
+  });
+  const categoryResponse = await categoryCreateHandler({
+    request: new Request("https://example.com/api/bookmarks/categories", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "Tools" }),
+    }),
+    env,
+  });
+
+  assert.equal(bookmarkResponse.status, 401);
+  assert.equal(categoryResponse.status, 401);
 });
 
 test("bookmark delete removes an inaccessible link and records it", async () => {

@@ -7,11 +7,6 @@ export async function onRequestGet(context) {
   const url = new URL(request.url);
 
   try {
-    const auth = await authenticateRequest(request, env);
-    if (!auth.authenticated) {
-      return ResponseHelper.unauthorized(auth.error);
-    }
-
     // 获取查询参数
     const page = parseInt(url.searchParams.get("page")) || 1;
     const requestedLimit = parseInt(url.searchParams.get("limit")) || 20;

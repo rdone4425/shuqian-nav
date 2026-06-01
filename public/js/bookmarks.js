@@ -335,6 +335,18 @@ const BookmarkManager = {
       popularity > 50
         ? `<span class="hot-badge" title="${this.escapeHtml(hotLabel)}">HOT</span>`
         : "";
+    const adminActions = window.Auth?.isAuthenticated
+      ? `
+          <div class="bookmark-actions">
+            <button class="action-btn edit-btn" data-id="${bookmark.id}" title="${this.escapeHtml(editLabel)}">
+              <span class="action-text">${this.escapeHtml(editLabel)}</span>
+            </button>
+            <button class="action-btn delete-btn" data-id="${bookmark.id}" title="${this.escapeHtml(deleteLabel)}">
+              <span class="action-text">${this.escapeHtml(deleteLabel)}</span>
+            </button>
+          </div>
+        `
+      : "";
 
     return `
       <article class="bookmark-card" data-id="${bookmark.id}" style="--card-accent: ${catColor}">
@@ -357,14 +369,7 @@ const BookmarkManager = {
 
         <div class="bookmark-footer">
           <div class="bookmark-meta">${categoryBadge}</div>
-          <div class="bookmark-actions">
-            <button class="action-btn edit-btn" data-id="${bookmark.id}" title="${this.escapeHtml(editLabel)}">
-              <span class="action-text">${this.escapeHtml(editLabel)}</span>
-            </button>
-            <button class="action-btn delete-btn" data-id="${bookmark.id}" title="${this.escapeHtml(deleteLabel)}">
-              <span class="action-text">${this.escapeHtml(deleteLabel)}</span>
-            </button>
-          </div>
+          ${adminActions}
         </div>
       </article>
     `;
