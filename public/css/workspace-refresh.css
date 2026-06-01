@@ -1333,6 +1333,65 @@ body.nav-site::after,
   border-color: var(--wr-line) !important;
 }
 
+.nav-site .token-confirm-modal {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 1800 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 18px !important;
+  background: rgba(15, 23, 42, 0.42) !important;
+}
+
+.nav-site .token-confirm-modal.hidden {
+  display: none !important;
+}
+
+.nav-site .token-confirm-card {
+  width: min(540px, 100%) !important;
+  display: grid !important;
+  gap: 14px !important;
+  padding: 18px !important;
+  border: 1px solid var(--wr-line) !important;
+  border-radius: var(--wr-radius) !important;
+  background: var(--wr-surface) !important;
+  box-shadow: var(--wr-shadow-pop) !important;
+}
+
+.nav-site .token-confirm-header {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  padding-bottom: 12px !important;
+  border-bottom: 1px solid var(--wr-line-soft) !important;
+}
+
+.nav-site .token-confirm-header h3 {
+  margin: 8px 0 0 !important;
+  color: var(--wr-ink) !important;
+  font-size: 1rem !important;
+  font-weight: 850 !important;
+}
+
+.nav-site .token-confirm-copy,
+.nav-site .token-confirm-hint {
+  margin: 0 !important;
+  color: var(--wr-text) !important;
+  font-size: 0.88rem !important;
+  line-height: 1.6 !important;
+}
+
+.nav-site .token-confirm-hint {
+  color: var(--wr-muted) !important;
+}
+
+.nav-site .token-confirm-actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+}
+
 .nav-site .actions-section,
 .nav-site .controls-row,
 .nav-site .notification-card-header {
