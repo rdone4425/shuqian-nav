@@ -192,6 +192,60 @@
   color: var(--wr-red);
 }
 
+.management-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1800;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(15, 23, 42, 0.42);
+}
+
+.management-modal.hidden {
+  display: none;
+}
+
+.management-modal-card {
+  width: min(520px, 100%);
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--wr-line);
+  border-radius: var(--wr-radius);
+  background: var(--wr-surface);
+  box-shadow: var(--wr-shadow-pop);
+}
+
+.management-modal-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--wr-line-soft);
+}
+
+.management-modal-header h3 {
+  margin-top: 8px;
+  color: var(--wr-ink);
+  font-size: 1rem;
+  font-weight: 850;
+}
+
+.management-modal-copy {
+  color: var(--wr-text);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.management-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
 .message-toast {
   position: fixed;
   right: 20px;

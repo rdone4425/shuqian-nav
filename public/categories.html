@@ -103,6 +103,51 @@
           </div>
         </section>
       </main>
+
+      <div
+        id="deleteCategoryModal"
+        class="management-modal hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="deleteCategoryTitle"
+      >
+        <div class="management-modal-card">
+          <div class="management-modal-header">
+            <div>
+              <span class="section-kicker">删除分类</span>
+              <h3 id="deleteCategoryTitle">选择书签迁移位置</h3>
+            </div>
+            <button
+              id="closeDeleteCategoryModal"
+              class="btn btn-secondary"
+              type="button"
+            >
+              关闭
+            </button>
+          </div>
+          <p id="deleteCategorySummary" class="management-modal-copy"></p>
+          <label class="field-stack grow">
+            <span>把分类下的书签移动到</span>
+            <select id="deleteCategoryTarget" class="management-select"></select>
+          </label>
+          <div class="management-modal-actions">
+            <button
+              id="cancelDeleteCategoryBtn"
+              class="btn btn-secondary"
+              type="button"
+            >
+              取消
+            </button>
+            <button
+              id="confirmDeleteCategoryBtn"
+              class="btn btn-danger"
+              type="button"
+            >
+              确认删除
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script src="/js/utils/api.js"></script>

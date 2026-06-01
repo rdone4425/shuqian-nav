@@ -1,6 +1,7 @@
 const CategoryManagerPage = {
   categories: [],
   elements: {},
+  pendingDeleteCategory: null,
 
   async init() {
     const authenticated = await AdminUI.requireAuth();
@@ -21,6 +22,12 @@ const CategoryManagerPage = {
       save: document.getElementById("saveCategoryBtn"),
       reset: document.getElementById("resetCategoryBtn"),
       tableBody: document.getElementById("categoriesTableBody"),
+      deleteModal: document.getElementById("deleteCategoryModal"),
+      deleteSummary: document.getElementById("deleteCategorySummary"),
+      deleteTarget: document.getElementById("deleteCategoryTarget"),
+      closeDeleteModal: document.getElementById("closeDeleteCategoryModal"),
+      cancelDelete: document.getElementById("cancelDeleteCategoryBtn"),
+      confirmDelete: document.getElementById("confirmDeleteCategoryBtn"),
     };
   },
 
@@ -41,9 +48,24 @@ const CategoryManagerPage = {
 
       const deleteButton = event.target.closest("[data-delete-id]");
       if (deleteButton) {
-        this.deleteCategory(deleteButton.dataset.deleteId);
+        this.openDeleteCategoryModal(deleteButton.dataset.deleteId);
       }
     });
+
+    this.elements.closeDeleteModal?.addEventListener("click", () =>
+      this.closeDeleteCategoryModal(),
+    );
+    this.elements.cancelDelete?.addEventListener("click", () =>
+      this.closeDeleteCategoryModal(),
+    );
+    this.elements.deleteModal?.addEventListener("click", (event) => {
+      if (event.target === this.elements.deleteModal) {
+        this.closeDeleteCategoryModal();
+      }
+    });
+    this.elements.confirmDelete?.addEventListener("click", () =>
+      this.confirmDeleteCategory(),
+    );
   },
 
   async loadCategories() {
@@ -158,46 +180,76 @@ const CategoryManagerPage = {
     }
   },
 
-  async deleteCategory(id) {
+  openDeleteCategoryModal(id) {
     const category = this.categories.find(
       (item) => String(item.id) === String(id),
     );
     if (!category) return;
 
+    this.pendingDeleteCategory = category;
     const alternatives = this.categories.filter(
       (item) => String(item.id) !== String(id),
     );
-    let moveToCategoryId = null;
     const count = Number(category.bookmark_count || 0);
 
-    if (count > 0 && alternatives.length) {
-      const names = alternatives
-        .map((item) => `${item.id}: ${item.name}`)
-        .join("\n");
-      const input = prompt(
-        `分类“${category.name}”下有 ${count} 条书签。输入目标分类 ID 进行迁移，留空则移到未分类：\n${names}`,
-        "",
-      );
-      if (input === null) return;
-      moveToCategoryId = input.trim() || null;
-    } else if (
-      !confirm(`确定删除分类“${category.name}”吗？分类下书签会移到未分类。`)
-    ) {
-      return;
+    if (this.elements.deleteSummary) {
+      this.elements.deleteSummary.textContent = `分类“${category.name}”下有 ${count} 条书签。删除分类前，请选择这些书签要迁移到哪里。`;
     }
 
+    if (this.elements.deleteTarget) {
+      const options = [
+        '<option value="">未分类</option>',
+        ...alternatives.map(
+          (item) =>
+            `<option value="${AdminUI.escapeHtml(String(item.id))}">${AdminUI.escapeHtml(item.name)}</option>`,
+        ),
+      ];
+      this.elements.deleteTarget.innerHTML = options.join("");
+    }
+
+    this.elements.deleteModal?.classList.remove("hidden");
+    this.elements.deleteTarget?.focus();
+  },
+
+  closeDeleteCategoryModal() {
+    this.pendingDeleteCategory = null;
+    this.elements.deleteModal?.classList.add("hidden");
+    if (this.elements.deleteTarget) {
+      this.elements.deleteTarget.innerHTML = "";
+    }
+  },
+
+  async confirmDeleteCategory() {
+    const category = this.pendingDeleteCategory;
+    if (!category) return;
+
+    const button = this.elements.confirmDelete;
+    const previousText = button?.textContent;
+    const moveToCategoryId = this.elements.deleteTarget?.value || null;
+
     try {
-      const response = await BookmarkAPI.deleteCategory(id, {
+      if (button) {
+        button.disabled = true;
+        button.textContent = "删除中...";
+      }
+
+      const response = await BookmarkAPI.deleteCategory(category.id, {
         moveToCategoryId,
       });
       if (!response.success) {
         throw new Error(response.error || "删除分类失败");
       }
       AdminUI.showToast("分类已删除，书签已迁移");
+      this.closeDeleteCategoryModal();
       this.resetForm();
       await this.loadCategories();
     } catch (error) {
       AdminUI.showToast(error.message || "删除分类失败", "error");
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.textContent = previousText || "确认删除";
+      }
     }
   },
 };
