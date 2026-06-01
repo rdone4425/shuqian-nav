@@ -146,6 +146,7 @@ const SiteMenu = {
     toggle.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
+      event.stopImmediatePropagation();
       const isOpen = dropdown.classList.toggle("show");
       toggle.classList.toggle("active", isOpen);
       toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");

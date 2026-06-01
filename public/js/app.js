@@ -82,7 +82,11 @@ const App = {
       this.showBookmarkModal();
     });
 
-    if (!window.SiteMenu) {
+    const siteMenuManaged =
+      window.SiteMenu ||
+      this.elements.toolsMenuToggle?.dataset.siteMenuBound === "true";
+
+    if (!siteMenuManaged) {
       this.elements.toolsMenuToggle?.addEventListener("click", (event) => {
         event.stopPropagation();
         this.toggleToolsMenu();
@@ -117,7 +121,7 @@ const App = {
       this.saveBookmark();
     });
 
-    if (!window.SiteMenu) {
+    if (!siteMenuManaged) {
       this.elements.settingsToggle?.addEventListener("click", () => {
         this.toggleSettings();
       });
@@ -158,7 +162,7 @@ const App = {
       this.createFullBackup("html");
     });
 
-    if (!window.SiteMenu) {
+    if (!siteMenuManaged) {
       document.getElementById("logoutBtn")?.addEventListener("click", () => {
         window.Auth?.logout?.({ redirect: true });
       });
