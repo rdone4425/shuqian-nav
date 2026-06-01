@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="/css/workspace-refresh.css" />
     <link
       rel="stylesheet"
-      href="/css/link-checker-enhanced.css?v=20260531-safe-delete"
+      href="/css/link-checker-enhanced.css?v=20260601-confirm-delete"
     />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
@@ -182,6 +182,48 @@
       </main>
     </div>
 
+    <div
+      id="deleteConfirmModal"
+      class="checker-confirm-modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="deleteConfirmTitle"
+    >
+      <div class="checker-confirm-card">
+        <div class="checker-confirm-header">
+          <div>
+            <span class="section-kicker">确认删除</span>
+            <h3 id="deleteConfirmTitle">确认删除</h3>
+          </div>
+          <button
+            id="closeDeleteConfirm"
+            class="btn btn-secondary"
+            type="button"
+          >
+            关闭
+          </button>
+        </div>
+        <p id="deleteConfirmMessage" class="checker-confirm-copy"></p>
+        <p id="deleteConfirmHint" class="checker-confirm-hint"></p>
+        <div class="checker-confirm-actions">
+          <button
+            id="cancelDeleteConfirm"
+            class="btn btn-secondary"
+            type="button"
+          >
+            取消
+          </button>
+          <button
+            id="confirmDeleteConfirm"
+            class="btn btn-danger"
+            type="button"
+          >
+            删除
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script src="/js/utils/storage.js"></script>
     <script src="/js/utils/api.js"></script>
     <script src="/js/auth.js"></script>
@@ -193,6 +235,7 @@
         checking: false,
         stopRequested: false,
         activeFilter: "all",
+        pendingDeleteConfirm: null,
       };
 
       const filterLabels = {
@@ -510,9 +553,15 @@
         );
         if (!bookmark) return;
 
-        const confirmed = window.confirm(
-          `确定现在删除书签「${bookmark.title}」吗？`,
-        );
+        const confirmed = await requestDeleteConfirm({
+          title: "删除单条书签",
+          message: `确定现在删除书签「${bookmark.title || "未命名书签"}」吗？`,
+          hint:
+            bookmark.status === "inaccessible"
+              ? "这条书签会进入回收站，删除原因会记录为链接检查失败。"
+              : "这条书签会进入回收站，之后可以在回收站查看记录。",
+          confirmText: "删除这条书签",
+        });
         if (!confirmed) return;
 
         try {
@@ -553,9 +602,12 @@
           return;
         }
 
-        const confirmed = window.confirm(
-          `确定删除 ${targets.length} 个明确异常书签吗？待确认和已标记保留的书签会跳过。`,
-        );
+        const confirmed = await requestDeleteConfirm({
+          title: "删除明确异常书签",
+          message: `确定删除 ${targets.length} 个明确异常书签吗？`,
+          hint: "只会删除检查结果为明确异常的书签；待确认和已标记保留的书签会自动跳过。",
+          confirmText: "删除明确异常",
+        });
         if (!confirmed) return;
 
         const button = document.getElementById("deleteInaccessibleBtn");
@@ -631,6 +683,38 @@
         }
       }
 
+      function requestDeleteConfirm({ title, message, hint, confirmText }) {
+        const modal = document.getElementById("deleteConfirmModal");
+        const titleEl = document.getElementById("deleteConfirmTitle");
+        const messageEl = document.getElementById("deleteConfirmMessage");
+        const hintEl = document.getElementById("deleteConfirmHint");
+        const confirmBtn = document.getElementById("confirmDeleteConfirm");
+
+        if (!modal || !confirmBtn) {
+          return Promise.resolve(false);
+        }
+
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+        hintEl.textContent = hint || "";
+        confirmBtn.textContent = confirmText || "删除";
+        modal.classList.remove("hidden");
+        confirmBtn.focus();
+
+        return new Promise((resolve) => {
+          state.pendingDeleteConfirm = { resolve };
+        });
+      }
+
+      function closeDeleteConfirm(confirmed) {
+        const pending = state.pendingDeleteConfirm;
+        if (!pending) return;
+
+        document.getElementById("deleteConfirmModal").classList.add("hidden");
+        state.pendingDeleteConfirm = null;
+        pending.resolve(Boolean(confirmed));
+      }
+
       document.addEventListener("DOMContentLoaded", async () => {
         const authenticated = await AdminUI.requireAuth();
         if (!authenticated) {
@@ -649,6 +733,22 @@
         document
           .getElementById("deleteInaccessibleBtn")
           .addEventListener("click", deleteInaccessibleBookmarks);
+        document
+          .getElementById("closeDeleteConfirm")
+          .addEventListener("click", () => closeDeleteConfirm(false));
+        document
+          .getElementById("cancelDeleteConfirm")
+          .addEventListener("click", () => closeDeleteConfirm(false));
+        document
+          .getElementById("confirmDeleteConfirm")
+          .addEventListener("click", () => closeDeleteConfirm(true));
+        document
+          .getElementById("deleteConfirmModal")
+          .addEventListener("click", (event) => {
+            if (event.target.id === "deleteConfirmModal") {
+              closeDeleteConfirm(false);
+            }
+          });
         document
           .getElementById("statsGrid")
           .addEventListener("click", (event) => {
