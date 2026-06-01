@@ -21,171 +21,39 @@
   </head>
   <body class="nav-site">
     <div class="container nav-shell">
-      <header class="header nav-header">
-        <div class="header-content">
-          <a class="logo" href="/" aria-label="书签导航首页">
-            <span class="logo-icon">N</span>
-            <div class="logo-copy">
-              <h1 class="logo-text" data-i18n="common.appName">书签导航</h1>
-              <p class="logo-subtitle" data-i18n="home.logoSubtitle">
-                常用站点入口
-              </p>
-            </div>
-          </a>
-
-          <nav class="nav-menu" aria-label="主导航">
-            <a href="#directory" class="nav-menu-link" data-i18n="nav.directory"
-              >导航目录</a
-            >
-            <a
-              href="/import.html"
-              class="nav-menu-link"
-              data-i18n="header.import"
-              >导入</a
-            >
-            <a
-              href="/link-checker.html"
-              class="nav-menu-link"
-              data-i18n="header.linkChecker"
-              >链接检查</a
-            >
-          </nav>
-
-          <div class="header-actions">
-            <div class="action-group primary-actions">
-              <button
-                id="searchToggle"
-                class="action-btn-icon has-label primary"
-                title="聚焦搜索"
-                data-i18n-title="header.searchTitle"
-              >
-                <span class="btn-icon">⌕</span>
-                <span class="action-btn-label" data-i18n="header.searchButton"
-                  >搜索</span
-                >
-              </button>
-              <button
-                id="addBookmarkBtn"
-                class="action-btn-icon has-label"
-                title="添加站点"
-                data-i18n-title="header.addTitle"
-              >
-                <span class="btn-icon">+</span>
-                <span class="action-btn-label" data-i18n="header.addButton"
-                  >新增站点</span
-                >
-              </button>
-            </div>
-            <div class="action-group tools-menu">
-              <button
-                id="toolsMenuToggle"
-                class="action-btn-icon menu-toggle has-label"
-                title="打开菜单"
-                data-i18n-title="header.toolsTitle"
-                aria-expanded="false"
-                aria-controls="toolsDropdown"
-              >
-                <span class="btn-icon">☰</span>
-                <span class="action-btn-label" data-i18n="header.toolsButton"
-                  >菜单</span
-                >
-              </button>
-              <div id="toolsDropdown" class="dropdown-menu" role="menu">
-                <a href="/import.html" class="dropdown-item" role="menuitem">
-                  <span class="item-icon">IN</span>
-                  <div class="item-content">
-                    <span class="item-text" data-i18n="header.import"
-                      >导入</span
-                    >
-                    <span class="item-desc" data-i18n="header.importDesc"
-                      >导入导出文件或备份</span
-                    >
-                  </div>
-                </a>
-                <a
-                  href="/link-checker.html"
-                  class="dropdown-item"
-                  role="menuitem"
-                >
-                  <span class="item-icon">CK</span>
-                  <div class="item-content">
-                    <span class="item-text" data-i18n="header.linkChecker"
-                      >链接检查</span
-                    >
-                    <span class="item-desc" data-i18n="header.linkCheckerDesc"
-                      >检查书签可访问性</span
-                    >
-                  </div>
-                </a>
-                <a
-                  href="/deleted-bookmarks"
-                  class="dropdown-item"
-                  role="menuitem"
-                >
-                  <span class="item-icon">RC</span>
-                  <div class="item-content">
-                    <span class="item-text" data-i18n="header.deleted"
-                      >回收站</span
-                    >
-                    <span class="item-desc" data-i18n="header.deletedDesc"
-                      >查看和恢复删除记录</span
-                    >
-                  </div>
-                </a>
-                <a
-                  href="/notifications.html"
-                  class="dropdown-item"
-                  role="menuitem"
-                >
-                  <span class="item-icon">NT</span>
-                  <div class="item-content">
-                    <span class="item-text" data-i18n="header.notifications"
-                      >通知</span
-                    >
-                    <span class="item-desc" data-i18n="header.notificationsDesc"
-                      >查看最近维护通知</span
-                    >
-                  </div>
-                </a>
-                <a href="/token.html" class="dropdown-item" role="menuitem">
-                  <span class="item-icon">AP</span>
-                  <div class="item-content">
-                    <span class="item-text" data-i18n="header.apiTokens"
-                      >同步令牌</span
-                    >
-                    <span class="item-desc" data-i18n="header.apiTokensDesc"
-                      >查看同步与令牌说明</span
-                    >
-                  </div>
-                </a>
-                <div class="dropdown-divider"></div>
-                <button
-                  id="settingsToggle"
-                  class="dropdown-item"
-                  role="menuitem"
-                >
-                  <span class="item-icon">ST</span>
-                  <div class="item-content">
-                    <span class="item-text" data-i18n="header.settings"
-                      >设置</span
-                    >
-                    <span class="item-desc" data-i18n="header.settingsDesc"
-                      >导出、备份和导入</span
-                    >
-                  </div>
-                </button>
-                <button id="logoutBtn" class="dropdown-item" role="menuitem">
-                  <span class="item-icon">OUT</span>
-                  <div class="item-content">
-                    <span class="item-text">退出登录</span>
-                    <span class="item-desc">回到登录页</span>
-                  </div>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <div
+        data-site-header
+        data-page-key="home"
+        data-logo-icon="N"
+        data-logo-text="书签导航"
+        data-logo-subtitle="你的常用站点入口"
+        class="header nav-header"
+      >
+        <button
+          id="searchToggle"
+          class="action-btn-icon has-label primary"
+          title="聚焦搜索"
+          data-i18n-title="header.searchTitle"
+          data-site-header-primary
+        >
+          <span class="btn-icon">⌕</span>
+          <span class="action-btn-label" data-i18n="header.searchButton"
+            >搜索</span
+          >
+        </button>
+        <button
+          id="addBookmarkBtn"
+          class="action-btn-icon has-label"
+          title="添加站点"
+          data-i18n-title="header.addTitle"
+          data-site-header-primary
+        >
+          <span class="btn-icon">+</span>
+          <span class="action-btn-label" data-i18n="header.addButton"
+            >新增站点</span
+          >
+        </button>
+      </div>
 
       <main class="main-content home-content nav-home">
         <section class="nav-toolbar" aria-label="搜索、筛选和统计">
@@ -596,8 +464,8 @@
     <script src="/js/utils/ui-helper.js"></script>
     <script src="/js/bookmarks.js?v=nav-20260601-manage"></script>
     <script src="/js/ui-enhancements.js?v=nav-20260529-ui3"></script>
-    <script src="/js/site-menu.js?v=nav-20260601-manage"></script>
-    <script src="/js/app.js?v=nav-20260529-ui3"></script>
+    <script src="/js/site-menu.js?v=nav-20260601-unified-menu"></script>
+    <script src="/js/app.js?v=nav-20260601-category-create"></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         if (window.I18n) {

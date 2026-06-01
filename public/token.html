@@ -18,26 +18,14 @@
   </head>
   <body class="nav-site">
     <div class="container">
-      <header class="header">
-        <div class="header-content">
-          <div class="logo">
-            <span class="logo-icon">API</span>
-            <div class="logo-copy">
-              <h1 class="logo-text">同步令牌说明</h1>
-              <p class="logo-subtitle">用于 Chrome 扩展和自动化同步设置</p>
-            </div>
-          </div>
-
-          <div class="header-actions">
-            <div class="action-group">
-              <a class="action-btn-icon has-label" href="/">
-                <span class="btn-icon">H</span>
-                <span class="action-btn-label">首页</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </header>
+      <div
+        data-site-header
+        data-page-key="token"
+        data-logo-icon="API"
+        data-logo-text="同步令牌说明"
+        data-logo-subtitle="用于 Chrome 扩展和自动化同步设置"
+        class="header"
+      ></div>
 
       <main class="token-container token-page-shell">
         <section class="token-intro-card">
@@ -165,7 +153,7 @@
     </div>
 
     <script src="/js/auth.js"></script>
-    <script src="/js/site-menu.js"></script>
+    <script src="/js/site-menu.js?v=nav-20260601-unified-menu"></script>
     <script>
       const tokenState = {
         tokens: [],

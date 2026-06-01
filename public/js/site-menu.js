@@ -1,44 +1,79 @@
+/**
+ * Unified site header.
+ *
+ * Single source of truth lives in /components/header.html. Every page that
+ * wants the global navigation just drops a host element and this module
+ * injects the partial on DOMContentLoaded:
+ *
+ *   <div data-site-header
+ *        data-page-key="home"
+ *        data-logo-icon="N"
+ *        data-logo-text="书签导航"
+ *        data-logo-subtitle="你的常用站点入口"></div>
+ *
+ * Pages that need a search box / add button in the header-actions area put
+ * them as children of the host and we hoist them into the .primary-actions
+ * slot rendered by the partial. Pages that just want the menu + logout
+ * leave the host empty.
+ */
+
 const SiteMenu = {
   initialized: false,
+  partialUrl: "/components/header.html",
+
+  // The order here also drives the order rendered in the dropdown.
   items: [
-    { href: "/", icon: "首页", text: "首页", desc: "返回书签导航首页" },
     {
+      key: "home",
+      href: "/",
+      icon: "首页",
+      text: "首页",
+      desc: "返回书签导航首页",
+    },
+    {
+      key: "bookmarks-manage",
       href: "/bookmarks-manage.html",
       icon: "书签",
       text: "书签管理",
       desc: "搜索、筛选和批量移动书签",
     },
     {
+      key: "categories",
       href: "/categories.html?create=1",
       icon: "分类",
       text: "分类管理 / 新建",
-      desc: "手动创建分类、调整颜色和迁移规则",
+      desc: "手动创建分类、维护书签归属",
     },
     {
+      key: "import",
       href: "/import.html",
       icon: "导入",
       text: "导入",
       desc: "导入书签文件或备份",
     },
     {
+      key: "link-checker",
       href: "/link-checker.html",
       icon: "检查",
       text: "链接检查",
       desc: "检查书签可访问性",
     },
     {
+      key: "deleted-bookmarks",
       href: "/deleted-bookmarks",
       icon: "回收",
       text: "回收站",
       desc: "查看和恢复删除记录",
     },
     {
+      key: "token",
       href: "/token.html",
       icon: "令牌",
       text: "同步令牌",
       desc: "管理同步访问令牌",
     },
     {
+      key: "notifications",
       href: "/notifications.html",
       icon: "通知",
       text: "通知",
@@ -46,66 +81,105 @@ const SiteMenu = {
     },
   ],
 
+  // Primary section: bookmarks-manage, categories. The "常用管理" group.
+  primaryKeys: ["home", "bookmarks-manage", "categories"],
+
   async init() {
-    if (this.initialized || window.location.pathname.includes("login")) {
-      return;
-    }
+    if (this.initialized) return;
+    if (window.location.pathname.includes("login")) return;
 
-    this.ensureMenu();
-    this.bindMenu();
-    this.markActive();
-    this.initialized = true;
+    const host = document.querySelector("[data-site-header]");
+    if (!host) return;
 
-    if (window.Auth) {
-      const authenticated = await Auth.init({ requireAuth: true });
-      if (!authenticated) {
-        return;
+    try {
+      await this.inject(host);
+      this.bindMenu(host);
+      this.markActive(host);
+      this.initialized = true;
+
+      if (window.Auth) {
+        const ok = await Auth.init({ requireAuth: true });
+        if (!ok) return;
       }
+
+      if (window.I18n?.apply) {
+        I18n.apply();
+        this.restorePageSubtitle(host);
+      }
+    } catch (error) {
+      console.error("SiteMenu failed to initialize:", error);
     }
   },
 
-  ensureMenu() {
-    const headerActions = document.querySelector(".header-actions");
-    if (!headerActions) return;
+  async inject(host) {
+    const response = await fetch(this.partialUrl, { cache: "no-cache" });
+    if (!response.ok) {
+      throw new Error(`Failed to load header partial: ${response.status}`);
+    }
+    const markup = await response.text();
+    const template = document.createElement("template");
+    template.innerHTML = markup.trim();
 
-    const primaryActions = headerActions.querySelector(".primary-actions");
-    const primaryActionsHTML = primaryActions ? primaryActions.outerHTML : "";
+    // The partial renders the inner header-content; the host may carry a
+    // wrapper class (e.g. .header). Adopt the partial's first child.
+    const fragment = template.content.cloneNode(true);
+    const rendered = fragment.firstElementChild;
+    if (!rendered) {
+      throw new Error("Header partial is empty.");
+    }
 
-    headerActions.classList.add("site-nav-actions");
-    headerActions.innerHTML = `
-      ${primaryActionsHTML}
-      <div class="action-group tools-menu site-menu-compact">
-        <button
-          id="toolsMenuToggle"
-          class="action-btn-icon menu-toggle has-label site-menu-toggle"
-          title="打开菜单"
-          aria-expanded="false"
-          aria-controls="toolsDropdown"
-          type="button"
-        >
-          <span class="btn-icon">菜单</span>
-          <span class="action-btn-label">管理</span>
-        </button>
-        <div id="toolsDropdown" class="dropdown-menu site-menu-dropdown" role="menu"></div>
-      </div>
-      <button id="logoutBtn" class="action-btn-icon site-logout-btn" type="button">
-        <span class="btn-icon">退出</span>
-        <span class="action-btn-label">退出</span>
-      </button>
-    `;
+    this.applyPageIdentity(rendered, host);
+    this.renderDropdown(rendered);
+    this.hoistPrimarySlots(rendered, host);
 
-    const dropdown = document.getElementById("toolsDropdown");
+    host.replaceChildren(rendered);
+  },
+
+  applyPageIdentity(rendered, host) {
+    const read = (name, fallback) => host.getAttribute(name) ?? fallback;
+    const icon = read("data-logo-icon", "N");
+    const text = read("data-logo-text", "书签导航");
+    const subtitle = read("data-logo-subtitle", "你的常用站点入口");
+
+    const iconEl = rendered.querySelector("[data-site-header-logo-icon]");
+    const textEl = rendered.querySelector("[data-site-header-logo-text]");
+    const subEl = rendered.querySelector("[data-site-header-logo-subtitle]");
+
+    if (iconEl) iconEl.textContent = icon;
+    if (textEl) textEl.textContent = text;
+    if (subEl) {
+      subEl.textContent = subtitle;
+      // The subtitle may carry a fixed value per page, so do not let i18n
+      // overwrite it. Keep the data-i18n key on the partial but restore
+      // text after I18n.apply so translations stay opt-in per page.
+      subEl.setAttribute("data-site-header-subtitle-original", subtitle);
+    }
+  },
+
+  restorePageSubtitle(host) {
+    const subtitle = host.getAttribute("data-logo-subtitle");
+    const subEl = host.querySelector("[data-site-header-logo-subtitle]");
+    if (subtitle && subEl) {
+      subEl.textContent = subtitle;
+    }
+  },
+
+  renderDropdown(rendered) {
+    const dropdown = rendered.querySelector("#toolsDropdown");
+    if (!dropdown) return;
+
+    const primary = this.items.filter((item) =>
+      this.primaryKeys.includes(item.key),
+    );
+    const rest = this.items.filter(
+      (item) => !this.primaryKeys.includes(item.key),
+    );
+
     dropdown.innerHTML = `
       <div class="dropdown-section-label">常用管理</div>
-      ${this.items
-        .slice(0, 3)
-        .map((item) => this.renderLink(item))
-        .join("")}
+      ${primary.map((item) => this.renderLink(item)).join("")}
       <div class="dropdown-section-label">维护工具</div>
-      ${this.items
-        .slice(3)
-        .map((item) => this.renderLink(item))
-        .join("")}
+      ${rest.map((item) => this.renderLink(item)).join("")}
       ${
         document.getElementById("settingsPanel")
           ? `
@@ -125,7 +199,7 @@ const SiteMenu = {
 
   renderLink(item) {
     return `
-      <a href="${item.href}" class="dropdown-item" role="menuitem">
+      <a href="${item.href}" class="dropdown-item" role="menuitem" data-site-menu-key="${item.key}">
         <span class="item-icon">${item.icon}</span>
         <div class="item-content">
           <span class="item-text">${item.text}</span>
@@ -135,18 +209,27 @@ const SiteMenu = {
     `;
   },
 
-  bindMenu() {
-    const toggle = document.getElementById("toolsMenuToggle");
-    const dropdown = document.getElementById("toolsDropdown");
-    if (!toggle || !dropdown || toggle.dataset.siteMenuBound === "true") {
-      return;
-    }
+  hoistPrimarySlots(rendered, host) {
+    // Pages that need a search/add control keep them in the host as children.
+    // We move them into the .primary-actions slot rendered by the partial so
+    // the visual rhythm of the header stays consistent.
+    const slot = rendered.querySelector('[data-site-header-slot="primary"]');
+    if (!slot) return;
 
-    toggle.dataset.siteMenuBound = "true";
+    const provided = Array.from(host.children).filter((child) =>
+      child.hasAttribute("data-site-header-primary"),
+    );
+    provided.forEach((node) => slot.appendChild(node));
+  },
+
+  bindMenu(host) {
+    const toggle = host.querySelector("#toolsMenuToggle");
+    const dropdown = host.querySelector("#toolsDropdown");
+    if (!toggle || !dropdown) return;
+
     toggle.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
-      event.stopImmediatePropagation();
       const isOpen = dropdown.classList.toggle("show");
       toggle.classList.toggle("active", isOpen);
       toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
@@ -154,40 +237,59 @@ const SiteMenu = {
 
     document.addEventListener("click", (event) => {
       if (!toggle.contains(event.target) && !dropdown.contains(event.target)) {
-        this.closeMenu();
+        this.closeMenu(host);
       }
     });
 
-    document.getElementById("logoutBtn")?.addEventListener("click", () => {
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") this.closeMenu(host);
+    });
+
+    host.querySelector("#logoutBtn")?.addEventListener("click", () => {
       window.Auth?.logout?.({ redirect: true });
     });
 
-    document.getElementById("settingsToggle")?.addEventListener("click", () => {
-      this.closeMenu();
+    host.querySelector("#settingsToggle")?.addEventListener("click", () => {
+      this.closeMenu(host);
       document.getElementById("settingsPanel")?.classList.toggle("hidden");
     });
   },
 
-  closeMenu() {
-    const toggle = document.getElementById("toolsMenuToggle");
-    const dropdown = document.getElementById("toolsDropdown");
+  closeMenu(host) {
+    const toggle = host.querySelector("#toolsMenuToggle");
+    const dropdown = host.querySelector("#toolsDropdown");
     dropdown?.classList.remove("show");
     toggle?.classList.remove("active");
     toggle?.setAttribute("aria-expanded", "false");
   },
 
-  markActive() {
+  markActive(host) {
+    const pageKey = host.getAttribute("data-page-key");
     const path = this.normalizePath(window.location.pathname);
-    document
-      .querySelectorAll("#toolsDropdown a.dropdown-item")
-      .forEach((link) => {
-        const href = this.normalizePath(link.getAttribute("href") || "");
-        const isHome = href === "/" && (path === "/" || path === "/index");
-        if (href === path || isHome) {
-          link.classList.add("active");
-          link.setAttribute("aria-current", "page");
-        }
-      });
+
+    // Highlight the dropdown entry whose key matches the page.
+    if (pageKey) {
+      host
+        .querySelectorAll(`#toolsDropdown [data-site-menu-key]`)
+        .forEach((link) => {
+          if (link.getAttribute("data-site-menu-key") === pageKey) {
+            link.classList.add("active");
+            link.setAttribute("aria-current", "page");
+          }
+        });
+    }
+
+    // Highlight the inline nav menu link based on path (fallback when no
+    // page-key is provided).
+    const navLinks = host.querySelectorAll("[data-site-header-nav-link]");
+    navLinks.forEach((link) => {
+      const href = this.normalizePath(link.getAttribute("href") || "");
+      const isHome = href === "/" && (path === "/" || path === "/index");
+      if (href === path || isHome) {
+        link.classList.add("active");
+        link.setAttribute("aria-current", "page");
+      }
+    });
   },
 
   normalizePath(value) {

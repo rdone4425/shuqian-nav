@@ -19,23 +19,14 @@
   </head>
   <body class="nav-site">
     <div class="container">
-      <header class="header">
-        <div class="header-content">
-          <div class="logo">
-            <span class="logo-icon">DEL</span>
-            <div class="logo-copy">
-              <h1 class="logo-text">已删除书签</h1>
-              <p class="logo-subtitle">查看删除记录，并在需要时恢复书签</p>
-            </div>
-          </div>
-          <div class="header-actions">
-            <a class="action-btn-icon has-label" href="/">
-              <span class="btn-icon">H</span>
-              <span class="action-btn-label">首页</span>
-            </a>
-          </div>
-        </div>
-      </header>
+      <div
+        data-site-header
+        data-page-key="deleted-bookmarks"
+        data-logo-icon="DEL"
+        data-logo-text="已删除书签"
+        data-logo-subtitle="查看删除记录，并在需要时恢复书签"
+        class="header"
+      ></div>
 
       <section class="workspace-section-heading">
         <div>
@@ -164,7 +155,7 @@
 
     <script src="/js/utils/api.js"></script>
     <script src="/js/auth.js"></script>
-    <script src="/js/site-menu.js"></script>
+    <script src="/js/site-menu.js?v=nav-20260601-unified-menu"></script>
     <script src="/js/admin-common.js"></script>
     <script src="/js/deleted-bookmarks.js?v=20260531-batch"></script>
   </body>
