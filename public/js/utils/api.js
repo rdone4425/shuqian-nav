@@ -285,6 +285,12 @@ const BookmarkAPI = {
     });
   },
 
+  async batchDeleteBookmarks(bookmarkIds) {
+    return await API.post("/api/bookmarks/batch-delete", {
+      bookmarkIds,
+    });
+  },
+
   async recordVisit(id) {
     return await API.post(`/api/bookmarks/${id}/visit`, {
       timestamp: new Date().toISOString(),

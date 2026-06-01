@@ -24,9 +24,15 @@ const BookmarkManagePage = {
       selectedCount: document.getElementById("selectedBookmarkCount"),
       bulkMoveCategory: document.getElementById("bulkMoveCategory"),
       bulkMoveBtn: document.getElementById("bulkMoveBtn"),
+      bulkDeleteBtn: document.getElementById("bulkDeleteBtn"),
       selectAll: document.getElementById("selectAllBookmarks"),
       tableBody: document.getElementById("bookmarksManageBody"),
       pagination: document.getElementById("bookmarkPagination"),
+      deleteModal: document.getElementById("deleteBookmarksModal"),
+      deleteSummary: document.getElementById("deleteBookmarksSummary"),
+      closeDeleteModal: document.getElementById("closeDeleteBookmarksModal"),
+      cancelDelete: document.getElementById("cancelDeleteBookmarksBtn"),
+      confirmDelete: document.getElementById("confirmDeleteBookmarksBtn"),
     };
   },
 
@@ -51,6 +57,24 @@ const BookmarkManagePage = {
     );
     this.elements.bulkMoveBtn?.addEventListener("click", () =>
       this.bulkMoveSelected(),
+    );
+    this.elements.bulkDeleteBtn?.addEventListener("click", () =>
+      this.openDeleteBookmarksModal(),
+    );
+
+    this.elements.closeDeleteModal?.addEventListener("click", () =>
+      this.closeDeleteBookmarksModal(),
+    );
+    this.elements.cancelDelete?.addEventListener("click", () =>
+      this.closeDeleteBookmarksModal(),
+    );
+    this.elements.deleteModal?.addEventListener("click", (event) => {
+      if (event.target === this.elements.deleteModal) {
+        this.closeDeleteBookmarksModal();
+      }
+    });
+    this.elements.confirmDelete?.addEventListener("click", () =>
+      this.confirmDeleteSelected(),
     );
 
     this.elements.selectAll?.addEventListener("change", () => {
@@ -218,6 +242,9 @@ const BookmarkManagePage = {
     const selectedCount = this.selectedIds.size;
     this.elements.selectedCount.textContent = `已选择 ${selectedCount} 条`;
     this.elements.bulkMoveBtn.disabled = selectedCount === 0;
+    if (this.elements.bulkDeleteBtn) {
+      this.elements.bulkDeleteBtn.disabled = selectedCount === 0;
+    }
     if (this.elements.selectAll) {
       this.elements.selectAll.checked =
         this.bookmarks.length > 0 &&
@@ -266,6 +293,59 @@ const BookmarkManagePage = {
       await this.loadBookmarks();
     } catch (error) {
       AdminUI.showToast(error.message || "批量移动失败", "error");
+    }
+  },
+
+  openDeleteBookmarksModal() {
+    const selectedCount = this.selectedIds.size;
+    if (!selectedCount) return;
+
+    if (this.elements.deleteSummary) {
+      this.elements.deleteSummary.textContent = `将删除 ${selectedCount} 条书签。这个操作不会清空全部数据，只处理当前选中的书签。`;
+    }
+
+    this.elements.deleteModal?.classList.remove("hidden");
+    this.elements.confirmDelete?.focus();
+  },
+
+  closeDeleteBookmarksModal() {
+    this.elements.deleteModal?.classList.add("hidden");
+  },
+
+  async confirmDeleteSelected() {
+    const ids = [...this.selectedIds];
+    if (!ids.length) {
+      this.closeDeleteBookmarksModal();
+      return;
+    }
+
+    const button = this.elements.confirmDelete;
+    const previousText = button?.textContent;
+
+    try {
+      if (button) {
+        button.disabled = true;
+        button.textContent = "删除中...";
+      }
+
+      const response = await BookmarkAPI.batchDeleteBookmarks(ids);
+      if (!response.success) {
+        throw new Error(response.error || "批量删除失败");
+      }
+
+      AdminUI.showToast(
+        `已删除 ${response.data?.deletedCount || ids.length} 条书签`,
+      );
+      this.selectedIds.clear();
+      this.closeDeleteBookmarksModal();
+      await this.loadBookmarks();
+    } catch (error) {
+      AdminUI.showToast(error.message || "批量删除失败", "error");
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.textContent = previousText || "确认删除";
+      }
     }
   },
 };

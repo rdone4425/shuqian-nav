@@ -21,6 +21,7 @@ import {
   onRequestPost as bookmarkCreateHandler,
 } from "../pages/functions/api/bookmarks/index.js";
 import { onRequestDelete as bookmarkDeleteHandler } from "../pages/functions/api/bookmarks/[id].js";
+import { onRequestPost as batchDeleteHandler } from "../pages/functions/api/bookmarks/batch-delete.js";
 import { onRequestPost as batchMoveHandler } from "../pages/functions/api/bookmarks/batch-move.js";
 import {
   onRequestGet as categoryListHandler,
@@ -876,6 +877,96 @@ test("batch move updates selected bookmark category in one request", async () =>
   assert.equal(body.success, true);
   assert.deepEqual(updateParams, [5, 1, 2]);
   assert.equal(body.data.movedCount, 2);
+});
+
+test("batch delete archives selected bookmarks before removing them", async () => {
+  let deletionRecordCount = 0;
+  let deleteParams = null;
+  const bookmarks = [
+    {
+      id: 1,
+      title: "Example",
+      url: "https://example.com",
+      description: "",
+      favicon_url: null,
+      created_at: "2026-05-31T00:00:00.000Z",
+      updated_at: "2026-05-31T00:00:00.000Z",
+      category_name: "测试",
+      keep_status: "normal",
+    },
+    {
+      id: 2,
+      title: "Docs",
+      url: "https://docs.example.com",
+      description: "",
+      favicon_url: null,
+      created_at: "2026-05-31T00:00:00.000Z",
+      updated_at: "2026-05-31T00:00:00.000Z",
+      category_name: "资料",
+      keep_status: "normal",
+    },
+  ];
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        if (sql.includes("FROM deleted_bookmarks")) {
+          return null;
+        }
+        return null;
+      },
+      allResult({ sql }) {
+        if (sql.includes("FROM bookmarks b")) {
+          return { results: bookmarks };
+        }
+        return { results: [] };
+      },
+      runResult({ sql, params }) {
+        if (sql.includes("INSERT INTO deleted_bookmarks")) {
+          deletionRecordCount++;
+        }
+        if (sql.includes("DELETE FROM bookmarks")) {
+          deleteParams = params;
+          return { success: true, meta: { changes: 2 } };
+        }
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await batchDeleteHandler({
+    request: new Request("https://example.com/api/bookmarks/batch-delete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ bookmarkIds: [1, 2, 2] }),
+    }),
+    env,
+  });
+
+  const body = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(body.success, true);
+  assert.equal(deletionRecordCount, 2);
+  assert.deepEqual(deleteParams, [1, 2]);
+  assert.equal(body.data.deletedCount, 2);
+  assert.equal(body.data.archive.inserted, 2);
 });
 
 test("known protected sites are treated as reachable during link checks", () => {

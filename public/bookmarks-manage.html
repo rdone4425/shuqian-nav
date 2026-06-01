@@ -12,7 +12,10 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/css/styles.css" />
-    <link rel="stylesheet" href="/css/workspace-refresh.css" />
+    <link
+      rel="stylesheet"
+      href="/css/workspace-refresh.css?v=nav-20260601-ui-refresh"
+    />
     <link rel="stylesheet" href="/css/management.css" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
@@ -78,6 +81,14 @@
               >
                 批量移动
               </button>
+              <button
+                id="bulkDeleteBtn"
+                class="btn btn-danger"
+                type="button"
+                disabled
+              >
+                批量删除
+              </button>
             </div>
           </div>
 
@@ -102,12 +113,56 @@
           </div>
         </section>
       </main>
+
+      <div
+        id="deleteBookmarksModal"
+        class="management-modal hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="deleteBookmarksTitle"
+      >
+        <div class="management-modal-card">
+          <div class="management-modal-header">
+            <div>
+              <span class="section-kicker">批量删除</span>
+              <h3 id="deleteBookmarksTitle">确认删除选中的书签</h3>
+            </div>
+            <button
+              id="closeDeleteBookmarksModal"
+              class="btn btn-secondary"
+              type="button"
+            >
+              关闭
+            </button>
+          </div>
+          <p id="deleteBookmarksSummary" class="management-modal-copy"></p>
+          <p class="management-modal-copy muted-text">
+            删除后的书签会进入回收站，可以在回收站页面恢复。
+          </p>
+          <div class="management-modal-actions">
+            <button
+              id="cancelDeleteBookmarksBtn"
+              class="btn btn-secondary"
+              type="button"
+            >
+              取消
+            </button>
+            <button
+              id="confirmDeleteBookmarksBtn"
+              class="btn btn-danger"
+              type="button"
+            >
+              确认删除
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script src="/js/utils/api.js"></script>
     <script src="/js/auth.js"></script>
-    <script src="/js/site-menu.js?v=nav-20260601-unified-menu"></script>
+    <script src="/js/site-menu.js?v=nav-20260601-menu-actions"></script>
     <script src="/js/admin-common.js"></script>
-    <script src="/js/bookmark-manager-page.js?v=nav-20260601-manage"></script>
+    <script src="/js/bookmark-manager-page.js?v=nav-20260601-batch-delete"></script>
   </body>
 </html>
