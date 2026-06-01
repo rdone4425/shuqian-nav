@@ -372,6 +372,54 @@ body {
   min-height: 80px;
 }
 
+.category-select-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.quick-category-btn,
+.quick-category-form .btn {
+  min-height: 36px;
+  white-space: nowrap;
+}
+
+.quick-category-form {
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) 44px auto auto;
+  gap: var(--spacing-sm);
+  align-items: center;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+
+.quick-category-form.hidden {
+  display: none;
+}
+
+.quick-category-color {
+  width: 44px;
+  min-width: 44px;
+  padding: 4px;
+}
+
+@media (max-width: 560px) {
+  .category-select-row,
+  .quick-category-form {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-category-color,
+  .quick-category-form .btn,
+  .quick-category-btn {
+    width: 100%;
+  }
+}
+
 /* ============================================================
    Change password modal
    ============================================================ */

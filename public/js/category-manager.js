@@ -18,6 +18,7 @@ const CategoryManagerPage = {
       name: document.getElementById("categoryName"),
       color: document.getElementById("categoryColor"),
       description: document.getElementById("categoryDescription"),
+      save: document.getElementById("saveCategoryBtn"),
       reset: document.getElementById("resetCategoryBtn"),
       tableBody: document.getElementById("categoriesTableBody"),
     };
@@ -105,6 +106,9 @@ const CategoryManagerPage = {
     this.elements.name.value = category.name || "";
     this.elements.color.value = category.color || "#3B82F6";
     this.elements.description.value = category.description || "";
+    if (this.elements.save) {
+      this.elements.save.textContent = "保存修改";
+    }
     this.elements.name.focus();
   },
 
@@ -112,6 +116,15 @@ const CategoryManagerPage = {
     this.elements.form.reset();
     this.elements.id.value = "";
     this.elements.color.value = "#3B82F6";
+    if (this.elements.save) {
+      this.elements.save.textContent = "创建分类";
+    }
+  },
+
+  focusCreateForm() {
+    this.resetForm();
+    this.elements.form?.scrollIntoView({ behavior: "smooth", block: "center" });
+    this.elements.name?.focus();
   },
 
   getFormData() {
@@ -191,6 +204,10 @@ const CategoryManagerPage = {
 
 document.addEventListener("DOMContentLoaded", () => {
   CategoryManagerPage.init();
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("create") === "1") {
+    setTimeout(() => CategoryManagerPage.focusCreateForm(), 250);
+  }
 });
 
 window.CategoryManagerPage = CategoryManagerPage;

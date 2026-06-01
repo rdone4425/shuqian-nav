@@ -44,6 +44,12 @@ const App = {
       bookmarkUrl: "bookmarkUrl",
       bookmarkDescription: "bookmarkDescription",
       bookmarkCategory: "bookmarkCategory",
+      quickCreateCategoryBtn: "quickCreateCategoryBtn",
+      quickCategoryForm: "quickCategoryForm",
+      quickCategoryName: "quickCategoryName",
+      quickCategoryColor: "quickCategoryColor",
+      confirmQuickCategoryBtn: "confirmQuickCategoryBtn",
+      cancelQuickCategoryBtn: "cancelQuickCategoryBtn",
       toolsMenuToggle: "toolsMenuToggle",
       toolsDropdown: "toolsDropdown",
       settingsToggle: "settingsToggle",
@@ -119,6 +125,25 @@ const App = {
     this.elements.bookmarkForm?.addEventListener("submit", (event) => {
       event.preventDefault();
       this.saveBookmark();
+    });
+
+    this.elements.quickCreateCategoryBtn?.addEventListener("click", () => {
+      this.showQuickCategoryForm();
+    });
+
+    this.elements.cancelQuickCategoryBtn?.addEventListener("click", () => {
+      this.hideQuickCategoryForm();
+    });
+
+    this.elements.confirmQuickCategoryBtn?.addEventListener("click", () => {
+      this.createCategoryFromModal();
+    });
+
+    this.elements.quickCategoryName?.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        this.createCategoryFromModal();
+      }
     });
 
     if (!siteMenuManaged) {
@@ -223,6 +248,7 @@ const App = {
     this.elements.bookmarkModal?.classList.add("hidden");
     this.currentBookmark = null;
     this.elements.bookmarkForm?.reset();
+    this.hideQuickCategoryForm();
   },
 
   async loadCategoryOptions(selectedCategoryId = "") {
@@ -247,6 +273,69 @@ const App = {
       }
     } catch (error) {
       console.error("加载分类选项失败:", error);
+    }
+  },
+
+  showQuickCategoryForm() {
+    this.elements.quickCategoryForm?.classList.remove("hidden");
+    if (this.elements.quickCategoryColor) {
+      this.elements.quickCategoryColor.value = "#3B82F6";
+    }
+    this.elements.quickCategoryName?.focus();
+  },
+
+  hideQuickCategoryForm() {
+    this.elements.quickCategoryForm?.classList.add("hidden");
+    if (this.elements.quickCategoryName) {
+      this.elements.quickCategoryName.value = "";
+    }
+    if (this.elements.quickCategoryColor) {
+      this.elements.quickCategoryColor.value = "#3B82F6";
+    }
+  },
+
+  async createCategoryFromModal() {
+    const name = this.elements.quickCategoryName?.value.trim();
+    if (!name) {
+      this.showMessage("请填写分类名称", "error");
+      this.elements.quickCategoryName?.focus();
+      return;
+    }
+
+    const button = this.elements.confirmQuickCategoryBtn;
+    const previousText = button?.textContent;
+
+    try {
+      if (button) {
+        button.disabled = true;
+        button.textContent = "创建中...";
+      }
+
+      const response = await BookmarkAPI.createCategory({
+        name,
+        color: this.elements.quickCategoryColor?.value || "#3B82F6",
+        description: "",
+      });
+
+      if (!response.success) {
+        throw new Error(response.error || "创建分类失败");
+      }
+
+      const category = response.data;
+      await BookmarkManager.loadCategories();
+      BookmarkManager.renderCategoryFilter();
+      BookmarkManager.renderCategoryRail();
+      await this.loadCategoryOptions(category?.id || "");
+      this.hideQuickCategoryForm();
+      this.showMessage("分类已创建", "success");
+    } catch (error) {
+      console.error("创建分类失败:", error);
+      this.showMessage(error.message || "创建分类失败", "error");
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.textContent = previousText || "创建";
+      }
     }
   },
 

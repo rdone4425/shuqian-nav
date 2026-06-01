@@ -414,11 +414,50 @@
             <label for="bookmarkCategory" data-i18n="bookmarkModal.category"
               >分类</label
             >
-            <select id="bookmarkCategory" class="form-select">
-              <option value="" data-i18n="bookmarkModal.noCategory">
-                无分类
-              </option>
-            </select>
+            <div class="category-select-row">
+              <select id="bookmarkCategory" class="form-select">
+                <option value="" data-i18n="bookmarkModal.noCategory">
+                  无分类
+                </option>
+              </select>
+              <button
+                id="quickCreateCategoryBtn"
+                class="btn btn-secondary quick-category-btn"
+                type="button"
+              >
+                新建
+              </button>
+            </div>
+            <div id="quickCategoryForm" class="quick-category-form hidden">
+              <input
+                id="quickCategoryName"
+                class="form-input"
+                type="text"
+                maxlength="60"
+                placeholder="输入新分类名称"
+              />
+              <input
+                id="quickCategoryColor"
+                class="form-input quick-category-color"
+                type="color"
+                value="#3B82F6"
+                aria-label="分类颜色"
+              />
+              <button
+                id="confirmQuickCategoryBtn"
+                class="btn btn-primary"
+                type="button"
+              >
+                创建
+              </button>
+              <button
+                id="cancelQuickCategoryBtn"
+                class="btn btn-secondary"
+                type="button"
+              >
+                取消
+              </button>
+            </div>
           </div>
           <div class="modal-actions">
             <button

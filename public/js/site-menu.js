@@ -9,10 +9,10 @@ const SiteMenu = {
       desc: "搜索、筛选和批量移动书签",
     },
     {
-      href: "/categories.html",
+      href: "/categories.html?create=1",
       icon: "分类",
-      text: "分类管理",
-      desc: "维护分类、颜色和迁移规则",
+      text: "分类管理 / 新建",
+      desc: "手动创建分类、调整颜色和迁移规则",
     },
     {
       href: "/import.html",
