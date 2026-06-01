@@ -3,6 +3,17 @@
   margin: 24px auto 56px;
 }
 
+.section-action-stack {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.section-action-stack .section-copy {
+  margin: 0;
+}
+
 .management-panel {
   display: grid;
   gap: 16px;
@@ -280,6 +291,11 @@
 
   .management-form-heading {
     grid-template-columns: 1fr;
+  }
+
+  .section-action-stack {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .management-table-wrap {

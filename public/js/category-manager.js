@@ -19,6 +19,7 @@ const CategoryManagerPage = {
       name: document.getElementById("categoryName"),
       color: document.getElementById("categoryColor"),
       description: document.getElementById("categoryDescription"),
+      focusCreate: document.getElementById("focusCreateCategoryBtn"),
       save: document.getElementById("saveCategoryBtn"),
       reset: document.getElementById("resetCategoryBtn"),
       tableBody: document.getElementById("categoriesTableBody"),
@@ -38,6 +39,9 @@ const CategoryManagerPage = {
     });
 
     this.elements.reset?.addEventListener("click", () => this.resetForm());
+    this.elements.focusCreate?.addEventListener("click", () =>
+      this.focusCreateForm(),
+    );
 
     this.elements.tableBody?.addEventListener("click", (event) => {
       const editButton = event.target.closest("[data-edit-id]");

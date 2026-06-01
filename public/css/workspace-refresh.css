@@ -142,7 +142,7 @@ body.nav-site::after,
 
 .nav-site .nav-menu {
   height: 38px !important;
-  display: none !important;
+  display: inline-flex !important;
   align-items: center !important;
   gap: 2px !important;
   padding: 3px !important;
@@ -169,6 +169,11 @@ body.nav-site::after,
 .nav-site .nav-menu-link:hover {
   color: var(--wr-ink) !important;
   background: #fff !important;
+}
+
+.nav-site .nav-menu-link.active {
+  color: #fff !important;
+  background: var(--wr-blue) !important;
 }
 
 .nav-site .header-actions {

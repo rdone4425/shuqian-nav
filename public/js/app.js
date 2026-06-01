@@ -486,6 +486,12 @@ const App = {
 
   openRequestedPanel() {
     const params = new URLSearchParams(window.location.search);
+    if (params.get("new") === "bookmark") {
+      this.showBookmarkModal();
+      window.history.replaceState({}, "", window.location.pathname);
+      return;
+    }
+
     if (params.get("settings") !== "security") {
       return;
     }

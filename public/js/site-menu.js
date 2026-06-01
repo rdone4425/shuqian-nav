@@ -39,10 +39,24 @@ const SiteMenu = {
     },
     {
       key: "categories",
-      href: "/categories.html?create=1",
+      href: "/categories.html",
       icon: "分类",
-      text: "分类管理 / 新建",
-      desc: "手动创建分类、维护书签归属",
+      text: "分类管理",
+      desc: "创建、编辑和迁移分类",
+    },
+    {
+      key: "quick-add-bookmark",
+      href: "/?new=bookmark",
+      icon: "新增",
+      text: "新增书签",
+      desc: "打开首页添加站点弹窗",
+    },
+    {
+      key: "quick-add-category",
+      href: "/categories.html?create=1",
+      icon: "新类",
+      text: "新建分类",
+      desc: "直接聚焦分类创建表单",
     },
     {
       key: "import",
@@ -83,6 +97,7 @@ const SiteMenu = {
 
   // Primary section: bookmarks-manage, categories. The "常用管理" group.
   primaryKeys: ["home", "bookmarks-manage", "categories"],
+  quickActionKeys: ["quick-add-bookmark", "quick-add-category"],
 
   async init() {
     if (this.initialized) return;
@@ -172,12 +187,19 @@ const SiteMenu = {
       this.primaryKeys.includes(item.key),
     );
     const rest = this.items.filter(
-      (item) => !this.primaryKeys.includes(item.key),
+      (item) =>
+        !this.primaryKeys.includes(item.key) &&
+        !this.quickActionKeys.includes(item.key),
+    );
+    const quickActions = this.items.filter((item) =>
+      this.quickActionKeys.includes(item.key),
     );
 
     dropdown.innerHTML = `
       <div class="dropdown-section-label">常用管理</div>
       ${primary.map((item) => this.renderLink(item)).join("")}
+      <div class="dropdown-section-label">快速新建</div>
+      ${quickActions.map((item) => this.renderLink(item)).join("")}
       <div class="dropdown-section-label">维护工具</div>
       ${rest.map((item) => this.renderLink(item)).join("")}
       ${
