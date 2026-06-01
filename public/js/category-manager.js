@@ -1,5 +1,6 @@
 const CategoryManagerPage = {
   categories: [],
+  filters: { search: "" },
   elements: {},
   pendingDeleteCategory: null,
 
@@ -22,6 +23,10 @@ const CategoryManagerPage = {
       focusCreate: document.getElementById("focusCreateCategoryBtn"),
       save: document.getElementById("saveCategoryBtn"),
       reset: document.getElementById("resetCategoryBtn"),
+      search: document.getElementById("categorySearch"),
+      totalCount: document.getElementById("categoryTotalCount"),
+      bookmarkTotal: document.getElementById("categoryBookmarkTotal"),
+      visibleCount: document.getElementById("categoryVisibleCount"),
       tableBody: document.getElementById("categoriesTableBody"),
       deleteModal: document.getElementById("deleteCategoryModal"),
       deleteSummary: document.getElementById("deleteCategorySummary"),
@@ -42,6 +47,11 @@ const CategoryManagerPage = {
     this.elements.focusCreate?.addEventListener("click", () =>
       this.focusCreateForm(),
     );
+
+    this.elements.search?.addEventListener("input", () => {
+      this.filters.search = this.elements.search.value.trim().toLowerCase();
+      this.renderCategories();
+    });
 
     this.elements.tableBody?.addEventListener("click", (event) => {
       const editButton = event.target.closest("[data-edit-id]");
@@ -82,6 +92,7 @@ const CategoryManagerPage = {
         throw new Error(response.error || "加载分类失败");
       }
       this.categories = response.data || [];
+      this.updateSummary(this.categories.length);
       this.renderCategories();
     } catch (error) {
       this.elements.tableBody.innerHTML = `<tr><td colspan="5" class="management-empty danger-text">${AdminUI.escapeHtml(error.message)}</td></tr>`;
@@ -92,10 +103,20 @@ const CategoryManagerPage = {
     if (!this.categories.length) {
       this.elements.tableBody.innerHTML =
         '<tr><td colspan="5" class="management-empty">还没有分类</td></tr>';
+      this.updateSummary(0);
       return;
     }
 
-    this.elements.tableBody.innerHTML = this.categories
+    const visibleCategories = this.getVisibleCategories();
+    this.updateSummary(visibleCategories.length);
+
+    if (!visibleCategories.length) {
+      this.elements.tableBody.innerHTML =
+        '<tr><td colspan="5" class="management-empty">没有匹配的分类</td></tr>';
+      return;
+    }
+
+    this.elements.tableBody.innerHTML = visibleCategories
       .map((category) => {
         const color = AdminUI.escapeHtml(category.color || "#3B82F6");
         const count = Number(category.bookmark_count || 0);
@@ -120,6 +141,34 @@ const CategoryManagerPage = {
         `;
       })
       .join("");
+  },
+
+  getVisibleCategories() {
+    const query = this.filters.search;
+    if (!query) return this.categories;
+
+    return this.categories.filter((category) => {
+      const text = `${category.name || ""} ${category.description || ""}`;
+      return text.toLowerCase().includes(query);
+    });
+  },
+
+  updateSummary(visibleCount = this.getVisibleCategories().length) {
+    const total = this.categories.length;
+    const bookmarkTotal = this.categories.reduce(
+      (sum, category) => sum + Number(category.bookmark_count || 0),
+      0,
+    );
+
+    if (this.elements.totalCount) {
+      this.elements.totalCount.textContent = String(total);
+    }
+    if (this.elements.bookmarkTotal) {
+      this.elements.bookmarkTotal.textContent = String(bookmarkTotal);
+    }
+    if (this.elements.visibleCount) {
+      this.elements.visibleCount.textContent = String(visibleCount);
+    }
   },
 
   startEdit(id) {

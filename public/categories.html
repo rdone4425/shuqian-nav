@@ -12,7 +12,10 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/css/styles.css" />
-    <link rel="stylesheet" href="/css/workspace-refresh.css" />
+    <link
+      rel="stylesheet"
+      href="/css/workspace-refresh.css?v=nav-20260601-ui-refresh"
+    />
     <link rel="stylesheet" href="/css/management.css" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
@@ -36,7 +39,11 @@
           <p class="section-copy">
             在这里新增、改名、调整颜色。删除分类时，分类下的书签会先迁移到你选择的位置。
           </p>
-          <button id="focusCreateCategoryBtn" class="btn btn-primary" type="button">
+          <button
+            id="focusCreateCategoryBtn"
+            class="btn btn-primary"
+            type="button"
+          >
             新建分类
           </button>
         </div>
@@ -50,7 +57,9 @@
                 <span class="section-kicker">新建分类</span>
                 <h3>手动创建或编辑分类</h3>
               </div>
-              <p>创建后可以在首页添加书签时直接选择，也可以在书签管理里批量移动。</p>
+              <p>
+                创建后可以在首页添加书签时直接选择，也可以在书签管理里批量移动。
+              </p>
             </div>
             <div class="management-fields">
               <input id="categoryId" type="hidden" />
@@ -87,6 +96,30 @@
               </button>
             </div>
           </form>
+
+          <div class="management-summary category-summary-grid">
+            <article class="summary-metric">
+              <span>分类总数</span>
+              <strong id="categoryTotalCount">0</strong>
+            </article>
+            <article class="summary-metric">
+              <span>已归类书签</span>
+              <strong id="categoryBookmarkTotal">0</strong>
+            </article>
+            <article class="summary-metric">
+              <span>当前显示</span>
+              <strong id="categoryVisibleCount">0</strong>
+            </article>
+            <label class="field-stack category-search-field">
+              <span>搜索分类</span>
+              <input
+                id="categorySearch"
+                class="management-input"
+                type="search"
+                placeholder="名称或描述"
+              />
+            </label>
+          </div>
 
           <div class="management-table-wrap">
             <table class="management-table">
@@ -133,7 +166,10 @@
           <p id="deleteCategorySummary" class="management-modal-copy"></p>
           <label class="field-stack grow">
             <span>把分类下的书签移动到</span>
-            <select id="deleteCategoryTarget" class="management-select"></select>
+            <select
+              id="deleteCategoryTarget"
+              class="management-select"
+            ></select>
           </label>
           <div class="management-modal-actions">
             <button
@@ -157,8 +193,8 @@
 
     <script src="/js/utils/api.js"></script>
     <script src="/js/auth.js"></script>
-    <script src="/js/site-menu.js?v=nav-20260601-unified-menu"></script>
+    <script src="/js/site-menu.js?v=nav-20260601-menu-actions"></script>
     <script src="/js/admin-common.js"></script>
-    <script src="/js/category-manager.js?v=nav-20260601-manage"></script>
+    <script src="/js/category-manager.js?v=nav-20260601-create-focus"></script>
   </body>
 </html>
