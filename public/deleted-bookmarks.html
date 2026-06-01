@@ -104,6 +104,15 @@
         </section>
 
         <section class="records-section">
+          <div class="records-header">
+            <div>
+              <h3 class="records-title">删除记录</h3>
+              <p class="records-subtitle">
+                勾选记录后可以批量恢复，也可以永久删除不再需要的历史记录。
+              </p>
+            </div>
+            <span id="recordsPageHint" class="records-count">第 1 页</span>
+          </div>
           <div id="recordsList" class="records-list">
             <div class="loading">正在加载已删除书签...</div>
           </div>
@@ -149,6 +158,48 @@
         </div>
         <div class="modal-body">
           <div id="bookmarkDetails"></div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="actionConfirmModal"
+      class="deleted-confirm-modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="actionConfirmTitle"
+    >
+      <div class="deleted-confirm-card">
+        <div class="deleted-confirm-header">
+          <div>
+            <span id="actionConfirmKicker" class="danger-kicker">确认操作</span>
+            <h3 id="actionConfirmTitle">确认操作</h3>
+          </div>
+          <button
+            id="closeActionConfirm"
+            class="btn btn-secondary"
+            type="button"
+          >
+            关闭
+          </button>
+        </div>
+        <p id="actionConfirmMessage" class="deleted-confirm-copy"></p>
+        <p id="actionConfirmHint" class="deleted-confirm-hint"></p>
+        <div class="deleted-confirm-actions">
+          <button
+            id="cancelActionConfirm"
+            class="btn btn-secondary"
+            type="button"
+          >
+            取消
+          </button>
+          <button
+            id="confirmActionConfirm"
+            class="btn btn-danger"
+            type="button"
+          >
+            确认
+          </button>
         </div>
       </div>
     </div>
