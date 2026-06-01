@@ -6,6 +6,14 @@ const ImportManager = {
   replaceConfirmationToken: "CONFIRM_REPLACE_BOOKMARKS",
   clearAllConfirmationToken: "CONFIRM_CLEAR_ALL_BOOKMARKS",
 
+  setHomeGridView() {
+    try {
+      localStorage.setItem("bookmark_view_mode", "grid");
+    } catch (error) {
+      console.warn("保存首页视图偏好失败:", error);
+    }
+  },
+
   async init() {
     this.bindEvents();
     this.updateStepDisplay();
@@ -362,12 +370,12 @@ const ImportManager = {
         throw new Error(response.error || "导入失败");
       }
 
-      Storage.viewMode.set("grid");
+      this.setHomeGridView();
       this.showImportResult(response.data);
     } catch (error) {
       console.error("导入失败:", error);
       if (error.name === "TimeoutError") {
-        Storage.viewMode.set("grid");
+        this.setHomeGridView();
         document.getElementById("progressFill").style.width = "100%";
         document.getElementById("progressText").textContent =
           "导入仍在后台完成，请回首页刷新确认";
@@ -444,7 +452,7 @@ const ImportManager = {
   },
 
   finish() {
-    Storage.viewMode.set("grid");
+    this.setHomeGridView();
     window.location.href = "/?view=grid";
   },
 

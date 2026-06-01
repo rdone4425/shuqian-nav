@@ -1,0 +1,5 @@
+session_id: 20260601-221226
+task: "Refactor shuqian-nav according to docs/refactor-roadmap.md phase 1: separate public homepage scripts from admin scripts, define the home/admin loading matrix, preserve Cloudflare Pages no-build deployment, and verify auth/API boundaries."
+agent_count: 6
+base_branch: main
+created: 2026-06-01T14:12:26.914831+00:00
