@@ -58,6 +58,11 @@
               <span id="totalInaccessible" class="stat-value">0</span>
             </div>
             <div class="stat-group">
+              <span class="stat-icon">VIEW</span>
+              <span class="stat-text">当前显示</span>
+              <span id="visibleNotifications" class="stat-value">0</span>
+            </div>
+            <div class="stat-group">
               <span class="stat-icon">TIME</span>
               <span class="stat-text">最近检查</span>
               <span id="lastCheckTime" class="stat-value">-</span>
@@ -67,7 +72,22 @@
 
         <section class="notification-card">
           <div class="notification-card-header">
-            <h2 class="notification-card-title">最近记录</h2>
+            <div>
+              <h2 class="notification-card-title">最近记录</h2>
+              <p id="filterStatus" class="notification-filter-status">
+                显示全部维护记录
+              </p>
+            </div>
+            <label class="notification-filter-control">
+              <span>筛选</span>
+              <select id="notificationFilter" class="filter-select">
+                <option value="all">全部记录</option>
+                <option value="issues">只看异常</option>
+                <option value="clean">无异常记录</option>
+                <option value="weekly_auto_check">自动检查</option>
+                <option value="weekly_check_notification">自动通知</option>
+              </select>
+            </label>
           </div>
           <div id="notificationsList">
             <div class="notification-description">正在加载通知记录...</div>
@@ -82,10 +102,41 @@
     <script src="/js/site-menu.js?v=nav-20260601-unified-menu"></script>
     <script src="/js/admin-common.js"></script>
     <script>
+      const notificationState = {
+        items: [],
+        filter: "all",
+        loading: false,
+      };
+
       function getNotificationLabel(type) {
         if (type === "weekly_check_notification") return "自动通知";
         if (type === "weekly_auto_check") return "自动检查";
         return "系统记录";
+      }
+
+      function getInaccessibleCount(item) {
+        return item.inaccessible ?? item.inaccessibleCount ?? 0;
+      }
+
+      function matchesNotificationFilter(item) {
+        const inaccessible = getInaccessibleCount(item);
+        switch (notificationState.filter) {
+          case "issues":
+            return inaccessible > 0;
+          case "clean":
+            return inaccessible === 0;
+          case "weekly_auto_check":
+          case "weekly_check_notification":
+            return item.type === notificationState.filter;
+          case "all":
+          default:
+            return true;
+        }
+      }
+
+      function getFilterLabel() {
+        const filter = document.getElementById("notificationFilter");
+        return filter?.selectedOptions?.[0]?.textContent || "全部记录";
       }
 
       function renderNotificationItem(item) {
@@ -95,10 +146,7 @@
           typeof item.total === "number"
             ? item.total
             : item.inaccessibleCount || 0;
-        const inaccessible =
-          typeof item.inaccessible === "number"
-            ? item.inaccessible
-            : item.inaccessibleCount || 0;
+        const inaccessible = getInaccessibleCount(item);
         const deleted =
           typeof item.deleted === "number"
             ? item.deleted
@@ -152,17 +200,18 @@
         `;
       }
 
-      function updateSummary(items) {
+      function updateSummary(items, visibleItems) {
         const totalChecks = items.length;
         const totalInaccessible = items.reduce(
-          (sum, item) =>
-            sum + (item.inaccessible ?? item.inaccessibleCount ?? 0),
+          (sum, item) => sum + getInaccessibleCount(item),
           0,
         );
         const lastItem = items[0];
         document.getElementById("totalChecks").textContent = totalChecks;
         document.getElementById("totalInaccessible").textContent =
           totalInaccessible;
+        document.getElementById("visibleNotifications").textContent =
+          visibleItems.length;
         document.getElementById("lastCheckTime").textContent = lastItem
           ? AdminUI.formatDate(
               lastItem.checkedAt || lastItem.timestamp || lastItem.createdAt,
@@ -170,8 +219,37 @@
           : "-";
       }
 
+      function renderNotifications() {
+        const container = document.getElementById("notificationsList");
+        const visibleItems = notificationState.items.filter(
+          matchesNotificationFilter,
+        );
+
+        updateSummary(notificationState.items, visibleItems);
+        document.getElementById("filterStatus").textContent =
+          `${getFilterLabel()}：${visibleItems.length}/${notificationState.items.length} 条`;
+
+        if (!notificationState.items.length) {
+          container.innerHTML =
+            '<div class="notification-description">暂时还没有通知记录。</div>';
+          return;
+        }
+
+        if (!visibleItems.length) {
+          container.innerHTML = `<div class="notification-description">当前筛选下没有记录。</div>`;
+          return;
+        }
+
+        container.innerHTML = visibleItems.map(renderNotificationItem).join("");
+      }
+
       async function loadNotifications() {
         const container = document.getElementById("notificationsList");
+        const button = document.getElementById("refreshBtn");
+        const originalText = button.textContent;
+        notificationState.loading = true;
+        button.disabled = true;
+        button.textContent = "刷新中...";
         container.innerHTML =
           '<div class="notification-description">正在加载通知记录...</div>';
 
@@ -181,25 +259,32 @@
             throw new Error(response.error || "加载记录失败");
           }
 
-          const items = response.data || [];
-          updateSummary(items);
-
-          if (!items.length) {
-            container.innerHTML =
-              '<div class="notification-description">暂时还没有通知记录。</div>';
-            return;
-          }
-
-          container.innerHTML = items.map(renderNotificationItem).join("");
+          notificationState.items = response.data || [];
+          renderNotifications();
         } catch (error) {
+          notificationState.items = [];
+          updateSummary([], []);
           container.innerHTML = `<div class="notification-description">加载失败：${AdminUI.escapeHtml(error.message)}</div>`;
+        } finally {
+          notificationState.loading = false;
+          button.disabled = false;
+          button.textContent = originalText;
         }
       }
 
       document.addEventListener("DOMContentLoaded", async () => {
+        const authenticated = await AdminUI.requireAuth();
+        if (!authenticated) return;
+
         document
           .getElementById("refreshBtn")
           .addEventListener("click", loadNotifications);
+        document
+          .getElementById("notificationFilter")
+          .addEventListener("change", (event) => {
+            notificationState.filter = event.target.value;
+            renderNotifications();
+          });
         await loadNotifications();
       });
     </script>

@@ -201,6 +201,25 @@ body {
     gap: var(--spacing-sm);
 }
 
+.notification-filter-status {
+    margin: var(--spacing-xs) 0 0;
+    color: var(--text-muted);
+    font-size: var(--font-sm);
+}
+
+.notification-filter-control {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: var(--text-secondary);
+    font-size: var(--font-sm);
+    font-weight: 700;
+}
+
+.notification-filter-control .filter-select {
+    min-width: 150px;
+}
+
 .notification-meta {
     display: flex;
     flex-direction: column;
