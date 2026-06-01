@@ -271,6 +271,40 @@
           </button>
         </div>
       </footer>
+
+      <div
+        id="importConfirmModal"
+        class="import-confirm-modal hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="importConfirmTitle"
+      >
+        <div class="import-confirm-card">
+          <div class="import-confirm-header">
+            <div>
+              <span id="importConfirmKicker" class="danger-kicker">危险操作</span>
+              <h3 id="importConfirmTitle">确认操作</h3>
+            </div>
+            <button id="importConfirmClose" class="btn btn-secondary" type="button">
+              关闭
+            </button>
+          </div>
+          <p id="importConfirmMessage" class="import-confirm-copy"></p>
+          <label class="import-confirm-field">
+            <span id="importConfirmInputLabel">输入确认文字</span>
+            <input id="importConfirmInput" class="form-input" type="text" autocomplete="off" />
+          </label>
+          <p id="importConfirmHint" class="import-confirm-hint"></p>
+          <div class="import-confirm-actions">
+            <button id="importConfirmCancel" class="btn btn-secondary" type="button">
+              取消
+            </button>
+            <button id="importConfirmSubmit" class="btn btn-danger" type="button">
+              确认
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script src="/js/utils/storage.js"></script>
