@@ -9,9 +9,9 @@ const App = {
       await BookmarkManager.init();
       this.isInitialized = true;
     } catch (error) {
-      console.error("应用初始化失败", error);
+      console.error("应用初始化失败:", error);
       this.showMessage(
-        `${this.t("messages.appInitFailed")}：${error.message}`,
+        `${this.t("messages.appInitFailed")}: ${error.message}`,
         "error",
       );
     }

@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="/css/styles.css" />
     <link
       rel="stylesheet"
-      href="/css/workspace-refresh.css?v=nav-20260602-public-home"
+      href="/css/workspace-refresh.css?v=nav-20260603-home-design"
     />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
@@ -36,15 +36,62 @@
           title="聚焦搜索"
           data-i18n-title="header.searchTitle"
           data-site-header-primary
+          type="button"
         >
-          <span class="btn-icon">⌕</span>
-          <span class="action-btn-label" data-i18n="header.searchButton"
-            >搜索</span
-          >
+          <span class="btn-icon" aria-hidden="true">⌕</span>
+          <span class="action-btn-label" data-i18n="header.searchButton">
+            搜索
+          </span>
         </button>
       </div>
 
       <main class="main-content home-content nav-home">
+        <section class="nav-overview" aria-labelledby="homeTitle">
+          <div class="nav-overview-copy">
+            <p class="nav-kicker" data-i18n="home.heroKicker">
+              个人工作台
+            </p>
+            <h2 id="homeTitle" data-i18n="home.heroTitle">
+              把每天打开的网站，整理成一个清爽的入口。
+            </h2>
+            <p data-i18n="home.heroCopy">
+              搜索、分类、排序和访问统计都在第一屏完成；适合放工作资料、学习资源和常用工具。
+            </p>
+          </div>
+          <div class="nav-overview-panel" aria-hidden="true">
+            <div class="launch-strip">
+              <span>Quick launch</span>
+              <strong>Ctrl K</strong>
+            </div>
+            <div class="mini-dock">
+              <img
+                src="https://www.google.com/s2/favicons?domain_url=https%3A%2F%2Fgithub.com&sz=64"
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
+              <img
+                src="https://www.google.com/s2/favicons?domain_url=https%3A%2F%2Fdeveloper.mozilla.org&sz=64"
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
+              <img
+                src="https://www.google.com/s2/favicons?domain_url=https%3A%2F%2Fwww.figma.com&sz=64"
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
+              <img
+                src="https://www.google.com/s2/favicons?domain_url=https%3A%2F%2Fwww.notion.so&sz=64"
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          </div>
+        </section>
+
         <section class="nav-toolbar" aria-label="搜索、筛选和统计">
           <div
             id="searchContainer"
@@ -62,6 +109,7 @@
                 id="searchBtn"
                 class="search-btn"
                 data-i18n="search.action"
+                type="button"
               >
                 搜索
               </button>
@@ -69,6 +117,7 @@
                 id="clearSearchBtn"
                 class="search-btn clear-btn"
                 data-i18n="common.clear"
+                type="button"
               >
                 清除
               </button>
@@ -77,9 +126,9 @@
 
           <div class="nav-filter-row">
             <label class="filter-group">
-              <span class="filter-label" data-i18n="filter.categoryLabel"
-                >分类</span
-              >
+              <span class="filter-label" data-i18n="filter.categoryLabel">
+                分类
+              </span>
               <select id="categoryFilter" class="filter-select">
                 <option value="" data-i18n="filter.allCategories">
                   全部分类
@@ -87,9 +136,9 @@
               </select>
             </label>
             <label class="filter-group">
-              <span class="filter-label" data-i18n="filter.sortLabel"
-                >排序</span
-              >
+              <span class="filter-label" data-i18n="filter.sortLabel">
+                排序
+              </span>
               <select id="sortSelect" class="filter-select">
                 <option value="created_at:desc" data-i18n="filter.newest">
                   最新收录
@@ -129,36 +178,40 @@
                 class="view-btn active"
                 title="网格视图"
                 data-i18n-title="filter.gridView"
+                type="button"
               >
-                <span class="icon">▦</span>
-                <span class="view-label" data-i18n="filter.gridShort"
-                  >网格</span
-                >
+                <span class="icon" aria-hidden="true">▦</span>
+                <span class="view-label" data-i18n="filter.gridShort">
+                  网格
+                </span>
               </button>
               <button
                 id="listViewBtn"
                 class="view-btn"
                 title="列表视图"
                 data-i18n-title="filter.listView"
+                type="button"
               >
-                <span class="icon">☷</span>
-                <span class="view-label" data-i18n="filter.listShort"
-                  >列表</span
-                >
+                <span class="icon" aria-hidden="true">☰</span>
+                <span class="view-label" data-i18n="filter.listShort">
+                  列表
+                </span>
               </button>
             </div>
           </div>
 
           <div class="stats-bar nav-stats">
             <div class="stats-item">
-              <span class="stats-label" data-i18n="stats.total">站点总数</span>
-              <span id="totalCount" class="stats-value">6</span>
+              <span class="stats-label" data-i18n="stats.total">
+                站点总数
+              </span>
+              <span id="totalCount" class="stats-value">0</span>
             </div>
             <div class="stats-item">
-              <span class="stats-label" data-i18n="stats.currentPage"
-                >当前范围</span
-              >
-              <span id="currentPageInfo" class="stats-value">1-6</span>
+              <span class="stats-label" data-i18n="stats.currentPage">
+                当前范围
+              </span>
+              <span id="currentPageInfo" class="stats-value">0</span>
             </div>
           </div>
         </section>
@@ -175,7 +228,9 @@
           aria-labelledby="directoryTitle"
         >
           <div class="nav-directory-title">
-            <p class="nav-kicker" data-i18n="home.bookmarksKicker">导航目录</p>
+            <p class="nav-kicker" data-i18n="home.bookmarksKicker">
+              导航目录
+            </p>
             <h2 id="directoryTitle" data-i18n="home.bookmarksTitle">
               常用站点
             </h2>
@@ -210,6 +265,7 @@
             id="retryBtn"
             class="btn btn-primary"
             data-i18n="common.retry"
+            type="button"
           >
             重试
           </button>
@@ -221,13 +277,13 @@
         >
           <div class="pagination">
             <button id="prevPageBtn" class="pagination-btn" disabled>
-              <span class="icon">&lt;</span>
+              <span class="icon" aria-hidden="true">&lt;</span>
               <span data-i18n="pagination.prev">上一页</span>
             </button>
             <div id="pageNumbers" class="page-numbers"></div>
             <button id="nextPageBtn" class="pagination-btn" disabled>
               <span data-i18n="pagination.next">下一页</span>
-              <span class="icon">&gt;</span>
+              <span class="icon" aria-hidden="true">&gt;</span>
             </button>
           </div>
         </div>
@@ -238,7 +294,7 @@
       <div id="messageText" class="message-text"></div>
     </div>
 
-    <script src="/js/home/i18n.js?v=nav-20260602-home-runtime"></script>
+    <script src="/js/home/i18n.js?v=nav-20260603-home-design"></script>
     <script src="/js/home/storage.js?v=nav-20260602-public-home"></script>
     <script src="/js/shared/api.js?v=nav-20260602-shared-runtime"></script>
     <script src="/js/home/sorting.js?v=nav-20260601-home-split"></script>
@@ -247,7 +303,7 @@
     <script src="/js/home/bookmarks.js?v=nav-20260602-public-home"></script>
     <script src="/js/home/ui-enhancements.js?v=nav-20260601-home-split"></script>
     <script src="/js/shared/site-menu.js?v=nav-20260603-admin-shell"></script>
-    <script src="/js/home/app.js?v=nav-20260602-public-home"></script>
+    <script src="/js/home/app.js?v=nav-20260603-home-design"></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         if (window.I18n) {

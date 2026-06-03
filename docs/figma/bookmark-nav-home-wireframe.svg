@@ -1,0 +1,187 @@
+<svg width="1440" height="1180" viewBox="0 0 1440 1180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1440" height="1180" fill="#F3F5F0"/>
+  <rect width="1440" height="310" fill="url(#topWash)"/>
+  <rect x="0" y="0" width="460" height="1180" fill="url(#leftWash)"/>
+  <rect x="960" y="0" width="480" height="1180" fill="url(#rightWash)"/>
+
+  <rect x="0" y="0" width="1440" height="68" fill="white" fill-opacity="0.92"/>
+  <line x1="0" y1="67.5" x2="1440" y2="67.5" stroke="#DCE3DF"/>
+  <rect x="110" y="18" width="34" height="34" rx="8" fill="url(#brandGrad)"/>
+  <text x="156" y="29" fill="#172033" font-family="Inter, Noto Sans SC, sans-serif" font-size="16" font-weight="800">书签导航</text>
+  <text x="156" y="47" fill="#7C8797" font-family="Inter, Noto Sans SC, sans-serif" font-size="12" font-weight="600">你的常用站点入口</text>
+  <rect x="1136" y="16" width="78" height="36" rx="8" fill="#172033"/>
+  <text x="1162" y="38" fill="white" font-family="Inter, Noto Sans SC, sans-serif" font-size="13" font-weight="800">搜索</text>
+  <rect x="1224" y="16" width="76" height="36" rx="8" fill="white" stroke="#DCE3DF"/>
+  <text x="1249" y="38" fill="#46566D" font-family="Inter, Noto Sans SC, sans-serif" font-size="13" font-weight="800">菜单</text>
+  <rect x="1310" y="16" width="88" height="36" rx="8" fill="#FFF7F7" stroke="#F0D4D4"/>
+  <text x="1331" y="38" fill="#8A2D2D" font-family="Inter, Noto Sans SC, sans-serif" font-size="13" font-weight="800">登录后台</text>
+
+  <g transform="translate(110 96)">
+    <rect width="790" height="176" rx="8" fill="white" fill-opacity="0.86" stroke="#DCE3DF"/>
+    <rect x="780" width="10" height="176" fill="url(#railGrad)"/>
+    <text x="32" y="45" fill="#0B8F66" font-family="Inter, Noto Sans SC, sans-serif" font-size="12" font-weight="850">个人工作台</text>
+    <text x="32" y="90" fill="#172033" font-family="Inter, Noto Sans SC, sans-serif" font-size="38" font-weight="850">把每天打开的网站，整理成一个清爽的入口。</text>
+    <text x="32" y="132" fill="#46566D" font-family="Inter, Noto Sans SC, sans-serif" font-size="16" font-weight="500">搜索、分类、排序和访问统计都在第一屏完成；适合放工作资料、学习资源和常用工具。</text>
+  </g>
+
+  <g transform="translate(924 96)">
+    <rect width="366" height="176" rx="8" fill="#172033"/>
+    <path d="M0 0H366V176H0V0Z" fill="url(#gridPattern)" opacity="0.45"/>
+    <text x="18" y="34" fill="white" fill-opacity="0.74" font-family="Inter, sans-serif" font-size="12" font-weight="760">QUICK LAUNCH</text>
+    <rect x="292" y="18" width="48" height="30" rx="6" fill="white" fill-opacity="0.1" stroke="white" stroke-opacity="0.2"/>
+    <text x="303" y="38" fill="white" font-family="Inter, sans-serif" font-size="12" font-weight="800">Ctrl K</text>
+    <g transform="translate(18 96)">
+      <rect width="72" height="58" rx="8" fill="white" fill-opacity="0.1" stroke="white" stroke-opacity="0.16"/>
+      <rect x="96" width="72" height="58" rx="8" fill="white" fill-opacity="0.1" stroke="white" stroke-opacity="0.16"/>
+      <rect x="192" width="72" height="58" rx="8" fill="white" fill-opacity="0.1" stroke="white" stroke-opacity="0.16"/>
+      <rect x="288" width="42" height="58" rx="8" fill="white" fill-opacity="0.1" stroke="white" stroke-opacity="0.16"/>
+      <circle cx="36" cy="29" r="15" fill="#2764E7"/>
+      <circle cx="132" cy="29" r="15" fill="#0B8F66"/>
+      <circle cx="228" cy="29" r="15" fill="#D9563F"/>
+      <circle cx="309" cy="29" r="15" fill="#C98213"/>
+    </g>
+  </g>
+
+  <g transform="translate(110 290)">
+    <rect width="1180" height="138" rx="8" fill="white" fill-opacity="0.9" stroke="#DCE3DF"/>
+    <rect x="14" y="14" width="760" height="56" rx="8" fill="white" stroke="#C9D4CE"/>
+    <rect x="24" y="27" width="30" height="30" rx="6" fill="#EDF4FF"/>
+    <text x="63" y="50" fill="#A6AFBD" font-family="Inter, Noto Sans SC, sans-serif" font-size="15">搜索标题、描述、网址...</text>
+    <rect x="636" y="23" width="72" height="38" rx="6" fill="#172033"/>
+    <text x="650" y="47" fill="white" font-family="Inter, Noto Sans SC, sans-serif" font-size="13" font-weight="800">搜索</text>
+    <rect x="716" y="23" width="62" height="38" rx="6" fill="#F5F7F5" stroke="#DCE3DF"/>
+    <text x="732" y="47" fill="#46566D" font-family="Inter, Noto Sans SC, sans-serif" font-size="13" font-weight="800">清除</text>
+    <text x="18" y="97" fill="#7C8797" font-family="Inter, Noto Sans SC, sans-serif" font-size="11" font-weight="800">分类</text>
+    <rect x="14" y="103" width="210" height="38" rx="6" fill="white" stroke="#DCE3DF"/>
+    <text x="28" y="127" fill="#172033" font-family="Inter, Noto Sans SC, sans-serif" font-size="13" font-weight="700">全部分类</text>
+    <text x="242" y="97" fill="#7C8797" font-family="Inter, Noto Sans SC, sans-serif" font-size="11" font-weight="800">排序</text>
+    <rect x="238" y="103" width="210" height="38" rx="6" fill="white" stroke="#DCE3DF"/>
+    <text x="252" y="127" fill="#172033" font-family="Inter, Noto Sans SC, sans-serif" font-size="13" font-weight="700">最新收录</text>
+    <rect x="462" y="103" width="156" height="38" rx="6" fill="#F8FAF7" stroke="#DCE3DF"/>
+    <rect x="465" y="106" width="75" height="32" rx="5" fill="white"/>
+    <text x="491" y="127" fill="#172033" font-family="Inter, Noto Sans SC, sans-serif" font-size="12" font-weight="800">网格</text>
+    <text x="568" y="127" fill="#7C8797" font-family="Inter, Noto Sans SC, sans-serif" font-size="12" font-weight="800">列表</text>
+    <rect x="794" y="14" width="172" height="110" rx="8" fill="#F8FAF7" stroke="#E8EEE9"/>
+    <text x="812" y="52" fill="#7C8797" font-family="Inter, Noto Sans SC, sans-serif" font-size="12" font-weight="800">站点总数</text>
+    <text x="812" y="91" fill="#172033" font-family="Inter, sans-serif" font-size="32" font-weight="850">24</text>
+    <rect x="978" y="14" width="172" height="110" rx="8" fill="#F8FAF7" stroke="#E8EEE9"/>
+    <text x="996" y="52" fill="#7C8797" font-family="Inter, Noto Sans SC, sans-serif" font-size="12" font-weight="800">当前范围</text>
+    <text x="996" y="91" fill="#172033" font-family="Inter, sans-serif" font-size="32" font-weight="850">1-20</text>
+  </g>
+
+  <g transform="translate(110 444)">
+    <rect width="1180" height="48" rx="8" fill="white" fill-opacity="0.78" stroke="#DCE3DF"/>
+    <g transform="translate(10 9)">
+      <rect width="96" height="30" rx="15" fill="white" stroke="#DCE3DF"/>
+      <circle cx="16" cy="15" r="4" fill="#2764E7"/>
+      <text x="28" y="20" fill="#172033" font-family="Inter, Noto Sans SC, sans-serif" font-size="12" font-weight="850">全部分类</text>
+      <rect x="108" width="74" height="30" rx="15" fill="white" stroke="#BFD8CE"/>
+      <circle cx="124" cy="15" r="4" fill="#0B8F66"/>
+      <text x="136" y="20" fill="#0B8F66" font-family="Inter, Noto Sans SC, sans-serif" font-size="12" font-weight="850">工具</text>
+      <rect x="194" width="74" height="30" rx="15" fill="white" stroke="#C9D8F6"/>
+      <circle cx="210" cy="15" r="4" fill="#2764E7"/>
+      <text x="222" y="20" fill="#2764E7" font-family="Inter, Noto Sans SC, sans-serif" font-size="12" font-weight="850">学习</text>
+      <rect x="280" width="74" height="30" rx="15" fill="white" stroke="#F1D5B5"/>
+      <circle cx="296" cy="15" r="4" fill="#C98213"/>
+      <text x="308" y="20" fill="#C98213" font-family="Inter, Noto Sans SC, sans-serif" font-size="12" font-weight="850">娱乐</text>
+    </g>
+  </g>
+
+  <g transform="translate(110 530)">
+    <text x="0" y="0" fill="#0B8F66" font-family="Inter, Noto Sans SC, sans-serif" font-size="12" font-weight="850">导航目录</text>
+    <text x="0" y="34" fill="#172033" font-family="Inter, Noto Sans SC, sans-serif" font-size="20" font-weight="850">常用站点</text>
+    <text x="0" y="60" fill="#7C8797" font-family="Inter, Noto Sans SC, sans-serif" font-size="13">所有站点按当前筛选条件展示，点击网址直接访问。</text>
+  </g>
+
+  <g transform="translate(110 610)">
+    <g>
+      <rect width="278" height="214" rx="8" fill="white" stroke="#DCE3DF"/>
+      <rect width="4" height="214" rx="2" fill="#0B8F66"/>
+      <rect x="18" y="18" width="58" height="58" rx="6" fill="#EAF7F1" stroke="#BFD8CE"/>
+      <circle cx="47" cy="47" r="18" fill="#0B8F66"/>
+      <text x="90" y="38" fill="#172033" font-family="Inter, Noto Sans SC, sans-serif" font-size="15" font-weight="850">GitHub</text>
+      <text x="90" y="60" fill="#7C8797" font-family="Inter, sans-serif" font-size="12" font-weight="650">https://github.com</text>
+      <text x="18" y="110" fill="#46566D" font-family="Inter, Noto Sans SC, sans-serif" font-size="13">代码托管、项目协作和日常开发入口。</text>
+      <rect x="18" y="138" width="58" height="22" rx="11" fill="#F8FAF7" stroke="#E8EEE9"/>
+      <text x="30" y="153" fill="#7C8797" font-family="Inter, Noto Sans SC, sans-serif" font-size="10" font-weight="800">访问 18</text>
+      <line x1="18" y1="176.5" x2="258" y2="176.5" stroke="#E8EEE9"/>
+      <rect x="18" y="188" width="68" height="24" rx="12" fill="#0B8F6625" stroke="#0B8F6640"/>
+      <circle cx="31" cy="200" r="4" fill="#0B8F66"/>
+      <text x="42" y="204" fill="#0B8F66" font-family="Inter, Noto Sans SC, sans-serif" font-size="11" font-weight="850">工具</text>
+    </g>
+    <g transform="translate(296 0)">
+      <rect width="278" height="214" rx="8" fill="white" stroke="#DCE3DF"/>
+      <rect width="4" height="214" rx="2" fill="#2764E7"/>
+      <rect x="18" y="18" width="58" height="58" rx="6" fill="#EDF4FF" stroke="#C9D8F6"/>
+      <circle cx="47" cy="47" r="18" fill="#2764E7"/>
+      <text x="90" y="38" fill="#172033" font-family="Inter, Noto Sans SC, sans-serif" font-size="15" font-weight="850">MDN Docs</text>
+      <text x="90" y="60" fill="#7C8797" font-family="Inter, sans-serif" font-size="12" font-weight="650">developer.mozilla.org</text>
+      <text x="18" y="110" fill="#46566D" font-family="Inter, Noto Sans SC, sans-serif" font-size="13">前端文档、Web API 和浏览器兼容资料。</text>
+      <rect x="18" y="138" width="58" height="22" rx="11" fill="#F8FAF7" stroke="#E8EEE9"/>
+      <text x="30" y="153" fill="#7C8797" font-family="Inter, Noto Sans SC, sans-serif" font-size="10" font-weight="800">访问 9</text>
+      <line x1="18" y1="176.5" x2="258" y2="176.5" stroke="#E8EEE9"/>
+      <rect x="18" y="188" width="68" height="24" rx="12" fill="#2764E725" stroke="#2764E740"/>
+      <circle cx="31" cy="200" r="4" fill="#2764E7"/>
+      <text x="42" y="204" fill="#2764E7" font-family="Inter, Noto Sans SC, sans-serif" font-size="11" font-weight="850">学习</text>
+    </g>
+    <g transform="translate(592 0)">
+      <rect width="278" height="214" rx="8" fill="white" stroke="#DCE3DF"/>
+      <rect width="4" height="214" rx="2" fill="#D9563F"/>
+      <rect x="18" y="18" width="58" height="58" rx="6" fill="#FFF0EC" stroke="#F2C6BB"/>
+      <circle cx="47" cy="47" r="18" fill="#D9563F"/>
+      <text x="90" y="38" fill="#172033" font-family="Inter, Noto Sans SC, sans-serif" font-size="15" font-weight="850">Figma</text>
+      <text x="90" y="60" fill="#7C8797" font-family="Inter, sans-serif" font-size="12" font-weight="650">https://figma.com</text>
+      <text x="18" y="110" fill="#46566D" font-family="Inter, Noto Sans SC, sans-serif" font-size="13">设计协作、组件库和产品稿入口。</text>
+      <rect x="18" y="138" width="58" height="22" rx="11" fill="#F8FAF7" stroke="#E8EEE9"/>
+      <text x="30" y="153" fill="#7C8797" font-family="Inter, Noto Sans SC, sans-serif" font-size="10" font-weight="800">访问 7</text>
+      <line x1="18" y1="176.5" x2="258" y2="176.5" stroke="#E8EEE9"/>
+      <rect x="18" y="188" width="68" height="24" rx="12" fill="#D9563F25" stroke="#D9563F40"/>
+      <circle cx="31" cy="200" r="4" fill="#D9563F"/>
+      <text x="42" y="204" fill="#D9563F" font-family="Inter, Noto Sans SC, sans-serif" font-size="11" font-weight="850">设计</text>
+    </g>
+    <g transform="translate(888 0)">
+      <rect width="278" height="214" rx="8" fill="white" stroke="#DCE3DF"/>
+      <rect width="4" height="214" rx="2" fill="#C98213"/>
+      <rect x="18" y="18" width="58" height="58" rx="6" fill="#FFF6E8" stroke="#F1D5B5"/>
+      <circle cx="47" cy="47" r="18" fill="#C98213"/>
+      <text x="90" y="38" fill="#172033" font-family="Inter, Noto Sans SC, sans-serif" font-size="15" font-weight="850">Notion</text>
+      <text x="90" y="60" fill="#7C8797" font-family="Inter, sans-serif" font-size="12" font-weight="650">https://notion.so</text>
+      <text x="18" y="110" fill="#46566D" font-family="Inter, Noto Sans SC, sans-serif" font-size="13">笔记、项目资料和知识库入口。</text>
+      <rect x="18" y="138" width="58" height="22" rx="11" fill="#F8FAF7" stroke="#E8EEE9"/>
+      <text x="30" y="153" fill="#7C8797" font-family="Inter, Noto Sans SC, sans-serif" font-size="10" font-weight="800">访问 5</text>
+      <line x1="18" y1="176.5" x2="258" y2="176.5" stroke="#E8EEE9"/>
+      <rect x="18" y="188" width="68" height="24" rx="12" fill="#C9821325" stroke="#C9821340"/>
+      <circle cx="31" cy="200" r="4" fill="#C98213"/>
+      <text x="42" y="204" fill="#C98213" font-family="Inter, Noto Sans SC, sans-serif" font-size="11" font-weight="850">资料</text>
+    </g>
+  </g>
+
+  <defs>
+    <linearGradient id="topWash" x1="720" y1="0" x2="720" y2="310" gradientUnits="userSpaceOnUse">
+      <stop stop-color="white" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="leftWash" x1="0" y1="0" x2="460" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B8F66" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#0B8F66" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="rightWash" x1="1440" y1="0" x2="960" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D9563F" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#D9563F" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="brandGrad" x1="110" y1="18" x2="144" y2="52" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B8F66"/>
+      <stop offset="0.56" stop-color="#2764E7"/>
+      <stop offset="1" stop-color="#884A91"/>
+    </linearGradient>
+    <linearGradient id="railGrad" x1="785" y1="0" x2="785" y2="176" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2764E7"/>
+      <stop offset="0.4" stop-color="#0B8F66"/>
+      <stop offset="0.68" stop-color="#C98213"/>
+      <stop offset="1" stop-color="#D9563F"/>
+    </linearGradient>
+    <pattern id="gridPattern" width="46" height="46" patternUnits="userSpaceOnUse">
+      <path d="M46 0H0V46" stroke="white" stroke-opacity="0.14"/>
+    </pattern>
+  </defs>
+</svg>

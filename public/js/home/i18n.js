@@ -46,6 +46,10 @@ const I18n = {
       },
       home: {
         logoSubtitle: "你的常用站点入口",
+        heroKicker: "个人工作台",
+        heroTitle: "把每天打开的网站，整理成一个清爽的入口。",
+        heroCopy:
+          "搜索、分类、排序和访问统计都在第一屏完成；适合放工作资料、学习资源和常用工具。",
         bookmarksKicker: "导航目录",
         bookmarksTitle: "常用站点",
         bookmarksCopy: "所有站点按当前筛选条件展示，点击网址直接访问。",
@@ -123,6 +127,10 @@ const I18n = {
       },
       home: {
         logoSubtitle: "Your everyday site entry",
+        heroKicker: "Personal workspace",
+        heroTitle: "Keep the sites you open every day in one clean entry.",
+        heroCopy:
+          "Search, categories, sorting, and visit stats stay in the first screen for a faster daily workflow.",
         bookmarksKicker: "Directory",
         bookmarksTitle: "Common sites",
         bookmarksCopy:

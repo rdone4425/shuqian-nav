@@ -80,12 +80,10 @@ class ViewManager {
     // 使用 Intersection Observer 实现卡片进入动画
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry, index) => {
+        entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            setTimeout(() => {
-              entry.target.style.opacity = "1";
-              entry.target.style.transform = "translateY(0)";
-            }, index * 100);
+            entry.target.style.transform = "translateY(0)";
+            observer.unobserve(entry.target);
           }
         });
       },
@@ -98,9 +96,8 @@ class ViewManager {
     const observeBookmarkCards = () => {
       document.querySelectorAll(".bookmark-card").forEach((card) => {
         if (!card.hasAttribute("data-observed")) {
-          card.style.opacity = "0";
           card.style.transform = "translateY(20px)";
-          card.style.transition = "opacity 0.5s ease, transform 0.5s ease";
+          card.style.transition = "transform 0.5s ease";
           observer.observe(card);
           card.setAttribute("data-observed", "true");
         }

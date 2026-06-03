@@ -3,18 +3,7 @@
  *
  * Single source of truth lives in /components/header.html. Every page that
  * wants the global navigation just drops a host element and this module
- * injects the partial on DOMContentLoaded:
- *
- *   <div data-site-header
- *        data-page-key="home"
- *        data-logo-icon="N"
- *        data-logo-text="书签导航"
- *        data-logo-subtitle="你的常用站点入口"></div>
- *
- * Pages that need a search box / add button in the header-actions area put
- * them as children of the host and we hoist them into the .primary-actions
- * slot rendered by the partial. Pages that just want the menu + logout
- * leave the host empty.
+ * injects the partial on DOMContentLoaded.
  */
 
 const SiteMenu = {
@@ -181,8 +170,6 @@ const SiteMenu = {
     const template = document.createElement("template");
     template.innerHTML = markup.trim();
 
-    // The partial renders the inner header-content; the host may carry a
-    // wrapper class (e.g. .header). Adopt the partial's first child.
     const fragment = template.content.cloneNode(true);
     const rendered = fragment.firstElementChild;
     if (!rendered) {
@@ -210,9 +197,6 @@ const SiteMenu = {
     if (textEl) textEl.textContent = text;
     if (subEl) {
       subEl.textContent = subtitle;
-      // The subtitle may carry a fixed value per page, so do not let i18n
-      // overwrite it. Keep the data-i18n key on the partial but restore
-      // text after I18n.apply so translations stay opt-in per page.
       subEl.setAttribute("data-site-header-subtitle-original", subtitle);
     }
   },
@@ -291,9 +275,6 @@ const SiteMenu = {
   },
 
   hoistPrimarySlots(rendered, host) {
-    // Pages that need a search/add control keep them in the host as children.
-    // We move them into the .primary-actions slot rendered by the partial so
-    // the visual rhythm of the header stays consistent.
     const slot = rendered.querySelector('[data-site-header-slot="primary"]');
     if (!slot) return;
 
@@ -415,7 +396,7 @@ const SiteMenu = {
         : "登录后管理书签、分类和系统工具";
     }
 
-    dropdown?.classList.toggle("is-public-guest-menu", isPublicPage);
+    dropdown?.classList.toggle("is-public-guest-menu", isPublicGuest);
 
     host.querySelectorAll("[data-auth-required]").forEach((element) => {
       const hiddenOnPublicHome = isPublicPage;
@@ -481,7 +462,6 @@ const SiteMenu = {
   markActive(host) {
     const pageKey = host.getAttribute("data-page-key");
 
-    // Highlight the dropdown entry whose key matches the page.
     if (pageKey) {
       host
         .querySelectorAll(`#toolsDropdown [data-site-menu-key]`)
