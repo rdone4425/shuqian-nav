@@ -503,7 +503,12 @@ async function commonMenu(page, pageName) {
 async function testHome(page) {
   const name = "home";
   await goto(page, name, "/");
-  await commonMenu(page, name);
+  const hasPublicMenuToggle = await page.$("#toolsMenuToggle");
+  record(
+    name,
+    "public home does not render management menu",
+    !hasPublicMenuToggle,
+  );
   await clickIf(page, name, "#listViewBtn", "switch list view button");
   await clickIf(page, name, "#gridViewBtn", "switch grid view button");
   await clickVisible(

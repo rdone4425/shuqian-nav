@@ -7,7 +7,7 @@
 - 桌面画板：`1440 x 1180`
 - 移动适配参考：`390 x auto`
 - 页面类型：应用型首页/个人书签工作台，不做营销落地页
-- 核心首屏：顶部导航、个人工作台标题区、搜索筛选工具条、分类快速筛选、书签目录
+- 核心首屏：顶部导航、搜索筛选工具条、分类快速筛选、书签目录
 
 ## 视觉方向
 
@@ -36,7 +36,6 @@
 ## 组件
 
 - Header：64-68px 高，左侧品牌，右侧主搜索、菜单、登录/后台入口
-- Overview：两列布局，左侧说明，右侧深色 quick launch 预览
 - Search toolbar：搜索输入 + 搜索/清除按钮 + 分类/排序下拉 + 网格/列表切换 + 统计
 - Category rail：横向 chip，彩色点表示分类
 - Bookmark card：左侧 4px 分类色边，favicon 头像，标题、URL、描述、访问统计、分类标签
@@ -54,4 +53,4 @@
 1. 在 Figma 中新建 Design 文件。
 2. 导入 `docs/figma/bookmark-nav-home-wireframe.svg`。
 3. 将颜色表转成变量，将按钮、chip、书签卡片拆成组件。
-4. 对照 `public/index.html` 的 DOM 区块命名 frame：`Header`、`Overview`、`Toolbar`、`CategoryRail`、`Directory`。
+4. 对照 `public/index.html` 的 DOM 区块命名 frame：`Header`、`Toolbar`、`CategoryRail`、`Directory`。

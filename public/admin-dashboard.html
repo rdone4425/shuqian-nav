@@ -4,7 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>后台首页 - 书签导航</title>
-    <meta name="description" content="查看书签导航后台的关键摘要和快捷入口。" />
+    <meta
+      name="description"
+      content="查看书签导航后台的关键摘要和快捷入口。"
+    />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -30,31 +33,31 @@
         class="header"
       ></div>
 
-      <section class="workspace-section-heading">
+      <section class="workspace-section-heading admin-page-heading">
         <div>
           <span class="section-kicker">概览</span>
           <h2 class="section-title">统一管理入口</h2>
         </div>
         <p class="section-copy">
-          首页只负责公开导航，新增、编辑、删除和维护操作都从这里进入后台。
+          管理书签内容、分类结构、导入备份和链接维护。首页保留公开导航，后台负责所有新增、编辑、删除和系统工具。
         </p>
       </section>
 
       <main class="admin-dashboard-grid">
         <section class="admin-dashboard-metrics" aria-label="后台摘要">
-          <article class="admin-dashboard-card">
+          <article class="admin-dashboard-card metric-card metric-card-primary">
             <span>书签总数</span>
             <strong id="dashboardBookmarkTotal">-</strong>
           </article>
-          <article class="admin-dashboard-card">
+          <article class="admin-dashboard-card metric-card">
             <span>分类总数</span>
             <strong id="dashboardCategoryTotal">-</strong>
           </article>
-          <article class="admin-dashboard-card">
+          <article class="admin-dashboard-card metric-card">
             <span>当前显示</span>
             <strong id="dashboardVisibleTotal">-</strong>
           </article>
-          <article class="admin-dashboard-card">
+          <article class="admin-dashboard-card metric-card">
             <span>最近访问记录</span>
             <strong id="dashboardVisitedTotal">-</strong>
           </article>
@@ -65,18 +68,22 @@
             class="admin-dashboard-action"
             href="/bookmarks-manage.html?new=bookmark"
           >
+            <span class="admin-action-icon">+</span>
             <strong>新增书签</strong>
             <span>进入书签管理页添加站点。</span>
           </a>
           <a class="admin-dashboard-action" href="/categories.html?create=1">
+            <span class="admin-action-icon">#</span>
             <strong>新建分类</strong>
             <span>维护分类名称、颜色和归属。</span>
           </a>
           <a class="admin-dashboard-action" href="/import.html">
+            <span class="admin-action-icon">↥</span>
             <strong>导入书签</strong>
             <span>先预览，再合并或替换导入。</span>
           </a>
           <a class="admin-dashboard-action" href="/link-checker.html">
+            <span class="admin-action-icon">✓</span>
             <strong>链接检查</strong>
             <span>检查可访问性后再清理异常项。</span>
           </a>
@@ -84,13 +91,19 @@
 
         <section class="admin-dashboard-lists">
           <article class="admin-dashboard-card admin-dashboard-list">
-            <h3>最近收录</h3>
+            <div class="admin-card-heading">
+              <h3>最近收录</h3>
+              <a href="/bookmarks-manage.html">查看全部</a>
+            </div>
             <div id="dashboardRecentBookmarks">
               <p>正在加载最近书签...</p>
             </div>
           </article>
           <article class="admin-dashboard-card admin-dashboard-list">
-            <h3>分类概况</h3>
+            <div class="admin-card-heading">
+              <h3>分类概况</h3>
+              <a href="/categories.html">管理分类</a>
+            </div>
             <div id="dashboardCategories">
               <p>正在加载分类...</p>
             </div>

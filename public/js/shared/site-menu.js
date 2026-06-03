@@ -177,10 +177,18 @@ const SiteMenu = {
     }
 
     this.applyPageIdentity(rendered, host);
-    this.renderDropdown(rendered);
+    if (this.isPublicHost(host)) {
+      rendered.querySelector(".tools-menu")?.remove();
+    } else {
+      this.renderDropdown(rendered);
+    }
     this.hoistPrimarySlots(rendered, host);
 
     host.replaceChildren(rendered);
+  },
+
+  isPublicHost(host) {
+    return host.getAttribute("data-require-auth") === "false";
   },
 
   applyPageIdentity(rendered, host) {

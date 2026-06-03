@@ -47,7 +47,7 @@ const AdminDashboardPage = {
       this.renderCategories(categories);
     } catch (error) {
       console.error("Dashboard load failed:", error);
-      AdminUI.showToast(`后台摘要加载失败：${error.message}`, "error");
+      AdminUI.showToast(`后台摘要加载失败: ${error.message}`, "error");
       this.renderError();
     }
   },
@@ -64,8 +64,11 @@ const AdminDashboardPage = {
       .map(
         (bookmark) => `
           <div class="admin-dashboard-row">
-            <strong>${AdminUI.escapeHtml(bookmark.title || "未命名站点")}</strong>
-            <span>${AdminUI.escapeHtml(bookmark.url || "")}</span>
+            <span class="admin-row-mark"></span>
+            <div>
+              <strong>${AdminUI.escapeHtml(bookmark.title || "未命名站点")}</strong>
+              <span>${AdminUI.escapeHtml(bookmark.url || "")}</span>
+            </div>
           </div>
         `,
       )
@@ -85,8 +88,11 @@ const AdminDashboardPage = {
       .map(
         (category) => `
           <div class="admin-dashboard-row">
-            <strong>${AdminUI.escapeHtml(category.name || "未命名分类")}</strong>
-            <span>${Number(category.bookmark_count || 0)} 条书签</span>
+            <span class="admin-row-mark" style="--row-mark: ${AdminUI.escapeHtml(category.color || "#2764e7")}"></span>
+            <div>
+              <strong>${AdminUI.escapeHtml(category.name || "未命名分类")}</strong>
+              <span>${Number(category.bookmark_count || 0)} 条书签</span>
+            </div>
           </div>
         `,
       )
