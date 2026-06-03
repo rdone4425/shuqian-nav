@@ -19,7 +19,6 @@ const App = {
 
   bindElements() {
     const selectors = {
-      searchToggle: "searchToggle",
       searchContainer: "searchContainer",
       searchBtn: "searchBtn",
       clearSearchBtn: "clearSearchBtn",
@@ -31,10 +30,6 @@ const App = {
   },
 
   bindEvents() {
-    this.elements.searchToggle?.addEventListener("click", () => {
-      this.focusSearch();
-    });
-
     this.elements.clearSearchBtn?.addEventListener("click", () => {
       this.clearSearch();
     });

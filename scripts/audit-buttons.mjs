@@ -535,7 +535,12 @@ async function testHome(page) {
   await page.select("#sortSelect", "title:asc");
   await sleep(700);
   record(name, "sort select title ascending", true);
-  await clickIf(page, name, "#searchToggle", "search button");
+  const hasHeaderSearchToggle = await page.$("#searchToggle");
+  record(
+    name,
+    "public home does not render header search shortcut",
+    !hasHeaderSearchToggle,
+  );
   await page.type("#searchInput", "E2E");
   await clickIf(page, name, "#searchBtn", "search submit button");
   await clickIf(page, name, "#clearSearchBtn", "clear search button");
