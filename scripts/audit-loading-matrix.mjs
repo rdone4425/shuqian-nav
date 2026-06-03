@@ -706,7 +706,7 @@ function auditCurrentCacheVersions() {
   );
   const expectedVersions = new Map([
     ["/js/shared/auth.js", "nav-20260602-auth-cache"],
-    ["/js/shared/site-menu.js", "nav-20260603-header-actions"],
+    ["/js/shared/site-menu.js", "nav-20260603-logout-icon"],
     ["/js/shared/admin-shell.js", "nav-20260603-admin-shell"],
     ["/js/admin/bookmark-manager-page.js", "nav-20260602-public-home"],
     ["/js/admin/category-manager.js", "nav-20260602-category-confirm"],
