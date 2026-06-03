@@ -1,0 +1,62 @@
+/* tokens.css — canonical design tokens for shuqian-nav admin.
+   Single source of truth for color / spacing / type / radius / shadow.
+
+   The --c-* color/radius/shadow values are lifted verbatim from the proven
+   "workspace-refresh" admin palette (--wr-*), so the component layer
+   (components.css) renders identically to today's clean pages while no longer
+   depending on workspace-refresh.css being present.
+
+   Load order on every admin page: tokens.css -> components.css. */
+:root {
+  /* ---- Surfaces & text ---- */
+  --c-bg: #f5f7f8;
+  --c-surface: #ffffff;
+  --c-surface-soft: #f8fafc;
+  --c-border: #d9e1ea;
+  --c-border-soft: #edf1f5;
+  --c-text: #3f4b5d;
+  --c-ink: #18212f;
+  --c-muted: #768294;
+
+  /* ---- Brand & status ---- */
+  --c-primary: #2f6fed;
+  --c-primary-hover: #2a63d6;
+  --c-primary-weak: #edf4ff;
+  --c-primary-focus: rgba(47, 111, 237, 0.18);
+  --c-danger: #d93b3b;
+  --c-danger-weak: #fee2e2;
+  --c-warning: #d88716;
+  --c-warning-weak: #fef3c7;
+  --c-success: #0f9f6e;
+  --c-success-weak: #dcfce7;
+  --c-info: #2f6fed;
+  --c-info-weak: #edf4ff;
+
+  /* ---- Spacing (4 · 8 · 12 · 16 · 24 · 32) ---- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* ---- Radius ---- */
+  --radius: 8px;
+  --radius-sm: 6px;
+  --radius-pill: 9999px;
+
+  /* ---- Shadow ---- */
+  --shadow: 0 10px 24px rgba(24, 33, 47, 0.07);
+  --shadow-pop: 0 18px 38px rgba(24, 33, 47, 0.12);
+
+  /* ---- Typography ---- */
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-base: 1rem;
+  --fs-lg: 1.125rem;
+  --fs-xl: 1.25rem;
+  --fs-2xl: 1.5rem;
+
+  /* ---- Motion ---- */
+  --transition: 140ms ease;
+}

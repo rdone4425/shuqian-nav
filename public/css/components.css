@@ -1,0 +1,389 @@
+/* components.css — shared admin component layer for shuqian-nav.
+
+   This is the management.css component set re-pointed onto the canonical
+   tokens.css palette (--c-* / --radius / --shadow / --transition). Every value
+   is identical to the --wr-* value it replaced, so pages render pixel-identical
+   to today — they just stop depending on workspace-refresh.css for component
+   styling. Requires tokens.css to be loaded first.
+
+   Provenance: faithful port of public/css/management.css (353 lines) plus two
+   documented additions at the end (small-button alias, success/info toasts). */
+
+.management-shell {
+  width: min(1180px, calc(100% - 32px));
+  margin: 24px auto 56px;
+}
+
+.section-action-stack {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.section-action-stack .section-copy {
+  margin: 0;
+}
+
+.management-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.management-toolbar,
+.management-form,
+.management-table-wrap,
+.management-summary {
+  padding: 16px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  background: var(--c-surface);
+  box-shadow: var(--shadow);
+}
+
+.management-toolbar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.management-form-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 420px);
+  gap: 14px;
+  align-items: end;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--c-border-soft);
+}
+
+.management-form-heading h3 {
+  margin-top: 8px;
+  color: var(--c-ink);
+  font-size: 1rem;
+  font-weight: 850;
+}
+
+.management-form-heading p {
+  color: var(--c-muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.category-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr)) minmax(220px, 1.4fr);
+  gap: 12px;
+  align-items: end;
+}
+
+.summary-metric {
+  min-height: 62px;
+  display: grid;
+  align-content: center;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface-soft);
+}
+
+.summary-metric span {
+  color: var(--c-muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.summary-metric strong {
+  color: var(--c-ink);
+  font-size: 1.35rem;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.category-search-field {
+  min-width: 0;
+}
+
+.management-actions,
+.management-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: end;
+}
+
+.field-stack {
+  display: grid;
+  gap: 6px;
+  min-width: 180px;
+}
+
+.field-stack.grow {
+  flex: 1 1 260px;
+}
+
+.field-stack label {
+  color: var(--c-muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.management-input,
+.management-select,
+.management-textarea {
+  min-height: 38px;
+  padding: 0 11px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  color: var(--c-ink);
+  font: inherit;
+  font-size: 0.88rem;
+}
+
+.management-textarea {
+  min-height: 76px;
+  padding-top: 10px;
+  resize: vertical;
+}
+
+.management-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.management-table th,
+.management-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--c-border-soft);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.management-table th {
+  color: var(--c-muted);
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+.management-table td {
+  color: var(--c-text);
+  font-size: 0.86rem;
+}
+
+.row-title {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.row-title strong {
+  color: var(--c-ink);
+  font-size: 0.9rem;
+}
+
+.row-url,
+.muted-text {
+  color: var(--c-muted);
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+
+.color-swatch {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  border: 1px solid rgba(24, 33, 47, 0.15);
+  border-radius: 6px;
+  vertical-align: middle;
+}
+
+.inline-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.inline-actions .btn,
+.management-actions .btn {
+  min-height: 36px;
+  padding: 0 12px;
+  white-space: nowrap;
+}
+
+.selection-note {
+  color: var(--c-muted);
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.category-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface-soft);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.management-empty {
+  padding: 28px;
+  text-align: center;
+  color: var(--c-muted);
+}
+
+.management-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding-top: 14px;
+}
+
+.danger-text {
+  color: var(--c-danger);
+}
+
+.management-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1800;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(15, 23, 42, 0.42);
+}
+
+.management-modal.hidden {
+  display: none;
+}
+
+.management-modal-card {
+  width: min(520px, 100%);
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-pop);
+}
+
+.management-modal-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--c-border-soft);
+}
+
+.management-modal-header h3 {
+  margin-top: 8px;
+  color: var(--c-ink);
+  font-size: 1rem;
+  font-weight: 850;
+}
+
+.management-modal-copy {
+  color: var(--c-text);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.management-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.message-toast {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 2000;
+  max-width: min(360px, calc(100vw - 40px));
+  padding: 12px 14px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  background: var(--c-ink);
+  color: #fff;
+  box-shadow: var(--shadow-pop);
+  font-size: 0.86rem;
+  font-weight: 800;
+  transition: opacity var(--transition);
+}
+
+.message-toast.error {
+  border-color: #f0c6c6;
+  background: var(--c-danger);
+}
+
+.message-toast.warning {
+  border-color: #f2d8a8;
+  background: var(--c-warning);
+}
+
+/* --- Additions beyond the management.css source --- */
+
+/* Small button. Admin row actions emit `btn-sm` (e.g. deleted-bookmarks.js);
+   the legacy per-page sheets only defined `.btn-small`. Alias both to one rule
+   so the name drift stops mattering. Builds on the shared `.btn` in styles.css. */
+.btn-sm,
+.btn-small {
+  min-height: 32px;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+}
+
+/* Success / info toasts. management.css only shipped base + .error + .warning,
+   so success/info toasts rendered as the dark neutral base. These give them the
+   palette colors the tokens already define (import.js emits `info`). */
+.message-toast.success {
+  border-color: #bfe7d5;
+  background: var(--c-success);
+}
+
+.message-toast.info {
+  border-color: #cfe0ff;
+  background: var(--c-info);
+}
+
+@media (max-width: 820px) {
+  .management-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .management-form-heading {
+    grid-template-columns: 1fr;
+  }
+
+  .category-summary-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .section-action-stack {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .management-table-wrap {
+    overflow-x: auto;
+  }
+
+  .management-table {
+    min-width: 760px;
+  }
+}
+
+@media (max-width: 560px) {
+  .category-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
