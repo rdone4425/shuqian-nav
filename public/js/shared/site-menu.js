@@ -365,7 +365,7 @@ const SiteMenu = {
       ? "后台"
       : authenticated
         ? "退出"
-        : "登录";
+        : "↗";
     logoutBtn.querySelector(".action-btn-label").textContent = isAdminEntry
       ? "进入后台"
       : authenticated

@@ -544,7 +544,7 @@ function auditSharedHeaderDefaults() {
   assertPage(
     pageName,
     html.includes('title="登录后台"') &&
-      html.includes('<span class="btn-icon">登录</span>') &&
+      html.includes('<span class="btn-icon" aria-hidden="true">↗</span>') &&
       html.includes('<span class="action-btn-label">登录后台</span>'),
     "shared header must default to the public login action before auth state is known",
   );
@@ -706,7 +706,7 @@ function auditCurrentCacheVersions() {
   );
   const expectedVersions = new Map([
     ["/js/shared/auth.js", "nav-20260602-auth-cache"],
-    ["/js/shared/site-menu.js", "nav-20260603-admin-shell"],
+    ["/js/shared/site-menu.js", "nav-20260603-header-actions"],
     ["/js/shared/admin-shell.js", "nav-20260603-admin-shell"],
     ["/js/admin/bookmark-manager-page.js", "nav-20260602-public-home"],
     ["/js/admin/category-manager.js", "nav-20260602-category-confirm"],
