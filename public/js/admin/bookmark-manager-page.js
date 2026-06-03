@@ -111,7 +111,6 @@ const BookmarkManagePage = {
     this.elements.resetCreateBtn?.addEventListener("click", () => {
       this.resetCreateForm();
     });
-
   },
 
   handleQueryIntent() {
