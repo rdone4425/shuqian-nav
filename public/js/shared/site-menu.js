@@ -295,41 +295,45 @@ const SiteMenu = {
   bindMenu(host) {
     const toggle = host.querySelector("#toolsMenuToggle");
     const dropdown = host.querySelector("#toolsDropdown");
-    if (!toggle || !dropdown) return;
 
-    toggle.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      const isOpen = dropdown.classList.toggle("show");
-      toggle.classList.toggle("active", isOpen);
-      toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
-    });
-
-    host.addEventListener(
-      "click",
-      (event) => {
-        const protectedLink = event.target.closest("[data-auth-required]");
-        if (!protectedLink || window.Auth?.isAuthenticated) {
-          return;
-        }
-
+    if (toggle && dropdown) {
+      toggle.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
-        this.closeMenu(host);
-        this.redirectToLogin(protectedLink.getAttribute("href"));
-      },
-      true,
-    );
+        const isOpen = dropdown.classList.toggle("show");
+        toggle.classList.toggle("active", isOpen);
+        toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      });
 
-    document.addEventListener("click", (event) => {
-      if (!toggle.contains(event.target) && !dropdown.contains(event.target)) {
-        this.closeMenu(host);
-      }
-    });
+      host.addEventListener(
+        "click",
+        (event) => {
+          const protectedLink = event.target.closest("[data-auth-required]");
+          if (!protectedLink || window.Auth?.isAuthenticated) {
+            return;
+          }
 
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") this.closeMenu(host);
-    });
+          event.preventDefault();
+          event.stopPropagation();
+          this.closeMenu(host);
+          this.redirectToLogin(protectedLink.getAttribute("href"));
+        },
+        true,
+      );
+
+      document.addEventListener("click", (event) => {
+        if (
+          !toggle.contains(event.target) &&
+          !dropdown.contains(event.target)
+        ) {
+          this.closeMenu(host);
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") this.closeMenu(host);
+      });
+    }
 
     host.querySelector("#logoutBtn")?.addEventListener("click", () => {
       const requireAuth = host.getAttribute("data-require-auth") !== "false";
