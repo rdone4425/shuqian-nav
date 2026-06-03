@@ -11,5 +11,9 @@ pages/node_modules/
 # OMX state
 .omx/
 
+# Local agent/session state
+.agenthub/
+.codex-token-module.html
+
 # Backup files
 *.bak
