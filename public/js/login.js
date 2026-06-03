@@ -9,10 +9,20 @@ document.addEventListener("DOMContentLoaded", () => {
     message.dataset.type = type;
   };
 
+  button?.addEventListener("click", () => {
+    if (passwordInput.value.trim()) return;
+    setMessage("请输入管理员密码。", "error");
+    passwordInput.focus();
+  });
+
   form?.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const password = passwordInput.value;
-    if (!password) return;
+    const password = passwordInput.value.trim();
+    if (!password) {
+      setMessage("请输入管理员密码。", "error");
+      passwordInput.focus();
+      return;
+    }
 
     button.disabled = true;
     setMessage("正在登录...");
