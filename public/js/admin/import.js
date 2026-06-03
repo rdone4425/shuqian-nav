@@ -15,6 +15,9 @@ const ImportManager = {
   },
 
   async init() {
+    const authenticated = await AdminUI.requireAuth();
+    if (!authenticated) return;
+
     this.bindEvents();
     this.updateStepDisplay();
   },
@@ -62,30 +65,6 @@ const ImportManager = {
     document
       .getElementById("clearAllBookmarksBtn")
       ?.addEventListener("click", () => this.clearAllBookmarks());
-    document
-      .getElementById("importConfirmClose")
-      ?.addEventListener("click", () => this.closeConfirmModal(false));
-    document
-      .getElementById("importConfirmCancel")
-      ?.addEventListener("click", () => this.closeConfirmModal(false));
-    document
-      .getElementById("importConfirmSubmit")
-      ?.addEventListener("click", () => this.closeConfirmModal(true));
-    document
-      .getElementById("importConfirmInput")
-      ?.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          this.closeConfirmModal(true);
-        }
-      });
-    document
-      .getElementById("importConfirmModal")
-      ?.addEventListener("click", (event) => {
-        if (event.target === event.currentTarget) {
-          this.closeConfirmModal(false);
-        }
-      });
   },
 
   async handleFileSelect(file) {
@@ -331,12 +310,14 @@ const ImportManager = {
       const progressText = document.getElementById("progressText");
 
       if (clearExisting) {
-        const confirmed = await this.requestTypedConfirmation({
+        const confirmed = await AdminUI.confirm({
           title: "确认替换导入",
           message:
             "替换导入会先清空当前全部书签，再导入这个文件。删除记录会被保留，方便后续回看。",
           expectedText: "确认替换",
+          hint: "这一步用于避免误操作。输入不匹配时不会执行。",
           confirmText: "确认替换导入",
+          variant: "danger",
         });
 
         if (!confirmed) {
@@ -459,12 +440,14 @@ const ImportManager = {
   async clearAllBookmarks() {
     const button = document.getElementById("clearAllBookmarksBtn");
 
-    const confirmed = await this.requestTypedConfirmation({
+    const confirmed = await AdminUI.confirm({
       title: "确认清空全部书签",
       message:
         "此操作会删除当前全部书签，并写入删除记录。执行后可以在回收站查看记录，但请先确认这是你想要的整理方式。",
       expectedText: "清空全部",
+      hint: "这一步用于避免误操作。输入不匹配时不会执行。",
       confirmText: "清空全部书签",
+      variant: "danger",
     });
 
     if (!confirmed) {
@@ -521,54 +504,6 @@ const ImportManager = {
       },
       type === "error" ? 4200 : 2400,
     );
-  },
-
-  requestTypedConfirmation({ title, message, expectedText, confirmText }) {
-    const modal = document.getElementById("importConfirmModal");
-    const titleEl = document.getElementById("importConfirmTitle");
-    const messageEl = document.getElementById("importConfirmMessage");
-    const inputLabel = document.getElementById("importConfirmInputLabel");
-    const input = document.getElementById("importConfirmInput");
-    const hint = document.getElementById("importConfirmHint");
-    const submit = document.getElementById("importConfirmSubmit");
-
-    if (!modal || !input || !submit) {
-      return Promise.resolve(false);
-    }
-
-    if (titleEl) titleEl.textContent = title;
-    if (messageEl) messageEl.textContent = message;
-    if (inputLabel) inputLabel.textContent = `请输入“${expectedText}”继续`;
-    if (hint) hint.textContent = "这一步用于避免误操作。输入不匹配时不会执行。";
-    submit.textContent = confirmText;
-    input.value = "";
-    modal.classList.remove("hidden");
-    input.focus();
-
-    return new Promise((resolve) => {
-      this.pendingConfirmation = { resolve, expectedText };
-    });
-  },
-
-  closeConfirmModal(confirmed) {
-    const pending = this.pendingConfirmation;
-    if (!pending) {
-      return;
-    }
-
-    const modal = document.getElementById("importConfirmModal");
-    const input = document.getElementById("importConfirmInput");
-    const matches = input?.value.trim() === pending.expectedText;
-
-    if (confirmed && !matches) {
-      this.showMessage(`请输入“${pending.expectedText}”后再确认`, "error");
-      input?.focus();
-      return;
-    }
-
-    modal?.classList.add("hidden");
-    this.pendingConfirmation = null;
-    pending.resolve(Boolean(confirmed && matches));
   },
 
   formatFileSize(bytes) {

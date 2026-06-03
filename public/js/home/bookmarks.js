@@ -19,8 +19,6 @@ const BookmarkManager = {
     "bookmarkCard.hot": "\u5e38\u7528\u7ad9\u70b9",
     "bookmarkCard.visitCount": "\u8bbf\u95ee",
     "bookmarkCard.lastVisited": "\u6700\u8fd1\u8bbf\u95ee",
-    "bookmarkCard.edit": "\u7f16\u8f91",
-    "bookmarkCard.delete": "\u5220\u9664",
     "bookmarkCard.open": "\u6253\u5f00\u94fe\u63a5",
     "bookmarkCard.orphanCategory": "\u5206\u7c7b #{id}",
     "bookmarkCard.justNow": "\u521a\u521a",
@@ -139,20 +137,6 @@ const BookmarkManager = {
         if (bookmarkId) {
           this.recordVisit(bookmarkId);
         }
-        return;
-      }
-
-      const editButton = event.target.closest(".edit-btn");
-      if (editButton) {
-        event.stopPropagation();
-        this.editBookmark(editButton.dataset.id);
-        return;
-      }
-
-      const deleteButton = event.target.closest(".delete-btn");
-      if (deleteButton) {
-        event.stopPropagation();
-        this.deleteBookmark(deleteButton.dataset.id);
       }
     });
   },
@@ -205,7 +189,6 @@ const BookmarkManager = {
     const response = await fetch(url, {
       headers: {
         Accept: "application/json",
-        ...window.Auth?.getAuthHeaders?.(),
       },
     });
     const data = await response.json();
@@ -242,10 +225,6 @@ const BookmarkManager = {
       }
     } catch (error) {
       console.error("加载书签错误:", error);
-      if (error.status === 401) {
-        window.Auth?.logout?.({ redirect: true });
-        return;
-      }
       this.showError(error.message || this.t("messages.loadBookmarksFailed"));
     }
   },
@@ -255,23 +234,15 @@ const BookmarkManager = {
       const response = await this.fetchJsonOnce("/api/bookmarks/categories");
       if (response.success) {
         this.categories = response.data || [];
-        this.normalizeCategoryFilter();
-        this.renderCategoryFilter();
       } else {
         this.categories = [];
-        this.normalizeCategoryFilter();
-        this.renderCategoryFilter();
       }
     } catch (error) {
       console.error("加载分类错误:", error);
-      if (error.status === 401) {
-        window.Auth?.logout?.({ redirect: true });
-        return;
-      }
       this.categories = [];
-      this.normalizeCategoryFilter();
-      this.renderCategoryFilter();
     }
+    this.normalizeCategoryFilter();
+    this.renderCategoryFilter();
   },
 
   renderBookmarks() {
@@ -293,8 +264,6 @@ const BookmarkManager = {
     const hotLabel = this.t("bookmarkCard.hot");
     const visitCountLabel = this.t("bookmarkCard.visitCount");
     const lastVisitedLabel = this.t("bookmarkCard.lastVisited");
-    const editLabel = this.t("bookmarkCard.edit");
-    const deleteLabel = this.t("bookmarkCard.delete");
     const openLabel = this.t("bookmarkCard.open");
 
     const localStats = this.getLocalVisitStats(bookmark.id);
@@ -335,18 +304,6 @@ const BookmarkManager = {
       popularity > 50
         ? `<span class="hot-badge" title="${this.escapeHtml(hotLabel)}">HOT</span>`
         : "";
-    const adminActions = window.Auth?.isAuthenticated
-      ? `
-          <div class="bookmark-actions">
-            <button class="action-btn edit-btn" data-id="${bookmark.id}" title="${this.escapeHtml(editLabel)}">
-              <span class="action-text">${this.escapeHtml(editLabel)}</span>
-            </button>
-            <button class="action-btn delete-btn" data-id="${bookmark.id}" title="${this.escapeHtml(deleteLabel)}">
-              <span class="action-text">${this.escapeHtml(deleteLabel)}</span>
-            </button>
-          </div>
-        `
-      : "";
 
     return `
       <article class="bookmark-card" data-id="${bookmark.id}" style="--card-accent: ${catColor}">
@@ -369,7 +326,6 @@ const BookmarkManager = {
 
         <div class="bookmark-footer">
           <div class="bookmark-meta">${categoryBadge}</div>
-          ${adminActions}
         </div>
       </article>
     `;
@@ -638,17 +594,13 @@ const BookmarkManager = {
     }
   },
 
-  async editBookmark(bookmarkId) {
-    if (window.App?.editBookmark) {
-      window.App.editBookmark(bookmarkId);
-    }
+  async refresh() {
+    const categoriesPromise = this.loadCategories();
+    await this.loadBookmarks();
+    await categoriesPromise;
   },
 
-  async deleteBookmark(bookmarkId) {
-    if (window.App?.deleteBookmark) {
-      window.App.deleteBookmark(bookmarkId);
-    }
-  },
+  initClickSorting() {},
 
   getDisplayFaviconSources(bookmark = {}) {
     const fallback = this.getNormalizedStoredFavicon(bookmark.favicon_url);
@@ -699,14 +651,6 @@ const BookmarkManager = {
     div.textContent = text;
     return div.innerHTML;
   },
-
-  async refresh() {
-    const categoriesPromise = this.loadCategories();
-    await this.loadBookmarks();
-    await categoriesPromise;
-  },
-
-  initClickSorting() {},
 
   async recordVisit(bookmarkId) {
     try {

@@ -1,14 +1,8 @@
 import { authenticateRequest } from "../auth/verify.js";
 import { insertDeletedBookmarksBatch } from "../../utils/deleted-bookmarks.js";
+import { ResponseHelper } from "../../utils/response-helper.js";
 
 const CLEAR_ALL_CONFIRMATION = "CONFIRM_CLEAR_ALL_BOOKMARKS";
-
-function jsonResponse(body, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -16,22 +10,13 @@ export async function onRequestPost(context) {
   try {
     const auth = await authenticateRequest(request, env);
     if (!auth.authenticated) {
-      return jsonResponse(
-        {
-          success: false,
-          error: "需要管理员权限",
-        },
-        401,
-      );
+      return ResponseHelper.unauthorized("需要管理员权限");
     }
 
     const { confirmation = "" } = await request.json();
     if (confirmation !== CLEAR_ALL_CONFIRMATION) {
-      return jsonResponse(
-        {
-          success: false,
-          error: "清空全部书签需要二次确认，操作已取消。",
-        },
+      return ResponseHelper.error(
+        "清空全部书签需要二次确认，操作已取消。",
         400,
       );
     }
@@ -56,14 +41,13 @@ export async function onRequestPost(context) {
     const bookmarks = result.results || [];
 
     if (bookmarks.length === 0) {
-      return jsonResponse({
-        success: true,
-        data: {
+      return ResponseHelper.success(
+        {
           deleted: 0,
           archived: 0,
         },
-        message: "当前没有可删除的书签。",
-      });
+        "当前没有可删除的书签。",
+      );
     }
 
     const archiveResult = await insertDeletedBookmarksBatch(env, bookmarks, {
@@ -72,36 +56,25 @@ export async function onRequestPost(context) {
     });
 
     if (archiveResult.errors > 0) {
-      return jsonResponse(
-        {
-          success: false,
-          error: "写入删除记录失败，已取消清空全部书签。",
-          data: archiveResult,
-        },
+      return ResponseHelper.error(
+        "写入删除记录失败，已取消清空全部书签。",
         500,
+        archiveResult,
       );
     }
 
     await env.BOOKMARKS_DB.prepare("DELETE FROM bookmarks").run();
 
-    return jsonResponse({
-      success: true,
-      data: {
+    return ResponseHelper.success(
+      {
         deleted: bookmarks.length,
         archived: archiveResult.inserted,
         skippedArchive: archiveResult.skipped,
       },
-      message: `已删除 ${bookmarks.length} 个书签。`,
-    });
+      `已删除 ${bookmarks.length} 个书签。`,
+    );
   } catch (error) {
     console.error("清空全部书签失败:", error);
-    return jsonResponse(
-      {
-        success: false,
-        error: "清空全部书签失败",
-        message: error.message,
-      },
-      500,
-    );
+    return ResponseHelper.error("清空全部书签失败", 500, error.message);
   }
 }

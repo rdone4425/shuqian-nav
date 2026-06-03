@@ -1,6 +1,6 @@
 <!--
   Unified site header partial.
-  Loaded at runtime by /js/site-menu.js into any element marked with
+  Loaded at runtime by /js/shared/site-menu.js into any element marked with
   `data-site-header`. Attributes on that element provide the per-page
   identity (logo icon / title / subtitle / page key).
   This file is the single source of truth for the global navigation.
@@ -16,24 +16,6 @@
       </p>
     </div>
   </a>
-
-  <nav class="nav-menu" aria-label="主导航" data-site-header-nav>
-    <a href="/" class="nav-menu-link" data-site-header-nav-link="home">首页</a>
-    <a
-      href="/bookmarks-manage.html"
-      class="nav-menu-link"
-      data-site-header-nav-link="bookmarks-manage"
-      data-auth-required="true"
-      >书签管理</a
-    >
-    <a
-      href="/categories.html"
-      class="nav-menu-link"
-      data-site-header-nav-link="categories"
-      data-auth-required="true"
-      >分类管理</a
-    >
-  </nav>
 
   <div class="header-actions" data-site-header-actions>
     <div class="action-group primary-actions" data-site-header-slot="primary">
@@ -52,7 +34,7 @@
         type="button"
       >
         <span class="btn-icon">菜单</span>
-        <span class="action-btn-label">管理</span>
+        <span class="action-btn-label">菜单</span>
       </button>
       <div
         id="toolsDropdown"
@@ -65,10 +47,10 @@
       id="logoutBtn"
       class="action-btn-icon has-label site-logout-btn"
       type="button"
-      title="退出登录"
+      title="登录后台"
     >
-      <span class="btn-icon">退出</span>
-      <span class="action-btn-label">退出</span>
+      <span class="btn-icon">登录</span>
+      <span class="action-btn-label">登录后台</span>
     </button>
   </div>
 </div>

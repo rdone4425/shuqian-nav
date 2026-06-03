@@ -1,4 +1,42 @@
 import { authenticateRequest } from "../auth/verify.js";
+import { ResponseHelper } from "../../utils/response-helper.js";
+
+const MIGRATION_STATEMENTS = [
+  `
+    CREATE TABLE IF NOT EXISTS deleted_bookmarks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      original_bookmark_id INTEGER NOT NULL,
+      title TEXT NOT NULL,
+      url TEXT NOT NULL,
+      category TEXT,
+      description TEXT,
+      favicon_url TEXT,
+      tags TEXT,
+      created_at TEXT,
+      updated_at TEXT,
+      deleted_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      deleted_reason TEXT,
+      check_status TEXT,
+      status_code INTEGER,
+      status_text TEXT,
+      error_message TEXT,
+      keep_status TEXT,
+      deleted_by TEXT DEFAULT 'system'
+    );
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_deleted_bookmarks_original_id
+    ON deleted_bookmarks(original_bookmark_id);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_deleted_bookmarks_deleted_at
+    ON deleted_bookmarks(deleted_at);
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS idx_deleted_bookmarks_url
+    ON deleted_bookmarks(url);
+  `,
+];
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -6,78 +44,26 @@ export async function onRequestPost(context) {
   try {
     const auth = await authenticateRequest(request, env);
     if (!auth.authenticated) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: auth.error,
-        }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.unauthorized(auth.error);
     }
 
-    await env.BOOKMARKS_DB.exec(`
-      CREATE TABLE IF NOT EXISTS deleted_bookmarks (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        original_bookmark_id INTEGER NOT NULL,
-        title TEXT NOT NULL,
-        url TEXT NOT NULL,
-        category TEXT,
-        description TEXT,
-        favicon_url TEXT,
-        tags TEXT,
-        created_at TEXT,
-        updated_at TEXT,
-        deleted_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        deleted_reason TEXT,
-        check_status TEXT,
-        status_code INTEGER,
-        status_text TEXT,
-        error_message TEXT,
-        keep_status TEXT,
-        deleted_by TEXT DEFAULT 'system'
-      );
-    `);
+    for (const statement of MIGRATION_STATEMENTS) {
+      await env.BOOKMARKS_DB.exec(statement);
+    }
 
-    await env.BOOKMARKS_DB.exec(`
-      CREATE INDEX IF NOT EXISTS idx_deleted_bookmarks_original_id
-      ON deleted_bookmarks(original_bookmark_id);
-    `);
-
-    await env.BOOKMARKS_DB.exec(`
-      CREATE INDEX IF NOT EXISTS idx_deleted_bookmarks_deleted_at
-      ON deleted_bookmarks(deleted_at);
-    `);
-
-    await env.BOOKMARKS_DB.exec(`
-      CREATE INDEX IF NOT EXISTS idx_deleted_bookmarks_url
-      ON deleted_bookmarks(url);
-    `);
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: "删除书签记录表创建成功",
-      }),
+    return ResponseHelper.success(
       {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
+        migrated: true,
+        table: "deleted_bookmarks",
+        statements: MIGRATION_STATEMENTS.length,
       },
+      "Deleted bookmarks migration completed",
     );
   } catch (error) {
-    console.error("创建删除书签记录表失败:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "创建删除书签记录表失败",
-        message: error.message,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
+    console.error("Deleted bookmarks migration failed:", error);
+    return ResponseHelper.serverError(
+      "Deleted bookmarks migration failed",
+      error.message,
     );
   }
 }

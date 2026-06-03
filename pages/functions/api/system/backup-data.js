@@ -1,26 +1,28 @@
-/**
- * 数据库备份 API
- * 在数据库升级前备份现有数据
- */
-
 import { authenticateRequest } from "../auth/verify.js";
+import { ResponseHelper } from "../../utils/response-helper.js";
+
+const TABLES = [
+  "system_config",
+  "categories",
+  "bookmarks",
+  "deleted_bookmarks",
+  "bookmark_visits",
+];
 
 async function requireAdminAccess(context) {
   const auth = await authenticateRequest(context.request, context.env);
-  if (auth.authenticated) {
-    return null;
-  }
+  return auth.authenticated ? null : ResponseHelper.unauthorized(auth.error);
+}
 
-  return new Response(
-    JSON.stringify({
-      success: false,
-      error: auth.error,
-    }),
-    {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    },
-  );
+function getDatabase(context) {
+  return context.env?.BOOKMARKS_DB || null;
+}
+
+async function tableExists(db, tableName) {
+  return db
+    .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?")
+    .bind(tableName)
+    .first();
 }
 
 export async function onRequestPost(context) {
@@ -30,21 +32,9 @@ export async function onRequestPost(context) {
       return blocked;
     }
 
-    console.log("=== 开始数据库备份 ===");
-
-    const db = context.env.BOOKMARKS_DB;
-
+    const db = getDatabase(context);
     if (!db) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "数据库未配置",
-        }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.databaseError("Database is not configured.");
     }
 
     const backupData = {
@@ -53,27 +43,10 @@ export async function onRequestPost(context) {
       tables: {},
     };
 
-    const tablesToBackup = [
-      "system_config",
-      "categories",
-      "bookmarks",
-      "deleted_bookmarks",
-      "bookmark_visits",
-    ];
-
-    for (const tableName of tablesToBackup) {
+    for (const tableName of TABLES) {
       try {
-        console.log(`备份表: ${tableName}`);
-
-        const tableExists = await db
-          .prepare(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
-          )
-          .bind(tableName)
-          .first();
-
-        if (!tableExists) {
-          console.log(`表 ${tableName} 不存在，跳过备份`);
+        const exists = await tableExists(db, tableName);
+        if (!exists) {
           continue;
         }
 
@@ -87,12 +60,8 @@ export async function onRequestPost(context) {
           data: data.results || [],
           count: (data.results || []).length,
         };
-
-        console.log(
-          `表 ${tableName} 备份完成，共 ${backupData.tables[tableName].count} 条记录`,
-        );
       } catch (error) {
-        console.error(`备份表 ${tableName} 失败:`, error);
+        console.error(`Failed to back up table ${tableName}:`, error);
         backupData.tables[tableName] = {
           error: error.message,
           schema: [],
@@ -106,48 +75,30 @@ export async function onRequestPost(context) {
       (sum, table) => sum + (table.count || 0),
       0,
     );
-
-    const summary = {
-      success: true,
-      message: "数据备份完成",
-      timestamp: backupData.timestamp,
+    const payload = {
+      backupData,
       totalTables: Object.keys(backupData.tables).length,
       totalRecords,
       tables: Object.keys(backupData.tables).map((name) => ({
         name,
         records: backupData.tables[name].count || 0,
-        hasError: !!backupData.tables[name].error,
+        hasError: Boolean(backupData.tables[name].error),
       })),
     };
 
-    console.log("备份完成:", summary);
-
-    return new Response(
-      JSON.stringify({
-        ...summary,
-        backupData,
-      }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          "Content-Disposition": `attachment; filename="bookmark-backup-${new Date().toISOString().split("T")[0]}.json"`,
-        },
-      },
+    const response = ResponseHelper.success(
+      payload,
+      "Database backup completed.",
     );
+    response.headers.set(
+      "Content-Disposition",
+      `attachment; filename="bookmark-backup-${new Date().toISOString().split("T")[0]}.json"`,
+    );
+    return response;
   } catch (error) {
-    console.error("数据备份失败:", error);
-
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "数据备份失败: " + error.message,
-        timestamp: new Date().toISOString(),
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
+    console.error("Database backup failed:", error);
+    return ResponseHelper.serverError(
+      `Database backup failed: ${error.message}`,
     );
   }
 }
@@ -159,19 +110,9 @@ export async function onRequestGet(context) {
       return blocked;
     }
 
-    const db = context.env.BOOKMARKS_DB;
-
+    const db = getDatabase(context);
     if (!db) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "数据库未配置",
-        }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.databaseError("Database is not configured.");
     }
 
     const status = {
@@ -179,59 +120,35 @@ export async function onRequestGet(context) {
       totalRecords: 0,
     };
 
-    const tablesToCheck = [
-      "system_config",
-      "categories",
-      "bookmarks",
-      "deleted_bookmarks",
-      "bookmark_visits",
-    ];
-
-    for (const tableName of tablesToCheck) {
+    for (const tableName of TABLES) {
       try {
-        const tableExists = await db
-          .prepare(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
-          )
-          .bind(tableName)
-          .first();
-
-        if (tableExists) {
-          const count = await db
-            .prepare(`SELECT COUNT(*) as count FROM ${tableName}`)
-            .first();
-          status.tables[tableName] = count?.count || 0;
-          status.totalRecords += count?.count || 0;
-        } else {
+        const exists = await tableExists(db, tableName);
+        if (!exists) {
           status.tables[tableName] = 0;
+          continue;
         }
+
+        const count = await db
+          .prepare(`SELECT COUNT(*) as count FROM ${tableName}`)
+          .first();
+        const records = count?.count || 0;
+        status.tables[tableName] = records;
+        status.totalRecords += records;
       } catch (error) {
+        console.error(`Failed to inspect table ${tableName}:`, error);
         status.tables[tableName] = -1;
       }
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: "数据库状态检查完成",
+    return ResponseHelper.success(
+      {
         ...status,
         canBackup: status.totalRecords > 0,
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
       },
+      "Database status check completed.",
     );
   } catch (error) {
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: error.message,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    console.error("Database backup status failed:", error);
+    return ResponseHelper.serverError(error.message);
   }
 }

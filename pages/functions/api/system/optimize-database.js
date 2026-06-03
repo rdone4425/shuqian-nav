@@ -1,72 +1,66 @@
 import { authenticateRequest } from "../auth/verify.js";
+import { ResponseHelper } from "../../utils/response-helper.js";
+
+const OPTIMIZATIONS = [
+  {
+    name: "idx_bookmarks_category",
+    sql: "CREATE INDEX IF NOT EXISTS idx_bookmarks_category ON bookmarks(category_id)",
+    description: "Bookmarks category index",
+  },
+  {
+    name: "idx_bookmarks_created_at",
+    sql: "CREATE INDEX IF NOT EXISTS idx_bookmarks_created_at ON bookmarks(created_at DESC)",
+    description: "Bookmarks created-time index",
+  },
+  {
+    name: "idx_bookmarks_title",
+    sql: "CREATE INDEX IF NOT EXISTS idx_bookmarks_title ON bookmarks(title)",
+    description: "Bookmarks title index for search",
+  },
+  {
+    name: "idx_bookmarks_url",
+    sql: "CREATE INDEX IF NOT EXISTS idx_bookmarks_url ON bookmarks(url)",
+    description: "Bookmarks URL index for duplicate checks",
+  },
+  {
+    name: "idx_system_config_key",
+    sql: "CREATE INDEX IF NOT EXISTS idx_system_config_key ON system_config(config_key)",
+    description: "System config key index",
+  },
+];
+
+async function requireAdmin(request, env) {
+  const auth = await authenticateRequest(request, env);
+  if (!auth.authenticated) {
+    return { error: ResponseHelper.unauthorized(auth.error) };
+  }
+  return { auth };
+}
 
 export async function onRequestPost(context) {
   const { request, env } = context;
 
   try {
-    const auth = await authenticateRequest(request, env);
-    if (!auth.authenticated) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: auth.error,
-        }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-    }
-
-    console.log("开始数据库优化...");
-
-    const optimizations = [
-      {
-        name: "idx_bookmarks_category",
-        sql: "CREATE INDEX IF NOT EXISTS idx_bookmarks_category ON bookmarks(category_id)",
-        description: "书签分类索引",
-      },
-      {
-        name: "idx_bookmarks_created_at",
-        sql: "CREATE INDEX IF NOT EXISTS idx_bookmarks_created_at ON bookmarks(created_at DESC)",
-        description: "书签创建时间索引",
-      },
-      {
-        name: "idx_bookmarks_title",
-        sql: "CREATE INDEX IF NOT EXISTS idx_bookmarks_title ON bookmarks(title)",
-        description: "书签标题索引（用于搜索）",
-      },
-      {
-        name: "idx_bookmarks_url",
-        sql: "CREATE INDEX IF NOT EXISTS idx_bookmarks_url ON bookmarks(url)",
-        description: "URL 索引（用于重复检测）",
-      },
-      {
-        name: "idx_system_config_key",
-        sql: "CREATE INDEX IF NOT EXISTS idx_system_config_key ON system_config(config_key)",
-        description: "系统配置键索引",
-      },
-    ];
+    const admin = await requireAdmin(request, env);
+    if (admin.error) return admin.error;
 
     const results = [];
 
-    for (const opt of optimizations) {
+    for (const optimization of OPTIMIZATIONS) {
       try {
-        await env.BOOKMARKS_DB.exec(opt.sql);
+        await env.BOOKMARKS_DB.exec(optimization.sql);
         results.push({
-          index: opt.name,
-          description: opt.description,
+          index: optimization.name,
+          description: optimization.description,
           status: "success",
         });
-        console.log(`✅ ${opt.description} 创建成功`);
       } catch (error) {
         results.push({
-          index: opt.name,
-          description: opt.description,
+          index: optimization.name,
+          description: optimization.description,
           status: "error",
           error: error.message,
         });
-        console.error(`❌ ${opt.description} 创建失败:`, error);
       }
     }
 
@@ -74,44 +68,27 @@ export async function onRequestPost(context) {
       await env.BOOKMARKS_DB.exec("VACUUM");
       results.push({
         index: "vacuum",
-        description: "数据库碎片整理",
+        description: "Database vacuum cleanup",
         status: "success",
       });
-      console.log("✅ 数据库 VACUUM 优化完成");
     } catch (error) {
       results.push({
         index: "vacuum",
-        description: "数据库碎片整理",
+        description: "Database vacuum cleanup",
         status: "error",
         error: error.message,
       });
-      console.error("❌ VACUUM 优化失败:", error);
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: "数据库优化完成",
-        optimizations: results,
-        timestamp: new Date().toISOString(),
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      },
+    return ResponseHelper.success(
+      { optimizations: results },
+      "Database optimization completed",
     );
   } catch (error) {
-    console.error("数据库优化失败:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "数据库优化失败",
-        details: error.message,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
+    console.error("Database optimization failed:", error);
+    return ResponseHelper.serverError(
+      "Database optimization failed",
+      error.message,
     );
   }
 }
@@ -120,23 +97,12 @@ export async function onRequestGet(context) {
   const { request, env } = context;
 
   try {
-    const auth = await authenticateRequest(request, env);
-    if (!auth.authenticated) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: auth.error,
-        }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-    }
+    const admin = await requireAdmin(request, env);
+    if (admin.error) return admin.error;
 
     const stats = await env.BOOKMARKS_DB.prepare(
       `
-        SELECT 
+        SELECT
           (SELECT COUNT(*) FROM bookmarks) as total_bookmarks,
           (SELECT COUNT(DISTINCT category_id) FROM bookmarks) as total_categories,
           (SELECT COUNT(*) FROM system_config) as total_configs
@@ -147,36 +113,24 @@ export async function onRequestGet(context) {
       "SELECT name, sql FROM sqlite_master WHERE type='index' AND name LIKE 'idx_%'",
     ).all();
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        database_stats: stats,
-        indexes: indexes.results || [],
-        recommendations: {
-          needs_optimization: stats.total_bookmarks > 1000,
-          suggested_actions:
-            stats.total_bookmarks > 1000
-              ? ["启用分页加载", "考虑缓存热门书签"]
-              : ["数据库性能良好"],
-        },
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
+    const totalBookmarks = Number(stats?.total_bookmarks || 0);
+
+    return ResponseHelper.success({
+      database_stats: stats,
+      indexes: indexes.results || [],
+      recommendations: {
+        needs_optimization: totalBookmarks > 1000,
+        suggested_actions:
+          totalBookmarks > 1000
+            ? ["Enable paginated loading", "Consider caching popular bookmarks"]
+            : ["Database performance looks good"],
       },
-    );
+    });
   } catch (error) {
-    console.error("获取数据库状态失败:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "获取数据库状态失败",
-        details: error.message,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
+    console.error("Failed to get database status:", error);
+    return ResponseHelper.serverError(
+      "Failed to get database status",
+      error.message,
     );
   }
 }

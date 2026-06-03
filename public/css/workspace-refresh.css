@@ -140,42 +140,6 @@ body.nav-site::after,
   font-weight: 600 !important;
 }
 
-.nav-site .nav-menu {
-  height: 38px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 2px !important;
-  padding: 3px !important;
-  border: 1px solid var(--wr-line) !important;
-  border-radius: var(--wr-radius) !important;
-  background: var(--wr-surface-2) !important;
-}
-
-.nav-site .nav-menu-link {
-  height: 30px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  padding: 0 12px !important;
-  border-radius: var(--wr-radius-sm) !important;
-  color: var(--wr-text) !important;
-  font-size: 0.82rem !important;
-  font-weight: 700 !important;
-  text-decoration: none !important;
-  transition:
-    background var(--wr-fast),
-    color var(--wr-fast) !important;
-}
-
-.nav-site .nav-menu-link:hover {
-  color: var(--wr-ink) !important;
-  background: #fff !important;
-}
-
-.nav-site .nav-menu-link.active {
-  color: #fff !important;
-  background: var(--wr-blue) !important;
-}
-
 .nav-site .header-actions {
   margin-left: auto !important;
   display: flex !important;
@@ -892,64 +856,6 @@ body.nav-site::after,
   font-weight: 850 !important;
 }
 
-.nav-site .bookmark-actions {
-  flex: 0 0 auto !important;
-  max-width: 46% !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 4px !important;
-  opacity: 0 !important;
-  transform: translateX(4px) !important;
-  transition:
-    opacity var(--wr-fast),
-    transform var(--wr-fast) !important;
-}
-
-.nav-site .bookmark-card:hover .bookmark-actions,
-.nav-site .bookmark-card:focus-within .bookmark-actions {
-  opacity: 1 !important;
-  transform: translateX(0) !important;
-}
-
-.nav-site .bookmark-action-btn,
-.nav-site .action-btn {
-  max-width: 72px !important;
-  min-height: 28px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 5px !important;
-  padding: 0 8px !important;
-  border: 1px solid var(--wr-line) !important;
-  border-radius: var(--wr-radius-sm) !important;
-  color: var(--wr-text) !important;
-  background: #fff !important;
-  font-size: 0.72rem !important;
-  font-weight: 800 !important;
-  cursor: pointer !important;
-}
-
-.nav-site .action-text {
-  min-width: 0 !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-}
-
-.nav-site .bookmark-action-btn:hover,
-.nav-site .action-btn:hover {
-  color: var(--wr-ink) !important;
-  border-color: #c5cfdb !important;
-  background: var(--wr-surface-2) !important;
-}
-
-.nav-site .bookmark-action-btn.delete-btn:hover,
-.nav-site .action-btn.delete-btn:hover {
-  color: var(--wr-red) !important;
-  border-color: #f0b9b9 !important;
-  background: #fff4f4 !important;
-}
-
 .nav-site .bookmarks-grid.list-view,
 .nav-site .nav-bookmarks-grid.list-view {
   grid-template-columns: 1fr !important;
@@ -1333,65 +1239,6 @@ body.nav-site::after,
   border-color: var(--wr-line) !important;
 }
 
-.nav-site .token-confirm-modal {
-  position: fixed !important;
-  inset: 0 !important;
-  z-index: 1800 !important;
-  display: grid !important;
-  place-items: center !important;
-  padding: 18px !important;
-  background: rgba(15, 23, 42, 0.42) !important;
-}
-
-.nav-site .token-confirm-modal.hidden {
-  display: none !important;
-}
-
-.nav-site .token-confirm-card {
-  width: min(540px, 100%) !important;
-  display: grid !important;
-  gap: 14px !important;
-  padding: 18px !important;
-  border: 1px solid var(--wr-line) !important;
-  border-radius: var(--wr-radius) !important;
-  background: var(--wr-surface) !important;
-  box-shadow: var(--wr-shadow-pop) !important;
-}
-
-.nav-site .token-confirm-header {
-  display: flex !important;
-  align-items: flex-start !important;
-  justify-content: space-between !important;
-  gap: 12px !important;
-  padding-bottom: 12px !important;
-  border-bottom: 1px solid var(--wr-line-soft) !important;
-}
-
-.nav-site .token-confirm-header h3 {
-  margin: 8px 0 0 !important;
-  color: var(--wr-ink) !important;
-  font-size: 1rem !important;
-  font-weight: 850 !important;
-}
-
-.nav-site .token-confirm-copy,
-.nav-site .token-confirm-hint {
-  margin: 0 !important;
-  color: var(--wr-text) !important;
-  font-size: 0.88rem !important;
-  line-height: 1.6 !important;
-}
-
-.nav-site .token-confirm-hint {
-  color: var(--wr-muted) !important;
-}
-
-.nav-site .token-confirm-actions {
-  display: flex !important;
-  justify-content: flex-end !important;
-  gap: 10px !important;
-}
-
 .nav-site .actions-section,
 .nav-site .controls-row,
 .nav-site .notification-card-header {
@@ -1470,12 +1317,6 @@ body.nav-site::after,
   .nav-site .logo {
     min-width: 0 !important;
     flex: 1 1 180px !important;
-  }
-
-  .nav-site .nav-menu {
-    order: 3 !important;
-    width: 100% !important;
-    overflow-x: auto !important;
   }
 
   .nav-site .header-actions {

@@ -1,0 +1,490 @@
+const state = {
+  bookmarks: [],
+  checking: false,
+  stopRequested: false,
+  activeFilter: "all",
+};
+
+const filterLabels = {
+  all: "全部",
+  checked: "已检查",
+  accessible: "可访问",
+  inaccessible: "明确异常",
+  review: "待确认",
+  kept: "已保留",
+  deleted: "已删除",
+};
+
+function isCheckedBookmark(bookmark) {
+  return (
+    bookmark.checked ||
+    bookmark.deleted ||
+    bookmark.status === "accessible" ||
+    bookmark.status === "inaccessible" ||
+    bookmark.status === "review"
+  );
+}
+
+function matchesActiveFilter(bookmark) {
+  switch (state.activeFilter) {
+    case "checked":
+      return isCheckedBookmark(bookmark);
+    case "accessible":
+      return bookmark.status === "accessible" && !bookmark.deleted;
+    case "inaccessible":
+      return bookmark.status === "inaccessible" && !bookmark.deleted;
+    case "review":
+      return bookmark.status === "review" && !bookmark.deleted;
+    case "kept":
+      return bookmark.keepStatus === "keep" && !bookmark.deleted;
+    case "deleted":
+      return bookmark.deleted;
+    case "all":
+    default:
+      return true;
+  }
+}
+
+function getFilteredBookmarks() {
+  return state.bookmarks.filter(matchesActiveFilter);
+}
+
+function updateFilterControls() {
+  document.querySelectorAll(".stat-item[data-filter]").forEach((button) => {
+    const isActive = button.dataset.filter === state.activeFilter;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
+}
+
+function getBookmarkClass(bookmark) {
+  if (bookmark.deleted) return "deleted";
+  if (bookmark.status === "checking") return "checking";
+  if (bookmark.keepStatus === "keep") return "kept";
+  if (bookmark.status === "accessible") return "accessible";
+  if (bookmark.status === "inaccessible") return "inaccessible";
+  if (bookmark.status === "review") return "review";
+  return "";
+}
+
+function getStatusBadgeText(bookmarkClass) {
+  if (bookmarkClass === "accessible") return "正常";
+  if (bookmarkClass === "inaccessible") return "异常";
+  if (bookmarkClass === "review") return "待确认";
+  if (bookmarkClass === "kept") return "保留";
+  if (bookmarkClass === "deleted") return "已删";
+  if (bookmarkClass === "checking") return "检查中";
+  return "待检";
+}
+
+function getResultText(bookmark) {
+  if (bookmark.deleted) return "已删除";
+  if (bookmark.status === "checking") return "正在检查...";
+  if (bookmark.status === "accessible") {
+    return `HTTP ${bookmark.statusCode || 200} 可访问`;
+  }
+  if (bookmark.status === "inaccessible") {
+    return bookmark.error || `${bookmark.statusCode || 0} 不可访问`;
+  }
+  if (bookmark.status === "review") {
+    return bookmark.error || "检查不确定，请人工确认";
+  }
+  if (bookmark.keepStatus === "keep") return "已标记保留";
+  return "待检查";
+}
+
+function renderBookmarks() {
+  const list = document.getElementById("bookmarksList");
+
+  if (!state.bookmarks.length) {
+    list.innerHTML =
+      '<div class="bookmarks-stats">当前没有可检查的书签。</div>';
+    document.getElementById("filterStatus").textContent = "暂无数据";
+    updateStats();
+    return;
+  }
+
+  const filteredBookmarks = getFilteredBookmarks();
+  const activeLabel = filterLabels[state.activeFilter] || "全部";
+
+  document.getElementById("filterStatus").textContent =
+    state.activeFilter === "all"
+      ? `已加载 ${state.bookmarks.length} 条书签`
+      : `${activeLabel} ${filteredBookmarks.length}/${state.bookmarks.length}`;
+
+  if (!filteredBookmarks.length) {
+    list.innerHTML = `<div class="empty-state">暂无${AdminUI.escapeHtml(activeLabel)}书签。</div>`;
+    updateStats();
+    return;
+  }
+
+  list.innerHTML = filteredBookmarks
+    .map((bookmark) => {
+      const bookmarkClass = getBookmarkClass(bookmark);
+      const keepAction =
+        bookmark.keepStatus === "keep"
+          ? `<button class="unkeep-btn" type="button" data-action="unkeep" data-id="${bookmark.id}">取消保留</button>`
+          : `<button class="keep-btn" type="button" data-action="keep" data-id="${bookmark.id}">保留</button>`;
+
+      return `
+        <article class="bookmark-item ${bookmarkClass}">
+          <div class="bookmark-status">${getStatusBadgeText(bookmarkClass)}</div>
+          <div class="bookmark-info">
+            <div class="bookmark-title">${AdminUI.escapeHtml(bookmark.title || "未命名书签")}</div>
+            <div class="bookmark-url">
+              <a href="${AdminUI.escapeHtml(bookmark.url)}" target="_blank" rel="noreferrer">${AdminUI.escapeHtml(bookmark.url)}</a>
+            </div>
+          </div>
+          <div class="bookmark-meta">
+            <span class="bookmark-category" style="background:${AdminUI.escapeHtml(bookmark.categoryColor || "#6b7280")}">
+              ${AdminUI.escapeHtml(bookmark.category || "未分类")}
+            </span>
+            <span class="bookmark-result">${AdminUI.escapeHtml(getResultText(bookmark))}</span>
+          </div>
+          <div class="bookmark-actions-container">
+            <div class="bookmark-actions">
+              <button class="btn btn-outline" type="button" data-action="check" data-id="${bookmark.id}">检查</button>
+              ${keepAction}
+              <button class="delete-single-btn" type="button" data-action="delete" data-id="${bookmark.id}">删除</button>
+            </div>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+
+  updateStats();
+}
+
+function updateStats() {
+  const total = state.bookmarks.length;
+  const checked = state.bookmarks.filter(isCheckedBookmark).length;
+  const accessible = state.bookmarks.filter(
+    (bookmark) => bookmark.status === "accessible",
+  ).length;
+  const inaccessible = state.bookmarks.filter(
+    (bookmark) => bookmark.status === "inaccessible" && !bookmark.deleted,
+  ).length;
+  const review = state.bookmarks.filter(
+    (bookmark) => bookmark.status === "review" && !bookmark.deleted,
+  ).length;
+  const kept = state.bookmarks.filter(
+    (bookmark) => bookmark.keepStatus === "keep" && !bookmark.deleted,
+  ).length;
+  const deleted = state.bookmarks.filter((bookmark) => bookmark.deleted).length;
+  const percent = total ? Math.round((checked / total) * 100) : 0;
+
+  document.getElementById("totalBookmarks").textContent = total;
+  document.getElementById("checkedCount").textContent = checked;
+  document.getElementById("accessibleCount").textContent = accessible;
+  document.getElementById("inaccessibleCount").textContent = inaccessible;
+  document.getElementById("reviewCount").textContent = review;
+  document.getElementById("keptCount").textContent = kept;
+  document.getElementById("deletedCount").textContent = deleted;
+  document.getElementById("progressPercent").textContent = `${percent}%`;
+  document.getElementById("progressFill").style.width = `${percent}%`;
+  updateFilterControls();
+}
+
+async function loadBookmarks() {
+  document.getElementById("bookmarksList").innerHTML =
+    '<div class="bookmarks-stats">正在加载书签...</div>';
+
+  try {
+    const response = await API.get("/api/system/check-links-stream");
+    if (!response.success) {
+      throw new Error(response.error || "加载书签失败");
+    }
+
+    state.bookmarks = (response.data || []).map((bookmark) => ({
+      ...bookmark,
+      deleted: false,
+      status: "pending",
+      checked: false,
+      statusCode: null,
+      error: "",
+      deleteCandidate: false,
+      reviewRequired: false,
+    }));
+
+    document.getElementById("progressText").textContent = "书签列表已加载";
+    renderBookmarks();
+  } catch (error) {
+    document.getElementById("bookmarksList").innerHTML =
+      `<div class="bookmarks-stats">加载失败：${AdminUI.escapeHtml(error.message)}</div>`;
+  }
+}
+
+async function checkBookmark(bookmarkId) {
+  const bookmark = state.bookmarks.find(
+    (item) => String(item.id) === String(bookmarkId),
+  );
+  if (!bookmark || bookmark.deleted) return;
+
+  bookmark.status = "checking";
+  bookmark.error = "";
+  renderBookmarks();
+  document.getElementById("progressText").textContent =
+    `正在检查：${bookmark.title}`;
+
+  try {
+    const response = await API.post("/api/system/check-links-stream", {
+      bookmarkId: bookmark.id,
+      url: bookmark.url,
+      autoDelete: false,
+    });
+
+    if (!response.success) {
+      throw new Error(response.error || "检查书签失败");
+    }
+
+    const result = response.data;
+    bookmark.checked = true;
+    bookmark.deleteCandidate = Boolean(result.deleteCandidate);
+    bookmark.reviewRequired = Boolean(result.reviewRequired);
+    bookmark.status = result.accessible
+      ? "accessible"
+      : result.deleteCandidate
+        ? "inaccessible"
+        : "review";
+    bookmark.statusCode = result.status;
+    bookmark.error = result.error || "";
+  } catch (error) {
+    bookmark.checked = true;
+    bookmark.status = "review";
+    bookmark.deleteCandidate = false;
+    bookmark.reviewRequired = true;
+    bookmark.error = error.message;
+  }
+
+  renderBookmarks();
+}
+
+async function startBatchCheck() {
+  if (state.checking) return;
+  state.checking = true;
+  state.stopRequested = false;
+  document.getElementById("startCheckBtn").classList.add("hidden");
+  document.getElementById("stopCheckBtn").classList.remove("hidden");
+
+  for (const bookmark of state.bookmarks) {
+    if (state.stopRequested) break;
+    await checkBookmark(bookmark.id);
+  }
+
+  state.checking = false;
+  state.stopRequested = false;
+  document.getElementById("startCheckBtn").classList.remove("hidden");
+  document.getElementById("stopCheckBtn").classList.add("hidden");
+  document.getElementById("progressText").textContent = "本轮检查已完成";
+}
+
+function stopBatchCheck() {
+  state.stopRequested = true;
+  document.getElementById("progressText").textContent = "正在停止检查...";
+}
+
+async function updateKeepStatus(bookmarkId, keepStatus) {
+  try {
+    const response = await API.post("/api/bookmarks/keep-status", {
+      bookmarkId,
+      keepStatus,
+    });
+
+    if (!response.success) {
+      throw new Error(response.error || "更新保留状态失败");
+    }
+
+    const bookmark = state.bookmarks.find(
+      (item) => String(item.id) === String(bookmarkId),
+    );
+    if (bookmark) bookmark.keepStatus = keepStatus;
+
+    renderBookmarks();
+    AdminUI.showToast(
+      keepStatus === "keep" ? "书签已标记为保留" : "已取消保留标记",
+    );
+  } catch (error) {
+    AdminUI.showToast(`更新失败：${error.message}`, "error");
+  }
+}
+
+async function deleteBookmark(bookmarkId) {
+  const bookmark = state.bookmarks.find(
+    (item) => String(item.id) === String(bookmarkId),
+  );
+  if (!bookmark) return;
+
+  const confirmed = await AdminUI.confirm({
+    title: "删除单条书签",
+    message: `确定现在删除书签「${bookmark.title || "未命名书签"}」吗？`,
+    hint:
+      bookmark.status === "inaccessible"
+        ? "这条书签会进入回收站，删除原因会记录为链接检查失败。"
+        : "这条书签会进入回收站，之后可以在回收站查看记录。",
+    confirmText: "删除这条书签",
+    variant: "danger",
+  });
+  if (!confirmed) return;
+
+  try {
+    const response = await BookmarkAPI.deleteBookmark(bookmark.id, {
+      reason: bookmark.deleteCandidate ? "link_check_failed" : "manual_delete",
+      checkStatus: bookmark.status,
+      statusCode: bookmark.statusCode,
+      errorMessage: bookmark.error,
+      keepStatus: bookmark.keepStatus,
+    });
+
+    if (!response.success) {
+      throw new Error(response.error || "删除书签失败");
+    }
+
+    bookmark.deleted = true;
+    bookmark.status = "deleted";
+    renderBookmarks();
+    AdminUI.showToast(`已删除：${bookmark.title}`);
+  } catch (error) {
+    AdminUI.showToast(`删除失败：${error.message}`, "error");
+  }
+}
+
+async function deleteInaccessibleBookmarks() {
+  const targets = state.bookmarks.filter(
+    (bookmark) =>
+      bookmark.status === "inaccessible" &&
+      bookmark.deleteCandidate &&
+      bookmark.keepStatus !== "keep" &&
+      !bookmark.deleted,
+  );
+
+  if (!targets.length) {
+    AdminUI.showToast("当前没有可删除的明确异常书签。", "error");
+    return;
+  }
+
+  const confirmed = await AdminUI.confirm({
+    title: "删除明确异常书签",
+    message: `确定删除 ${targets.length} 个明确异常书签吗？`,
+    hint: "只会删除检查结果为明确异常的书签；待确认和已标记保留的书签会自动跳过。",
+    confirmText: "删除明确异常",
+    variant: "danger",
+  });
+  if (!confirmed) return;
+
+  const button = document.getElementById("deleteInaccessibleBtn");
+  button.disabled = true;
+  button.textContent = "正在删除...";
+
+  let successCount = 0;
+  let failedCount = 0;
+
+  for (const bookmark of targets) {
+    try {
+      const response = await BookmarkAPI.deleteBookmark(bookmark.id, {
+        reason: "link_check_failed",
+        checkStatus: bookmark.status,
+        statusCode: bookmark.statusCode,
+        errorMessage: bookmark.error,
+        keepStatus: bookmark.keepStatus,
+      });
+
+      if (!response.success) {
+        throw new Error(response.error || "删除书签失败");
+      }
+
+      bookmark.deleted = true;
+      bookmark.status = "deleted";
+      successCount += 1;
+    } catch (error) {
+      failedCount += 1;
+      bookmark.error = error.message;
+    }
+
+    renderBookmarks();
+  }
+
+  button.disabled = false;
+  button.textContent = "删除明确异常";
+  AdminUI.showToast(
+    `删除完成：成功 ${successCount} 个${failedCount ? `，失败 ${failedCount} 个` : ""}`,
+    failedCount ? "error" : "success",
+  );
+}
+
+async function loadHistory() {
+  try {
+    const response = await API.get("/api/system/check-links");
+    if (!response.success) {
+      throw new Error(response.error || "加载历史记录失败");
+    }
+
+    const history = response.data || [];
+    const historyList = document.getElementById("historyList");
+
+    if (!history.length) {
+      historyList.textContent = "暂时还没有保存过检查记录。";
+      return;
+    }
+
+    historyList.innerHTML = history
+      .slice(0, 5)
+      .map(
+        (item) => `
+          <div class="bookmarks-stats" style="margin-bottom: 8px;">
+            ${AdminUI.formatDate(item.checkedAt || item.createdAt)}：
+            总计 ${item.total ?? 0}，可访问 ${item.accessible ?? 0}，
+            不可访问 ${item.inaccessible ?? 0}
+          </div>
+        `,
+      )
+      .join("");
+  } catch (error) {
+    document.getElementById("historyList").textContent =
+      `加载历史记录失败：${error.message}`;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const authenticated = await AdminUI.requireAuth();
+  if (!authenticated) {
+    return;
+  }
+
+  document
+    .getElementById("reloadBookmarksBtn")
+    .addEventListener("click", loadBookmarks);
+  document
+    .getElementById("startCheckBtn")
+    .addEventListener("click", startBatchCheck);
+  document
+    .getElementById("stopCheckBtn")
+    .addEventListener("click", stopBatchCheck);
+  document
+    .getElementById("deleteInaccessibleBtn")
+    .addEventListener("click", deleteInaccessibleBookmarks);
+  document.getElementById("statsGrid").addEventListener("click", (event) => {
+    const filterButton = event.target.closest("[data-filter]");
+    if (!filterButton) return;
+
+    state.activeFilter = filterButton.dataset.filter || "all";
+    renderBookmarks();
+    document
+      .getElementById("bookmarksCard")
+      .scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  document
+    .getElementById("bookmarksList")
+    .addEventListener("click", (event) => {
+      const button = event.target.closest("[data-action]");
+      if (!button) return;
+
+      const { action, id } = button.dataset;
+      if (action === "check") checkBookmark(id);
+      else if (action === "keep") updateKeepStatus(id, "keep");
+      else if (action === "unkeep") updateKeepStatus(id, "normal");
+      else if (action === "delete") deleteBookmark(id);
+    });
+
+  await Promise.all([loadBookmarks(), loadHistory()]);
+});

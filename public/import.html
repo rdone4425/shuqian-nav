@@ -15,15 +15,16 @@
     <link rel="stylesheet" href="/css/styles.css" />
     <link
       rel="stylesheet"
-      href="/css/workspace-refresh.css?v=nav-20260601-ui-refresh"
+      href="/css/workspace-refresh.css?v=nav-20260602-public-home"
     />
     <link
       rel="stylesheet"
-      href="/css/import-enhanced.css?v=20260601-danger-confirm"
+      href="/css/import-enhanced.css?v=nav-20260602-typed-confirm"
     />
+    <link rel="stylesheet" href="/css/admin.css?v=nav-20260603-admin-shell" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
-  <body class="nav-site import-page">
+  <body class="nav-site admin-site import-page">
     <div class="container">
       <div
         data-site-header
@@ -277,64 +278,13 @@
           </button>
         </div>
       </footer>
-
-      <div
-        id="importConfirmModal"
-        class="import-confirm-modal hidden"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="importConfirmTitle"
-      >
-        <div class="import-confirm-card">
-          <div class="import-confirm-header">
-            <div>
-              <span id="importConfirmKicker" class="danger-kicker"
-                >危险操作</span
-              >
-              <h3 id="importConfirmTitle">确认操作</h3>
-            </div>
-            <button
-              id="importConfirmClose"
-              class="btn btn-secondary"
-              type="button"
-            >
-              关闭
-            </button>
-          </div>
-          <p id="importConfirmMessage" class="import-confirm-copy"></p>
-          <label class="import-confirm-field">
-            <span id="importConfirmInputLabel">输入确认文字</span>
-            <input
-              id="importConfirmInput"
-              class="form-input"
-              type="text"
-              autocomplete="off"
-            />
-          </label>
-          <p id="importConfirmHint" class="import-confirm-hint"></p>
-          <div class="import-confirm-actions">
-            <button
-              id="importConfirmCancel"
-              class="btn btn-secondary"
-              type="button"
-            >
-              取消
-            </button>
-            <button
-              id="importConfirmSubmit"
-              class="btn btn-danger"
-              type="button"
-            >
-              确认
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <script src="/js/utils/api.js"></script>
-    <script src="/js/auth.js"></script>
-    <script src="/js/site-menu.js?v=nav-20260601-menu-actions"></script>
-    <script src="/js/import.js?v=20260601-danger-confirm"></script>
+    <script src="/js/shared/api.js?v=nav-20260602-shared-runtime"></script>
+    <script src="/js/shared/auth.js?v=nav-20260602-auth-cache"></script>
+    <script src="/js/shared/site-menu.js?v=nav-20260603-admin-shell"></script>
+    <script src="/js/shared/admin-common.js?v=nav-20260602-shared-runtime"></script>
+    <script src="/js/shared/admin-shell.js?v=nav-20260603-admin-shell"></script>
+    <script src="/js/admin/import.js?v=nav-20260602-admin-runtime"></script>
   </body>
 </html>

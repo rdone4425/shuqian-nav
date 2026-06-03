@@ -4,6 +4,7 @@ class DeletedBookmarksManager {
     this.pageSize = 20;
     this.totalPages = 1;
     this.currentFilter = "all";
+    this.currentRange = "all";
     this.searchQuery = "";
     this.deletedRecords = [];
     this.pendingRestoreId = null;
@@ -38,6 +39,14 @@ class DeletedBookmarksManager {
       .getElementById("filterSelect")
       .addEventListener("change", (event) => {
         this.currentFilter = event.target.value;
+        this.currentPage = 1;
+        this.loadDeletedRecords();
+      });
+
+    document
+      .getElementById("rangeSelect")
+      .addEventListener("change", (event) => {
+        this.currentRange = event.target.value;
         this.currentPage = 1;
         this.loadDeletedRecords();
       });
@@ -82,22 +91,6 @@ class DeletedBookmarksManager {
       });
 
     document
-      .getElementById("closeActionConfirm")
-      .addEventListener("click", () => {
-        this.closeActionConfirm(false);
-      });
-    document
-      .getElementById("cancelActionConfirm")
-      .addEventListener("click", () => {
-        this.closeActionConfirm(false);
-      });
-    document
-      .getElementById("confirmActionConfirm")
-      .addEventListener("click", () => {
-        this.closeActionConfirm(true);
-      });
-
-    document
       .getElementById("restoreModal")
       .addEventListener("click", (event) => {
         if (event.target.id === "restoreModal") {
@@ -109,13 +102,6 @@ class DeletedBookmarksManager {
       .addEventListener("click", (event) => {
         if (event.target.id === "detailModal") {
           this.hideDetailModal();
-        }
-      });
-    document
-      .getElementById("actionConfirmModal")
-      .addEventListener("click", (event) => {
-        if (event.target.id === "actionConfirmModal") {
-          this.closeActionConfirm(false);
         }
       });
 
@@ -161,6 +147,10 @@ class DeletedBookmarksManager {
 
       if (this.currentFilter !== "all") {
         params.set("filter", this.currentFilter);
+      }
+
+      if (this.currentRange !== "all") {
+        params.set("range", this.currentRange);
       }
 
       if (this.searchQuery) {
@@ -388,7 +378,7 @@ class DeletedBookmarksManager {
       return;
     }
 
-    const confirmed = await this.requestActionConfirm({
+    const confirmed = await AdminUI.confirm({
       title: "批量恢复书签",
       message: `确定恢复选中的 ${targets.length} 条记录吗？恢复后这些书签会回到可用书签列表。`,
       hint: "恢复不会删除回收站以外的数据。",
@@ -416,7 +406,7 @@ class DeletedBookmarksManager {
       return;
     }
 
-    const confirmed = await this.requestActionConfirm({
+    const confirmed = await AdminUI.confirm({
       title: "批量永久删除",
       message: `确定永久删除选中的 ${targets.length} 条记录吗？`,
       hint: "永久删除后无法从回收站恢复，请确认这些记录已经不再需要。",
@@ -547,42 +537,6 @@ class DeletedBookmarksManager {
     document.getElementById("detailModal").classList.add("hidden");
   }
 
-  requestActionConfirm({ title, message, hint, confirmText, variant }) {
-    const modal = document.getElementById("actionConfirmModal");
-    const titleEl = document.getElementById("actionConfirmTitle");
-    const messageEl = document.getElementById("actionConfirmMessage");
-    const hintEl = document.getElementById("actionConfirmHint");
-    const confirmBtn = document.getElementById("confirmActionConfirm");
-
-    if (!modal || !confirmBtn) {
-      return Promise.resolve(false);
-    }
-
-    titleEl.textContent = title;
-    messageEl.textContent = message;
-    hintEl.textContent = hint || "";
-    confirmBtn.textContent = confirmText || "确认";
-    confirmBtn.classList.toggle("btn-primary", variant === "primary");
-    confirmBtn.classList.toggle("btn-danger", variant !== "primary");
-    modal.classList.remove("hidden");
-    confirmBtn.focus();
-
-    return new Promise((resolve) => {
-      this.pendingActionConfirm = { resolve };
-    });
-  }
-
-  closeActionConfirm(confirmed) {
-    const pending = this.pendingActionConfirm;
-    if (!pending) {
-      return;
-    }
-
-    document.getElementById("actionConfirmModal").classList.add("hidden");
-    this.pendingActionConfirm = null;
-    pending.resolve(Boolean(confirmed));
-  }
-
   async permanentDelete(recordId) {
     const record = this.deletedRecords.find(
       (item) => String(item.id) === String(recordId),
@@ -591,7 +545,7 @@ class DeletedBookmarksManager {
       return;
     }
 
-    const confirmed = await this.requestActionConfirm({
+    const confirmed = await AdminUI.confirm({
       title: "永久删除记录",
       message: `确定永久删除记录「${record.title || "未命名书签"}」吗？`,
       hint: "此操作不可撤销，删除后无法再恢复这条历史记录。",

@@ -1,26 +1,15 @@
 import { SignJWT, jwtVerify } from "jose";
 import { authenticateRequest } from "./verify.js";
 import { JWTKeyManager } from "../../utils/jwt-manager.js";
+import { ResponseHelper } from "../../utils/response-helper.js";
 
 function isTokenManagementEnabled(env = {}) {
   return env.PUBLIC_API_TOKEN_MANAGEMENT !== "disabled";
 }
 
-function createJsonResponse(body, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
 function createDisabledResponse() {
-  return createJsonResponse(
-    {
-      success: false,
-      error:
-        "API token management is disabled. Remove PUBLIC_API_TOKEN_MANAGEMENT=disabled to manage tokens from the web UI.",
-    },
-    403,
+  return ResponseHelper.forbidden(
+    "API token management is disabled. Remove PUBLIC_API_TOKEN_MANAGEMENT=disabled to manage tokens from the web UI.",
   );
 }
 
@@ -33,23 +22,13 @@ async function ensureTokenManagement(context) {
 
   const auth = await authenticateRequest(request, env);
   if (!auth.authenticated) {
-    return createJsonResponse(
-      {
-        success: false,
-        error: auth.error || "Administrator access is required.",
-      },
-      401,
+    return ResponseHelper.unauthorized(
+      auth.error || "Administrator access is required.",
     );
   }
 
   if (!env.BOOKMARKS_DB) {
-    return createJsonResponse(
-      {
-        success: false,
-        error: "BOOKMARKS_DB binding is missing.",
-      },
-      503,
-    );
+    return ResponseHelper.error("BOOKMARKS_DB binding is missing.", 503);
   }
 
   return null;
@@ -77,13 +56,7 @@ export async function onRequestPost(context) {
     const { name, description, expiresIn } = requestData;
 
     if (!name) {
-      return createJsonResponse(
-        {
-          success: false,
-          error: "Token name is required.",
-        },
-        400,
-      );
+      return ResponseHelper.error("Token name is required.", 400);
     }
 
     const expireDays = expiresIn || 30;
@@ -129,9 +102,8 @@ export async function onRequestPost(context) {
       .setProtectedHeader({ alg: "HS256" })
       .sign(secret);
 
-    return createJsonResponse({
-      success: true,
-      data: {
+    return ResponseHelper.success(
+      {
         id: tokenPersisted ? tokenId : null,
         token,
         name,
@@ -139,17 +111,13 @@ export async function onRequestPost(context) {
         expiresAt: new Date(expirationTime * 1000).toISOString(),
         expiresIn: `${expireDays} days`,
       },
-      message: "API token created successfully.",
-    });
+      "API token created successfully.",
+    );
   } catch (error) {
     console.error("Failed to create API token:", error);
-    return createJsonResponse(
-      {
-        success: false,
-        error: "Failed to create API token.",
-        message: error.message,
-      },
-      500,
+    return ResponseHelper.serverError(
+      "Failed to create API token.",
+      error.message,
     );
   }
 }
@@ -216,19 +184,12 @@ export async function onRequestGet(context) {
       })
       .filter(Boolean);
 
-    return createJsonResponse({
-      success: true,
-      data: tokenList,
-    });
+    return ResponseHelper.success(tokenList);
   } catch (error) {
     console.error("Failed to load API token metadata:", error);
-    return createJsonResponse(
-      {
-        success: false,
-        error: "Failed to load API token metadata.",
-        message: error.message,
-      },
-      500,
+    return ResponseHelper.serverError(
+      "Failed to load API token metadata.",
+      error.message,
     );
   }
 }
@@ -238,23 +199,11 @@ async function handleDeleteToken(requestData, env) {
     const { tokenId } = requestData;
 
     if (!tokenId) {
-      return createJsonResponse(
-        {
-          success: false,
-          error: "Token ID is required.",
-        },
-        400,
-      );
+      return ResponseHelper.error("Token ID is required.", 400);
     }
 
     if (!tokenId.startsWith("api_token_")) {
-      return createJsonResponse(
-        {
-          success: false,
-          error: "Invalid token ID.",
-        },
-        400,
-      );
+      return ResponseHelper.error("Invalid token ID.", 400);
     }
 
     const tokenInfo = await env.BOOKMARKS_DB.prepare(
@@ -264,13 +213,7 @@ async function handleDeleteToken(requestData, env) {
       .first();
 
     if (!tokenInfo) {
-      return createJsonResponse(
-        {
-          success: false,
-          error: "Token not found.",
-        },
-        404,
-      );
+      return ResponseHelper.notFound("Token not found.");
     }
 
     const result = await env.BOOKMARKS_DB.prepare(
@@ -280,12 +223,8 @@ async function handleDeleteToken(requestData, env) {
       .run();
 
     if (result.changes === 0) {
-      return createJsonResponse(
-        {
-          success: false,
-          error: "Token could not be deleted because it no longer exists.",
-        },
-        404,
+      return ResponseHelper.notFound(
+        "Token could not be deleted because it no longer exists.",
       );
     }
 
@@ -297,23 +236,18 @@ async function handleDeleteToken(requestData, env) {
       console.warn("Failed to parse deleted token metadata:", error);
     }
 
-    return createJsonResponse({
-      success: true,
-      message: `API token "${deletedTokenName}" deleted successfully.`,
-      data: {
+    return ResponseHelper.success(
+      {
         deletedTokenId: tokenId,
         deletedTokenName,
       },
-    });
+      `API token "${deletedTokenName}" deleted successfully.`,
+    );
   } catch (error) {
     console.error("Failed to delete API token:", error);
-    return createJsonResponse(
-      {
-        success: false,
-        error: "Failed to delete API token.",
-        message: error.message,
-      },
-      500,
+    return ResponseHelper.serverError(
+      "Failed to delete API token.",
+      error.message,
     );
   }
 }

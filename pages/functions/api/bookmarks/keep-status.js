@@ -1,5 +1,6 @@
 // 更新书签保留状态API
 import { authenticateRequest } from "../auth/verify.js";
+import { ResponseHelper } from "../../utils/response-helper.js";
 
 // 更新书签保留状态
 export async function onRequestPost(context) {
@@ -9,46 +10,19 @@ export async function onRequestPost(context) {
     // 验证管理员权限
     const auth = await authenticateRequest(request, env);
     if (!auth.authenticated) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "需要管理员权限",
-        }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.unauthorized("需要管理员权限");
     }
 
     const { bookmarkId, keepStatus } = await request.json();
 
     if (!bookmarkId || !keepStatus) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "缺少必要参数",
-        }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.error("缺少必要参数", 400);
     }
 
     // 验证保留状态值
     const validStatuses = ["normal", "keep", "ignore"];
     if (!validStatuses.includes(keepStatus)) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "无效的保留状态",
-        }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.error("无效的保留状态", 400);
     }
 
     // 更新书签保留状态
@@ -59,16 +33,7 @@ export async function onRequestPost(context) {
       .run();
 
     if (result.changes === 0) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "书签不存在或更新失败",
-        }),
-        {
-          status: 404,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.notFound("书签不存在或更新失败");
     }
 
     // 获取更新后的书签信息
@@ -84,33 +49,16 @@ export async function onRequestPost(context) {
       ignore: "已设为忽略检查",
     };
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: statusMessages[keepStatus],
-        data: {
-          bookmarkId: bookmark.id,
-          title: bookmark.title,
-          keepStatus: bookmark.keep_status,
-        },
-      }),
+    return ResponseHelper.success(
       {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
+        bookmarkId: bookmark.id,
+        title: bookmark.title,
+        keepStatus: bookmark.keep_status,
       },
+      statusMessages[keepStatus],
     );
   } catch (error) {
     console.error("更新书签保留状态失败:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "更新保留状态失败",
-        message: error.message,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    return ResponseHelper.error("更新保留状态失败", 500, error.message);
   }
 }

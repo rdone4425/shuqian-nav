@@ -7,6 +7,45 @@ import { onRequestPost as loginHandler } from "../pages/functions/api/auth/login
 import { onRequestPost as changePasswordHandler } from "../pages/functions/api/auth/change-password.js";
 import { onRequestGet as healthHandler } from "../pages/functions/api/health.js";
 import {
+  onRequestGet as performanceGetHandler,
+  onRequestPut as performancePutHandler,
+} from "../pages/functions/api/system/performance.js";
+import {
+  onRequestGet as optimizeDatabaseGetHandler,
+  onRequestPost as optimizeDatabasePostHandler,
+} from "../pages/functions/api/system/optimize-database.js";
+import {
+  onRequestGet as backupDataGetHandler,
+  onRequestPost as backupDataPostHandler,
+} from "../pages/functions/api/system/backup-data.js";
+import { onRequestGet as backupExportGetHandler } from "../pages/functions/api/system/backup.js";
+import {
+  onRequestDelete as backupAutoDeleteHandler,
+  onRequestGet as backupAutoGetHandler,
+  onRequestPost as backupAutoPostHandler,
+  onRequestPut as backupAutoPutHandler,
+} from "../pages/functions/api/system/backup-auto.js";
+import {
+  onRequestGet as checkLinksStreamGetHandler,
+  onRequestPost as checkLinksStreamPostHandler,
+} from "../pages/functions/api/system/check-links-stream.js";
+import {
+  onRequestGet as checkLinksGetHandler,
+  onRequestPost as checkLinksPostHandler,
+} from "../pages/functions/api/system/check-links.js";
+import {
+  onRequestGet as weeklyCheckGetHandler,
+  onRequestPost as weeklyCheckPostHandler,
+} from "../pages/functions/api/cron/weekly-check.js";
+import {
+  onRequestGet as analyticsGetHandler,
+  onRequestPost as analyticsPostHandler,
+  onRequestPut as analyticsPutHandler,
+} from "../pages/functions/api/analytics/index.js";
+import { onRequestPost as migrateKeepStatusHandler } from "../pages/functions/api/system/migrate.js";
+import { onRequestPost as migrateDeletedBookmarksHandler } from "../pages/functions/api/system/migrate-deleted-bookmarks.js";
+import {
+  onRequestPost as verifyHandler,
   verifyToken as verifyPublicToken,
   authenticateRequest,
 } from "../pages/functions/api/auth/verify.js";
@@ -15,14 +54,27 @@ import {
   onRequestPost as tokenCreateHandler,
   verifyApiToken,
 } from "../pages/functions/api/auth/token.js";
-import { onRequestGet as syncListHandler } from "../pages/functions/api/bookmarks/sync.js";
+import {
+  onRequestGet as syncListHandler,
+  onRequestPost as syncPostHandler,
+} from "../pages/functions/api/bookmarks/sync.js";
+import { onRequestPost as keepStatusHandler } from "../pages/functions/api/bookmarks/keep-status.js";
 import {
   onRequestGet as bookmarkListHandler,
   onRequestPost as bookmarkCreateHandler,
 } from "../pages/functions/api/bookmarks/index.js";
-import { onRequestDelete as bookmarkDeleteHandler } from "../pages/functions/api/bookmarks/[id].js";
+import {
+  onRequestDelete as bookmarkDeleteHandler,
+  onRequestPut as bookmarkUpdateHandler,
+} from "../pages/functions/api/bookmarks/[id].js";
+import { onRequestPost as bookmarkVisitHandler } from "../pages/functions/api/bookmarks/[id]/visit.js";
 import { onRequestPost as batchDeleteHandler } from "../pages/functions/api/bookmarks/batch-delete.js";
 import { onRequestPost as batchMoveHandler } from "../pages/functions/api/bookmarks/batch-move.js";
+import {
+  onRequestDelete as deletedPermanentDeleteHandler,
+  onRequestGet as deletedListHandler,
+  onRequestPost as deletedRestoreHandler,
+} from "../pages/functions/api/bookmarks/deleted.js";
 import {
   onRequestGet as categoryListHandler,
   onRequestPost as categoryCreateHandler,
@@ -50,6 +102,8 @@ function createDbMock({
   runError,
   allResult,
   allError,
+  execResult,
+  execError,
 } = {}) {
   function createExecution(sql, params = []) {
     return {
@@ -84,6 +138,15 @@ function createDbMock({
   }
 
   return {
+    async exec(sql) {
+      if (execError) {
+        throw execError;
+      }
+      if (typeof execResult === "function") {
+        return execResult({ sql });
+      }
+      return execResult ?? { success: true };
+    },
     prepare(sql) {
       const execution = createExecution(sql);
       return {
@@ -98,7 +161,7 @@ function createDbMock({
 
 function loadBrowserApi(fetchImpl) {
   const code = readFileSync(
-    new URL("../public/js/utils/api.js", import.meta.url),
+    new URL("../public/js/shared/api.js", import.meta.url),
     "utf8",
   );
   const context = {
@@ -126,6 +189,39 @@ function loadBrowserApi(fetchImpl) {
   return context.__API;
 }
 
+function loadBrowserAuth(fetchImpl) {
+  const code = readFileSync(
+    new URL("../public/js/shared/auth.js", import.meta.url),
+    "utf8",
+  );
+  const storage = new Map();
+  const context = {
+    window: {
+      location: {
+        pathname: "/bookmarks-manage.html",
+        search: "",
+        href: "https://example.com/bookmarks-manage.html",
+      },
+    },
+    localStorage: {
+      getItem(key) {
+        return storage.has(key) ? storage.get(key) : null;
+      },
+      setItem(key, value) {
+        storage.set(key, String(value));
+      },
+      removeItem(key) {
+        storage.delete(key);
+      },
+    },
+    fetch: fetchImpl,
+    console,
+  };
+  context.globalThis = context;
+  vm.runInNewContext(`${code}\nglobalThis.__Auth = Auth;`, context);
+  return { Auth: context.__Auth, storage, window: context.window };
+}
+
 test("browser API treats aborted signal timeout errors as TimeoutError", async () => {
   const api = loadBrowserApi((url, options) => {
     return new Promise((resolve, reject) => {
@@ -144,6 +240,100 @@ test("browser API treats aborted signal timeout errors as TimeoutError", async (
       return true;
     },
   );
+});
+
+test("browser auth accepts shared-envelope login responses", async () => {
+  const { Auth, storage } = loadBrowserAuth(async (url) => {
+    assert.equal(url, "/api/auth/login");
+    return new Response(
+      JSON.stringify({
+        success: true,
+        data: { token: "session-token", user: { role: "admin" } },
+        timestamp: new Date().toISOString(),
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    );
+  });
+
+  const result = await Auth.login("StrongPass123");
+
+  assert.equal(result.data.token, "session-token");
+  assert.equal(Auth.isAuthenticated, true);
+  assert.equal(Auth.currentUser.role, "admin");
+  assert.equal(storage.get("bookmark_nav_token"), "session-token");
+});
+
+test("browser auth accepts shared-envelope verify responses", async () => {
+  const { Auth, storage } = loadBrowserAuth(async (url) => {
+    assert.equal(url, "/api/auth/verify");
+    return new Response(
+      JSON.stringify({
+        success: true,
+        data: { user: { role: "admin" } },
+        timestamp: new Date().toISOString(),
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    );
+  });
+  storage.set("bookmark_nav_token", "session-token");
+
+  const ok = await Auth.init({ requireAuth: true });
+
+  assert.equal(ok, true);
+  assert.equal(Auth.isAuthenticated, true);
+  assert.equal(Auth.currentUser.role, "admin");
+});
+
+test("browser auth reuses a verified session for the same token", async () => {
+  let verifyCalls = 0;
+  const { Auth, storage } = loadBrowserAuth(async (url) => {
+    verifyCalls += 1;
+    assert.equal(url, "/api/auth/verify");
+    return new Response(
+      JSON.stringify({
+        success: true,
+        data: { user: { role: "admin" } },
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    );
+  });
+  storage.set("bookmark_nav_token", "session-token");
+
+  assert.equal(await Auth.init({ requireAuth: true }), true);
+  assert.equal(await Auth.init({ requireAuth: true }), true);
+
+  assert.equal(verifyCalls, 1);
+});
+
+test("browser auth shares concurrent verification for the same token", async () => {
+  let verifyCalls = 0;
+  let resolveVerify;
+  const { Auth, storage } = loadBrowserAuth(async (url) => {
+    verifyCalls += 1;
+    assert.equal(url, "/api/auth/verify");
+    return await new Promise((resolve) => {
+      resolveVerify = () =>
+        resolve(
+          new Response(
+            JSON.stringify({
+              success: true,
+              data: { user: { role: "admin" } },
+            }),
+            { status: 200, headers: { "Content-Type": "application/json" } },
+          ),
+        );
+    });
+  });
+  storage.set("bookmark_nav_token", "session-token");
+
+  const first = Auth.init({ requireAuth: true });
+  const second = Auth.init({ requireAuth: true });
+  assert.equal(verifyCalls, 1);
+  resolveVerify();
+
+  assert.equal(await first, true);
+  assert.equal(await second, true);
+  assert.equal(verifyCalls, 1);
 });
 
 test("login endpoint issues a web session token for the admin password", async () => {
@@ -167,7 +357,33 @@ test("login endpoint issues a web session token for the admin password", async (
   const body = await response.json();
   assert.equal(body.success, true);
   assert.equal(typeof body.token, "string");
+  assert.equal(body.data.token, body.token);
   assert.equal(body.user.role, "admin");
+  assert.equal(body.data.user.role, "admin");
+  assert.equal(body.message, "Login successful.");
+  assert.equal(typeof body.timestamp, "string");
+});
+
+test("login endpoint rejects bad passwords with the shared envelope", async () => {
+  const response = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "wrong" }),
+    }),
+    env: {
+      ADMIN_PASSWORD: "StrongPass123",
+      JWT_SECRET: "test-secret-with-safe-length-1234567890",
+      BOOKMARKS_DB: createDbMock(),
+    },
+  });
+
+  assert.equal(response.status, 401);
+  const body = await response.json();
+  assert.equal(body.success, false);
+  assert.equal(body.error, "Incorrect password.");
+  assert.equal(typeof body.timestamp, "string");
+  assert.equal(body.token, undefined);
 });
 
 test("change-password requires an authenticated session", async () => {
@@ -278,6 +494,52 @@ test("verify helper accepts a login token", async () => {
   assert.equal(result.valid, true);
   assert.equal(result.payload.sub, "admin");
   assert.equal(result.payload.role, "admin");
+});
+
+test("verify endpoint uses the shared response envelope", async () => {
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock(),
+  };
+
+  const rejected = await verifyHandler({
+    request: new Request("https://example.com/api/auth/verify", {
+      method: "POST",
+    }),
+    env,
+  });
+
+  assert.equal(rejected.status, 401);
+  const rejectedBody = await rejected.json();
+  assert.equal(rejectedBody.success, false);
+  assert.equal(typeof rejectedBody.timestamp, "string");
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const accepted = await verifyHandler({
+    request: new Request("https://example.com/api/auth/verify", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+    }),
+    env,
+  });
+
+  assert.equal(accepted.status, 200);
+  const acceptedBody = await accepted.json();
+  assert.equal(acceptedBody.success, true);
+  assert.equal(acceptedBody.data.user.role, "admin");
+  assert.equal(typeof acceptedBody.timestamp, "string");
 });
 
 test("authenticateRequest blocks requests without a login token", async () => {
@@ -408,9 +670,161 @@ test("bookmark and category writes still require login", async () => {
     }),
     env,
   });
+  const importResponse = await bookmarkImportHandler({
+    request: new Request("https://example.com/api/bookmarks/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        bookmarks: [{ title: "Example", url: "https://example.com" }],
+      }),
+    }),
+    env,
+  });
+  const deleteResponse = await bookmarkDeleteHandler({
+    request: new Request("https://example.com/api/bookmarks/1", {
+      method: "DELETE",
+    }),
+    params: { id: "1" },
+    env,
+  });
+  const updateResponse = await bookmarkUpdateHandler({
+    request: new Request("https://example.com/api/bookmarks/1", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: "Example", url: "https://example.com" }),
+    }),
+    params: { id: "1" },
+    env,
+  });
 
   assert.equal(bookmarkResponse.status, 401);
   assert.equal(categoryResponse.status, 401);
+  assert.equal(importResponse.status, 401);
+  assert.equal(deleteResponse.status, 401);
+  assert.equal(updateResponse.status, 401);
+});
+
+test("authenticated admin can create categories through the shared envelope", async () => {
+  let insertParams = null;
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        if (sql.includes("system_config WHERE config_key")) {
+          return null;
+        }
+        if (sql.includes("SELECT id FROM categories WHERE name = ?")) {
+          return null;
+        }
+        if (
+          sql.includes("FROM categories c") &&
+          sql.includes("WHERE c.id = ?")
+        ) {
+          return {
+            id: params[0],
+            name: insertParams[0],
+            color: insertParams[1],
+            description: insertParams[2],
+            bookmark_count: 0,
+          };
+        }
+        return null;
+      },
+      runResult({ sql, params }) {
+        if (sql.includes("INSERT INTO categories")) {
+          insertParams = params;
+          return { success: true, meta: { last_row_id: 12 } };
+        }
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await categoryCreateHandler({
+    request: new Request("https://example.com/api/bookmarks/categories", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({
+        name: "Research",
+        color: "#10B981",
+        description: "Reading queue",
+      }),
+    }),
+    env,
+  });
+
+  assert.equal(response.status, 201);
+  const body = await response.json();
+  assert.equal(body.success, true);
+  assert.equal(body.message, "Category created");
+  assert.equal(body.data.id, 12);
+  assert.equal(body.data.name, "Research");
+  assert.deepEqual(insertParams, ["Research", "#10B981", "Reading queue"]);
+});
+
+test("bookmark visit tracking remains public and returns updated counters", async () => {
+  let updateParams = null;
+  const env = {
+    ENVIRONMENT: "production",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql }) {
+        if (sql.includes("FROM bookmarks")) {
+          return {
+            id: 7,
+            title: "Example",
+            url: "https://example.com",
+            category_id: 2,
+            visit_count: 3,
+            last_visited: null,
+          };
+        }
+        return null;
+      },
+      runResult({ sql, params }) {
+        if (sql.includes("UPDATE bookmarks")) {
+          updateParams = params;
+        }
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+
+  const response = await bookmarkVisitHandler({
+    request: new Request("https://example.com/api/bookmarks/7/visit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        timestamp: "2026-06-01T12:00:00.000Z",
+        userAgent: "node-test",
+        referrer: "https://example.com/",
+      }),
+    }),
+    params: { id: "7" },
+    env,
+  });
+
+  const body = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("Access-Control-Allow-Origin"), null);
+  assert.equal(body.success, true);
+  assert.equal(body.data.bookmarkId, "7");
+  assert.equal(body.data.visitCount, 4);
+  assert.equal(body.data.lastVisited, "2026-06-01T12:00:00.000Z");
+  assert.deepEqual(updateParams, [4, "2026-06-01T12:00:00.000Z", "7"]);
 });
 
 test("bookmark delete removes an inaccessible link and records it", async () => {
@@ -539,6 +953,91 @@ test("replace import requires explicit clear confirmation before deleting bookma
   assert.equal(deleteAttempted, false);
 });
 
+test("authenticated admin can import bookmarks through the shared envelope", async () => {
+  const insertedBookmarks = [];
+  const insertedCategories = [];
+  let userDataMarked = false;
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql }) {
+        if (sql.includes("system_config WHERE config_key")) {
+          return null;
+        }
+        if (sql.includes("SELECT id FROM bookmarks WHERE url = ?")) {
+          return null;
+        }
+        if (sql.includes("SELECT id FROM categories WHERE name = ?")) {
+          return null;
+        }
+        return null;
+      },
+      runResult({ sql, params }) {
+        if (sql.includes("INSERT INTO categories")) {
+          insertedCategories.push(params);
+          return { success: true, meta: { last_row_id: 21 } };
+        }
+        if (sql.includes("INSERT INTO bookmarks")) {
+          insertedBookmarks.push(params);
+          return { success: true, changes: 1 };
+        }
+        if (sql.includes("INSERT OR REPLACE INTO system_config")) {
+          userDataMarked = true;
+          return { success: true, changes: 1 };
+        }
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await bookmarkImportHandler({
+    request: new Request("https://example.com/api/bookmarks/import", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({
+        bookmarks: [
+          {
+            title: "Example",
+            url: "https://example.com/docs",
+            description: "Docs",
+            category_name: "Research",
+          },
+        ],
+        categories: [{ name: "Research" }],
+      }),
+    }),
+    env,
+  });
+
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.success, true);
+  assert.equal(body.data.imported, 1);
+  assert.equal(body.data.skipped, 0);
+  assert.equal(body.data.errors, 0);
+  assert.equal(body.data.total, 1);
+  assert.deepEqual(body.data.errorDetails, []);
+  assert.equal(insertedCategories.length, 1);
+  assert.equal(insertedBookmarks.length, 1);
+  assert.equal(insertedBookmarks[0][0], "Example");
+  assert.equal(insertedBookmarks[0][3], 21);
+  assert.equal(userDataMarked, true);
+});
+
 test("clear all bookmarks archives records and requires confirmation", async () => {
   let deletionRecordInserted = false;
   let deleteAttempted = false;
@@ -630,6 +1129,77 @@ test("clear all bookmarks archives records and requires confirmation", async () 
   assert.equal(body.data.deleted, 1);
   assert.equal(deletionRecordInserted, true);
   assert.equal(deleteAttempted, true);
+});
+
+test("keep-status update requires login and returns the updated bookmark state", async () => {
+  let updatedParams = null;
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        if (sql.includes("SELECT id, title, keep_status FROM bookmarks")) {
+          return {
+            id: params[0],
+            title: "Example",
+            keep_status: updatedParams?.[0] || "normal",
+          };
+        }
+        return null;
+      },
+      runResult({ sql, params }) {
+        if (sql.includes("UPDATE bookmarks SET keep_status")) {
+          updatedParams = params;
+          return { success: true, changes: 1 };
+        }
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+
+  const blockedResponse = await keepStatusHandler({
+    request: new Request("https://example.com/api/bookmarks/keep-status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bookmarkId: 1, keepStatus: "keep" }),
+    }),
+    env,
+  });
+
+  assert.equal(blockedResponse.status, 401);
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await keepStatusHandler({
+    request: new Request("https://example.com/api/bookmarks/keep-status", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ bookmarkId: 1, keepStatus: "keep" }),
+    }),
+    env,
+  });
+
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.success, true);
+  assert.equal(body.data.bookmarkId, 1);
+  assert.equal(body.data.keepStatus, "keep");
+  assert.deepEqual(updatedParams, ["keep", 1]);
 });
 
 test("category update rejects duplicate names and updates existing category", async () => {
@@ -969,6 +1539,232 @@ test("batch delete archives selected bookmarks before removing them", async () =
   assert.equal(body.data.archive.inserted, 2);
 });
 
+test("deleted bookmarks list supports reason, time range, and search filters", async () => {
+  const captured = [];
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        captured.push({ method: "first", sql, params });
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        if (sql.includes("COUNT(*) as total FROM deleted_bookmarks")) {
+          return { total: 1 };
+        }
+        return null;
+      },
+      allResult({ sql, params }) {
+        captured.push({ method: "all", sql, params });
+        if (sql.includes("FROM deleted_bookmarks")) {
+          return {
+            results: [
+              {
+                id: 7,
+                title: "Linux Do",
+                url: "https://linux.do/",
+                deleted_reason: "manual_delete",
+                deleted_at: "2026-06-01 10:00:00",
+              },
+            ],
+          };
+        }
+        return { results: [] };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await deletedListHandler({
+    request: new Request(
+      "https://example.com/api/bookmarks/deleted?filter=manual_delete&range=7d&search=linux&page=2&limit=10",
+      {
+        headers: {
+          Authorization: `Bearer ${loginBody.token}`,
+        },
+      },
+    ),
+    env,
+  });
+
+  const body = await response.json();
+  const listQuery = captured.find(
+    (entry) =>
+      entry.method === "all" && entry.sql.includes("FROM deleted_bookmarks"),
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(body.success, true);
+  assert.match(listQuery.sql, /deleted_reason = \?/);
+  assert.match(listQuery.sql, /deleted_at >= \?/);
+  assert.match(listQuery.sql, /\(title LIKE \? OR url LIKE \?\)/);
+  assert.equal(listQuery.params[0], "manual_delete");
+  assert.match(listQuery.params[1], /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+  assert.equal(listQuery.params[2], "%linux%");
+  assert.equal(listQuery.params[3], "%linux%");
+  assert.equal(listQuery.params[4], 10);
+  assert.equal(listQuery.params[5], 10);
+});
+
+test("deleted bookmark restore recreates the bookmark and removes the trash record", async () => {
+  const capturedRuns = [];
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        if (sql.includes("FROM deleted_bookmarks WHERE id = ?")) {
+          assert.deepEqual(params, ["7"]);
+          return {
+            id: 7,
+            title: "Linux Do",
+            url: "https://linux.do/",
+            description: "Community",
+            category: "Community",
+            favicon_url: "https://linux.do/favicon.ico",
+            tags: "linux,forum",
+            created_at: "2026-06-01 10:00:00",
+            keep_status: "normal",
+          };
+        }
+        if (sql.includes("SELECT id FROM bookmarks WHERE url = ?")) {
+          assert.deepEqual(params, ["https://linux.do/"]);
+          return null;
+        }
+        if (sql.includes("SELECT id FROM categories WHERE name = ?")) {
+          assert.deepEqual(params, ["Community"]);
+          return { id: 5 };
+        }
+        return null;
+      },
+      runResult({ sql, params }) {
+        capturedRuns.push({ sql, params });
+        if (sql.includes("INSERT INTO bookmarks")) {
+          return { success: true, meta: { last_row_id: 99 } };
+        }
+        if (sql.includes("DELETE FROM deleted_bookmarks")) {
+          return { success: true, meta: { changes: 1 } };
+        }
+        return { success: true, meta: { last_row_id: 1 } };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await deletedRestoreHandler({
+    request: new Request("https://example.com/api/bookmarks/deleted", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ deletedId: "7" }),
+    }),
+    env,
+  });
+
+  const body = await response.json();
+  const restoreRun = capturedRuns.find((entry) =>
+    entry.sql.includes("INSERT INTO bookmarks"),
+  );
+  const deleteRun = capturedRuns.find((entry) =>
+    entry.sql.includes("DELETE FROM deleted_bookmarks"),
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(body.success, true);
+  assert.equal(typeof body.timestamp, "string");
+  assert.equal(body.data.bookmarkId, 99);
+  assert.equal(restoreRun.params[0], "Linux Do");
+  assert.equal(restoreRun.params[3], 5);
+  assert.deepEqual(deleteRun.params, ["7"]);
+});
+
+test("deleted bookmark permanent delete requires admin and returns shared envelope", async () => {
+  let deleted = false;
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        if (sql.includes("SELECT title FROM deleted_bookmarks WHERE id = ?")) {
+          assert.deepEqual(params, ["7"]);
+          return { title: "Linux Do" };
+        }
+        return null;
+      },
+      runResult({ sql, params }) {
+        if (sql.includes("DELETE FROM deleted_bookmarks WHERE id = ?")) {
+          assert.deepEqual(params, ["7"]);
+          deleted = true;
+        }
+        return { success: true, meta: { changes: 1 } };
+      },
+    }),
+  };
+
+  const rejected = await deletedPermanentDeleteHandler({
+    request: new Request("https://example.com/api/bookmarks/deleted?id=7", {
+      method: "DELETE",
+    }),
+    env,
+  });
+  const rejectedBody = await rejected.json();
+  assert.equal(rejected.status, 401);
+  assert.equal(rejectedBody.success, false);
+  assert.equal(typeof rejectedBody.timestamp, "string");
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await deletedPermanentDeleteHandler({
+    request: new Request("https://example.com/api/bookmarks/deleted?id=7", {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${loginBody.token}` },
+    }),
+    env,
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.success, true);
+  assert.equal(typeof body.timestamp, "string");
+  assert.equal(body.data.deletedId, "7");
+  assert.equal(deleted, true);
+});
+
 test("known protected sites are treated as reachable during link checks", () => {
   assert.equal(isKnownProtectedSite("https://linux.do/"), true);
   assert.equal(isKnownProtectedSite("https://www.linux.do/t/topic"), true);
@@ -996,6 +1792,416 @@ test("link checker only marks hard failures as delete candidates", () => {
   assert.equal(timeout.accessible, false);
   assert.equal(timeout.deleteCandidate, false);
   assert.equal(timeout.reviewRequired, true);
+});
+
+test("stream link checker list requires admin and returns bookmark candidates", async () => {
+  const captured = [];
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        return null;
+      },
+      allResult({ sql, params }) {
+        captured.push({ sql, params });
+        if (sql.includes("FROM bookmarks b")) {
+          return {
+            results: [
+              {
+                id: 7,
+                title: "Linux Do",
+                url: "https://linux.do/",
+                category_name: "Community",
+                category_color: "#10b981",
+                keep_status: "normal",
+                created_at: "2026-06-01 10:00:00",
+              },
+            ],
+          };
+        }
+        return { results: [] };
+      },
+    }),
+  };
+
+  const rejected = await checkLinksStreamGetHandler({
+    request: new Request("https://example.com/api/system/check-links-stream"),
+    env,
+  });
+  const rejectedBody = await rejected.json();
+  assert.equal(rejected.status, 401);
+  assert.equal(rejectedBody.success, false);
+  assert.equal(typeof rejectedBody.timestamp, "string");
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await checkLinksStreamGetHandler({
+    request: new Request("https://example.com/api/system/check-links-stream", {
+      headers: { Authorization: `Bearer ${loginBody.token}` },
+    }),
+    env,
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.success, true);
+  assert.equal(typeof body.timestamp, "string");
+  assert.equal(body.data.length, 1);
+  assert.equal(body.data[0].id, 7);
+  assert.equal(body.data[0].category, "Community");
+  assert.equal(body.data[0].status, "pending");
+  assert.equal(captured[0].params.length, 0);
+});
+
+test("stream link checker keeps protected sites out of delete candidates", async () => {
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        return null;
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const rejected = await checkLinksStreamPostHandler({
+    request: new Request("https://example.com/api/system/check-links-stream", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ bookmarkId: 7 }),
+    }),
+    env,
+  });
+  const rejectedBody = await rejected.json();
+  assert.equal(rejected.status, 400);
+  assert.equal(rejectedBody.success, false);
+  assert.equal(typeof rejectedBody.timestamp, "string");
+
+  const response = await checkLinksStreamPostHandler({
+    request: new Request("https://example.com/api/system/check-links-stream", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({
+        bookmarkId: 7,
+        url: "https://linux.do/",
+        autoDelete: true,
+      }),
+    }),
+    env,
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.success, true);
+  assert.equal(typeof body.timestamp, "string");
+  assert.equal(body.data.bookmarkId, 7);
+  assert.equal(body.data.accessible, true);
+  assert.equal(body.data.deleteCandidate, false);
+  assert.equal(body.data.reviewRequired, false);
+  assert.equal(body.data.deleted, false);
+  assert.equal(body.data.method, "PROTECTED_SITE");
+});
+
+test("link checker history requires admin and returns the shared envelope", async () => {
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        return null;
+      },
+      allResult({ sql }) {
+        if (sql.includes("WHERE config_key LIKE 'link_check_%'")) {
+          return {
+            results: [
+              {
+                config_key: "link_check_1",
+                config_value: JSON.stringify({
+                  checkedAt: "2026-06-01T10:00:00.000Z",
+                  total: 1,
+                  accessible: 1,
+                  inaccessible: 0,
+                }),
+                created_at: "2026-06-01 10:00:00",
+              },
+            ],
+          };
+        }
+        return { results: [] };
+      },
+    }),
+  };
+
+  const rejected = await checkLinksGetHandler({
+    request: new Request("https://example.com/api/system/check-links"),
+    env,
+  });
+  const rejectedBody = await rejected.json();
+  assert.equal(rejected.status, 401);
+  assert.equal(rejectedBody.success, false);
+  assert.equal(typeof rejectedBody.timestamp, "string");
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await checkLinksGetHandler({
+    request: new Request("https://example.com/api/system/check-links", {
+      headers: { Authorization: `Bearer ${loginBody.token}` },
+    }),
+    env,
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.success, true);
+  assert.equal(typeof body.timestamp, "string");
+  assert.equal(body.data.length, 1);
+  assert.equal(body.data[0].id, "link_check_1");
+  assert.equal(body.data[0].total, 1);
+});
+
+test("batch link checker keeps protected sites out of auto-delete candidates", async () => {
+  let deleteAttempted = false;
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        return null;
+      },
+      allResult({ sql }) {
+        if (sql.includes("FROM bookmarks")) {
+          return {
+            results: [
+              {
+                id: 7,
+                title: "Linux Do",
+                url: "https://linux.do/",
+                category_id: 3,
+                created_at: "2026-06-01 10:00:00",
+              },
+            ],
+          };
+        }
+        return { results: [] };
+      },
+      runResult({ sql }) {
+        if (sql.includes("DELETE FROM bookmarks")) {
+          deleteAttempted = true;
+        }
+        return { success: true, meta: { changes: 1 } };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await checkLinksPostHandler({
+    request: new Request("https://example.com/api/system/check-links", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ autoDelete: true, batchSize: 1 }),
+    }),
+    env,
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.success, true);
+  assert.equal(typeof body.timestamp, "string");
+  assert.equal(body.data.total, 1);
+  assert.equal(body.data.checked, 1);
+  assert.equal(body.data.accessible, 1);
+  assert.equal(body.data.inaccessible, 0);
+  assert.equal(body.data.deleted, 0);
+  assert.deepEqual(body.data.inaccessibleBookmarks, []);
+  assert.equal(deleteAttempted, false);
+});
+
+test("weekly check notifications require admin and return the shared envelope", async () => {
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        return null;
+      },
+      allResult({ sql }) {
+        if (sql.includes("weekly_notification_%")) {
+          return {
+            results: [
+              {
+                config_key: "weekly_check_1",
+                config_value: JSON.stringify({
+                  type: "weekly_auto_check",
+                  checkedAt: "2026-06-01T10:00:00.000Z",
+                  total: 1,
+                  accessible: 1,
+                  inaccessible: 0,
+                }),
+                created_at: "2026-06-01 10:00:00",
+              },
+            ],
+          };
+        }
+        return { results: [] };
+      },
+    }),
+  };
+
+  const rejected = await weeklyCheckGetHandler({
+    request: new Request("https://example.com/api/cron/weekly-check"),
+    env,
+  });
+  const rejectedBody = await rejected.json();
+  assert.equal(rejected.status, 401);
+  assert.equal(rejectedBody.success, false);
+  assert.equal(typeof rejectedBody.timestamp, "string");
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await weeklyCheckGetHandler({
+    request: new Request("https://example.com/api/cron/weekly-check", {
+      headers: { Authorization: `Bearer ${loginBody.token}` },
+    }),
+    env,
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.success, true);
+  assert.equal(typeof body.timestamp, "string");
+  assert.equal(body.data.length, 1);
+  assert.equal(body.data[0].id, "weekly_check_1");
+  assert.equal(body.data[0].type, "weekly_auto_check");
+});
+
+test("weekly check uses cron secret and treats protected sites as reachable", async () => {
+  const insertedRecords = [];
+  const env = {
+    CRON_SECRET: "cron-secret-123",
+    BOOKMARKS_DB: createDbMock({
+      allResult({ sql }) {
+        if (sql.includes("FROM bookmarks")) {
+          return {
+            results: [
+              {
+                id: 7,
+                title: "Linux Do",
+                url: "https://linux.do/",
+                category_id: 3,
+                created_at: "2026-06-01 10:00:00",
+              },
+            ],
+          };
+        }
+        return { results: [] };
+      },
+      runResult({ sql, params }) {
+        if (sql.includes("INSERT INTO system_config")) {
+          insertedRecords.push(params);
+        }
+        return { success: true, meta: { changes: 1 } };
+      },
+    }),
+  };
+
+  const rejected = await weeklyCheckPostHandler({
+    request: new Request("https://example.com/api/cron/weekly-check", {
+      method: "POST",
+    }),
+    env,
+  });
+  const rejectedBody = await rejected.json();
+  assert.equal(rejected.status, 401);
+  assert.equal(rejectedBody.success, false);
+  assert.equal(typeof rejectedBody.timestamp, "string");
+
+  const response = await weeklyCheckPostHandler({
+    request: new Request("https://example.com/api/cron/weekly-check", {
+      method: "POST",
+      headers: { Authorization: "Bearer cron-secret-123" },
+    }),
+    env,
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.success, true);
+  assert.equal(typeof body.timestamp, "string");
+  assert.equal(body.data.total, 1);
+  assert.equal(body.data.checked, 1);
+  assert.equal(body.data.accessible, 1);
+  assert.equal(body.data.inaccessible, 0);
+  assert.deepEqual(body.data.inaccessibleBookmarks, []);
+  assert.equal(insertedRecords.length, 1);
+  assert.match(insertedRecords[0][0], /^weekly_check_/);
 });
 
 test("health reports connected database state when D1 is available", async () => {
@@ -1082,6 +2288,724 @@ test("health reports a missing database binding clearly", async () => {
   assert.equal(body.database.error, "BOOKMARKS_DB binding is missing.");
 });
 
+test("backup data status requires admin and returns the shared envelope", async () => {
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        if (sql.includes("sqlite_master")) {
+          return { name: params[0] };
+        }
+        if (sql.includes("COUNT(*) as count")) {
+          return { count: params?.[0] || 2 };
+        }
+        return null;
+      },
+    }),
+  };
+
+  const rejected = await backupDataGetHandler({
+    request: new Request("https://example.com/api/system/backup-data"),
+    env,
+  });
+  const rejectedBody = await rejected.json();
+  assert.equal(rejected.status, 401);
+  assert.equal(rejectedBody.success, false);
+  assert.equal(typeof rejectedBody.timestamp, "string");
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await backupDataGetHandler({
+    request: new Request("https://example.com/api/system/backup-data", {
+      headers: { Authorization: `Bearer ${loginBody.token}` },
+    }),
+    env,
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.success, true);
+  assert.equal(body.message, "Database status check completed.");
+  assert.equal(typeof body.timestamp, "string");
+  assert.equal(body.data.canBackup, true);
+  assert.equal(body.data.tables.bookmarks, 2);
+});
+
+test("backup data export returns backup payload and download headers", async () => {
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        if (sql.includes("sqlite_master")) {
+          return { name: params[0] };
+        }
+        return null;
+      },
+      allResult({ sql }) {
+        if (sql.includes("PRAGMA table_info")) {
+          return { results: [{ name: "id", type: "INTEGER" }] };
+        }
+        if (sql.includes("SELECT * FROM bookmarks")) {
+          return {
+            results: [{ id: 1, title: "Example", url: "https://example.com" }],
+          };
+        }
+        return { results: [] };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await backupDataPostHandler({
+    request: new Request("https://example.com/api/system/backup-data", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${loginBody.token}` },
+    }),
+    env,
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.match(
+    response.headers.get("Content-Disposition"),
+    /^attachment; filename="bookmark-backup-\d{4}-\d{2}-\d{2}\.json"$/,
+  );
+  assert.equal(body.success, true);
+  assert.equal(body.message, "Database backup completed.");
+  assert.equal(typeof body.timestamp, "string");
+  assert.equal(body.data.backupData.version, "1.0");
+  assert.equal(body.data.backupData.tables.bookmarks.count, 1);
+  assert.equal(body.data.totalRecords, 1);
+  assert.equal(
+    body.data.tables.some((table) => table.name === "bookmarks"),
+    true,
+  );
+});
+
+test("complete backup export requires admin and preserves the download payload", async () => {
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        return null;
+      },
+      allResult({ sql }) {
+        if (sql.includes("FROM bookmarks b")) {
+          return {
+            results: [
+              {
+                id: 1,
+                title: "Example",
+                url: "https://example.com",
+                category_id: 2,
+                favicon_url: "https://example.com/favicon.ico",
+                visit_count: 4,
+                category_name: "Docs",
+                category_color: "#2563eb",
+              },
+            ],
+          };
+        }
+        if (sql.includes("FROM categories")) {
+          return {
+            results: [
+              {
+                id: 2,
+                name: "Docs",
+                color: "#2563eb",
+                bookmark_count: 1,
+              },
+            ],
+          };
+        }
+        if (sql.includes("FROM system_config")) {
+          return {
+            results: [{ config_key: "site_title", config_value: "Bookmarks" }],
+          };
+        }
+        return { results: [] };
+      },
+    }),
+  };
+
+  const rejected = await backupExportGetHandler({
+    request: new Request("https://example.com/api/system/backup?format=json"),
+    env,
+  });
+  const rejectedBody = await rejected.json();
+  assert.equal(rejected.status, 401);
+  assert.equal(rejectedBody.success, false);
+  assert.equal(typeof rejectedBody.timestamp, "string");
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await backupExportGetHandler({
+    request: new Request("https://example.com/api/system/backup?format=json", {
+      headers: { Authorization: `Bearer ${loginBody.token}` },
+    }),
+    env,
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("Content-Type"), /application\/json/);
+  assert.match(
+    response.headers.get("Content-Disposition"),
+    /^attachment; filename="bookmarks-backup-\d{4}-\d{2}-\d{2}\.json"$/,
+  );
+  assert.equal(body.success, undefined);
+  assert.equal(body.metadata.totalBookmarks, 1);
+  assert.equal(body.metadata.systemConfig.site_title, "Bookmarks");
+  assert.equal(body.bookmarks[0].title, "Example");
+  assert.equal(body.statistics.totalVisits, 4);
+});
+
+test("automatic backup endpoints require admin and use the shared envelope", async () => {
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        return {
+          total_bookmarks: 3,
+          total_categories: 2,
+          total_configs: 1,
+        };
+      },
+      allResult({ sql }) {
+        if (sql.includes("FROM bookmarks")) {
+          return {
+            results: [{ id: 1, title: "Example", url: "https://example.com" }],
+          };
+        }
+        if (sql.includes("FROM categories")) {
+          return { results: [{ id: 2, name: "Docs", color: "#2563eb" }] };
+        }
+        return { results: [] };
+      },
+    }),
+    BACKUP_BUCKET: {
+      async delete() {
+        return undefined;
+      },
+    },
+  };
+
+  const rejectedHandlers = [
+    backupAutoGetHandler({
+      request: new Request("https://example.com/api/system/backup-auto"),
+      env,
+    }),
+    backupAutoPostHandler({
+      request: new Request("https://example.com/api/system/backup-auto", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uploadToR2: false }),
+      }),
+      env,
+    }),
+    backupAutoPutHandler({
+      request: new Request("https://example.com/api/system/backup-auto", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ source: "upload", backupData: {} }),
+      }),
+      env,
+    }),
+    backupAutoDeleteHandler({
+      request: new Request("https://example.com/api/system/backup-auto", {
+        method: "DELETE",
+      }),
+      env,
+    }),
+  ];
+
+  for (const rejected of await Promise.all(rejectedHandlers)) {
+    assert.equal(rejected.status, 401);
+    const body = await rejected.json();
+    assert.equal(body.success, false);
+    assert.equal(typeof body.timestamp, "string");
+  }
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${loginBody.token}`,
+  };
+
+  const statusResponse = await backupAutoGetHandler({
+    request: new Request(
+      "https://example.com/api/system/backup-auto?action=status",
+      { headers },
+    ),
+    env,
+  });
+  const statusBody = await statusResponse.json();
+  assert.equal(statusResponse.status, 200);
+  assert.equal(statusBody.success, true);
+  assert.equal(typeof statusBody.timestamp, "string");
+  assert.equal(statusBody.data.r2Configured, true);
+  assert.equal(statusBody.data.databaseStats.total_bookmarks, 3);
+
+  const backupResponse = await backupAutoPostHandler({
+    request: new Request("https://example.com/api/system/backup-auto", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ uploadToR2: false }),
+    }),
+    env,
+  });
+  const backupBody = await backupResponse.json();
+  assert.equal(backupResponse.status, 200);
+  assert.match(
+    backupResponse.headers.get("Content-Disposition"),
+    /^attachment; filename="bookmark-backup-full-\d{4}-\d{2}-\d{2}_/,
+  );
+  assert.equal(backupBody.success, true);
+  assert.equal(backupBody.message, "Backup created successfully.");
+  assert.equal(backupBody.data.backup.type, "full_backup");
+  assert.equal(backupBody.data.r2, false);
+  assert.equal(backupBody.data.backupData.data.bookmarks.length, 1);
+});
+
+test("analytics summary remains public for the homepage", async () => {
+  const response = await analyticsGetHandler({
+    request: new Request("https://example.com/api/analytics?type=summary"),
+    env: {},
+  });
+
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.success, true);
+  assert.equal(typeof body.timestamp, "string");
+  assert.equal(typeof body.data.generatedAt, "string");
+  assert.equal(typeof body.data.summary.totalBookmarks, "number");
+  assert.equal(Array.isArray(body.data.popularBookmarks), true);
+});
+
+test("analytics recording is public but admin actions require login", async () => {
+  const visitResponse = await analyticsPostHandler({
+    request: new Request("https://example.com/api/analytics", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "visit",
+        bookmarkId: 88,
+        bookmarkData: {
+          title: "Example",
+          url: "https://example.com",
+          category: "Docs",
+        },
+      }),
+    }),
+    env: {},
+  });
+
+  assert.equal(visitResponse.status, 200);
+  const visitBody = await visitResponse.json();
+  assert.equal(visitBody.success, true);
+  assert.equal(visitBody.data.bookmarkId, 88);
+
+  const blocked = await analyticsPutHandler({
+    request: new Request("https://example.com/api/analytics", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "reset" }),
+    }),
+    env: {},
+  });
+
+  assert.equal(blocked.status, 401);
+  const blockedBody = await blocked.json();
+  assert.equal(blockedBody.success, false);
+  assert.equal(typeof blockedBody.timestamp, "string");
+});
+
+test("performance report endpoint requires admin and uses the shared envelope", async () => {
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock(),
+  };
+
+  const rejected = await performanceGetHandler({
+    request: new Request("https://example.com/api/system/performance"),
+    env,
+  });
+
+  assert.equal(rejected.status, 401);
+  const rejectedBody = await rejected.json();
+  assert.equal(rejectedBody.success, false);
+  assert.equal(typeof rejectedBody.timestamp, "string");
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await performanceGetHandler({
+    request: new Request(
+      "https://example.com/api/system/performance?type=detailed",
+      {
+        headers: { Authorization: `Bearer ${loginBody.token}` },
+      },
+    ),
+    env,
+  });
+
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.success, true);
+  assert.equal(typeof body.timestamp, "string");
+  assert.equal(typeof body.data.generatedAt, "string");
+  assert.equal(typeof body.data.report.summary.totalEndpoints, "number");
+});
+
+test("performance manual record validates required fields with the shared envelope", async () => {
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock(),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const rejected = await performancePutHandler({
+    request: new Request("https://example.com/api/system/performance", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ endpoint: "/api/bookmarks" }),
+    }),
+    env,
+  });
+
+  assert.equal(rejected.status, 400);
+  const rejectedBody = await rejected.json();
+  assert.equal(rejectedBody.success, false);
+  assert.match(rejectedBody.error, /endpoint, startTime, endTime, status/);
+  assert.equal(typeof rejectedBody.timestamp, "string");
+
+  const response = await performancePutHandler({
+    request: new Request("https://example.com/api/system/performance", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({
+        endpoint: "/api/bookmarks",
+        startTime: 100,
+        endTime: 160,
+        status: 200,
+      }),
+    }),
+    env,
+  });
+
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.success, true);
+  assert.equal(body.message, "性能数据记录成功");
+  assert.equal(body.data.metric.endpoint, "/api/bookmarks");
+});
+
+test("database optimization status requires admin and uses the shared envelope", async () => {
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult: ({ sql }) => {
+        if (sql.includes("system_config WHERE config_key")) {
+          return null;
+        }
+        return {
+          total_bookmarks: 1201,
+          total_categories: 8,
+          total_configs: 3,
+        };
+      },
+      allResult: {
+        results: [
+          {
+            name: "idx_bookmarks_category",
+            sql: "CREATE INDEX idx_bookmarks_category ON bookmarks(category_id)",
+          },
+        ],
+      },
+    }),
+  };
+
+  const rejected = await optimizeDatabaseGetHandler({
+    request: new Request("https://example.com/api/system/optimize-database"),
+    env,
+  });
+
+  assert.equal(rejected.status, 401);
+  const rejectedBody = await rejected.json();
+  assert.equal(rejectedBody.success, false);
+  assert.equal(typeof rejectedBody.timestamp, "string");
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await optimizeDatabaseGetHandler({
+    request: new Request("https://example.com/api/system/optimize-database", {
+      headers: { Authorization: `Bearer ${loginBody.token}` },
+    }),
+    env,
+  });
+
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.success, true);
+  assert.equal(typeof body.timestamp, "string");
+  assert.equal(body.data.database_stats.total_bookmarks, 1201);
+  assert.equal(body.data.indexes.length, 1);
+  assert.equal(body.data.recommendations.needs_optimization, true);
+});
+
+test("database optimization runs indexes and vacuum through the shared envelope", async () => {
+  const executed = [];
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult: ({ sql }) => {
+        if (sql.includes("system_config WHERE config_key")) {
+          return null;
+        }
+        return null;
+      },
+      execResult: ({ sql }) => {
+        executed.push(sql);
+        return { success: true };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await optimizeDatabasePostHandler({
+    request: new Request("https://example.com/api/system/optimize-database", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${loginBody.token}` },
+    }),
+    env,
+  });
+
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.success, true);
+  assert.equal(body.message, "Database optimization completed");
+  assert.equal(body.data.optimizations.length, 6);
+  assert.equal(body.data.optimizations.at(-1).index, "vacuum");
+  assert.equal(executed.includes("VACUUM"), true);
+});
+
+test("system migrations require admin and use the shared envelope", async () => {
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock(),
+  };
+
+  const rejected = await migrateKeepStatusHandler({
+    request: new Request("https://example.com/api/system/migrate", {
+      method: "POST",
+    }),
+    env,
+  });
+
+  assert.equal(rejected.status, 401);
+  const rejectedBody = await rejected.json();
+  assert.equal(rejectedBody.success, false);
+  assert.equal(typeof rejectedBody.timestamp, "string");
+
+  const deletedRejected = await migrateDeletedBookmarksHandler({
+    request: new Request(
+      "https://example.com/api/system/migrate-deleted-bookmarks",
+      { method: "POST" },
+    ),
+    env,
+  });
+
+  assert.equal(deletedRejected.status, 401);
+  const deletedRejectedBody = await deletedRejected.json();
+  assert.equal(deletedRejectedBody.success, false);
+  assert.equal(typeof deletedRejectedBody.timestamp, "string");
+});
+
+test("keep-status migration reports existing column through the shared envelope", async () => {
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult: ({ sql }) => {
+        if (sql.includes("system_config WHERE config_key")) {
+          return null;
+        }
+        if (sql.includes("SELECT keep_status FROM bookmarks")) {
+          return { keep_status: "normal" };
+        }
+        return null;
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await migrateKeepStatusHandler({
+    request: new Request("https://example.com/api/system/migrate", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${loginBody.token}` },
+    }),
+    env,
+  });
+
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.success, true);
+  assert.equal(body.data.migrated, false);
+  assert.equal(body.data.reason, "already_exists");
+});
+
+test("deleted bookmarks migration creates table and indexes", async () => {
+  const executed = [];
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult: ({ sql }) => {
+        if (sql.includes("system_config WHERE config_key")) {
+          return null;
+        }
+        return null;
+      },
+      execResult: ({ sql }) => {
+        executed.push(sql);
+        return { success: true };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await migrateDeletedBookmarksHandler({
+    request: new Request(
+      "https://example.com/api/system/migrate-deleted-bookmarks",
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${loginBody.token}` },
+      },
+    ),
+    env,
+  });
+
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.success, true);
+  assert.equal(body.data.migrated, true);
+  assert.equal(body.data.table, "deleted_bookmarks");
+  assert.equal(body.data.statements, 4);
+  assert.equal(executed.length, 4);
+  assert.equal(executed[0].includes("CREATE TABLE IF NOT EXISTS"), true);
+});
+
 test("JWT secret falls back to a cached in-memory value when D1 is unavailable", async () => {
   const env = {
     BOOKMARKS_DB: createDbMock({
@@ -1111,6 +3035,7 @@ test("token management requires an administrator session by default", async () =
   const listBody = await listResponse.json();
   assert.equal(listBody.success, false);
   assert.equal(typeof listBody.error, "string");
+  assert.equal(typeof listBody.timestamp, "string");
 
   const createResponse = await tokenCreateHandler({
     request: new Request("https://example.com/api/auth/token", {
@@ -1128,6 +3053,7 @@ test("token management requires an administrator session by default", async () =
   const createBody = await createResponse.json();
   assert.equal(createBody.success, false);
   assert.equal(typeof createBody.error, "string");
+  assert.equal(typeof createBody.timestamp, "string");
 });
 
 test("token management can be explicitly disabled", async () => {
@@ -1144,6 +3070,7 @@ test("token management can be explicitly disabled", async () => {
   const body = await response.json();
   assert.equal(body.success, false);
   assert.match(body.error, /disabled/i);
+  assert.equal(typeof body.timestamp, "string");
 });
 
 test("authenticated admin can create a sync API token by default", async () => {
@@ -1180,6 +3107,8 @@ test("authenticated admin can create a sync API token by default", async () => {
   assert.equal(typeof body.data.token, "string");
   assert.equal(body.data.name, "Chrome Sync");
   assert.match(body.data.id, /^api_token_/);
+  assert.equal(body.message, "API token created successfully.");
+  assert.equal(typeof body.timestamp, "string");
 });
 
 test("deleted API token metadata revokes newly generated tokens", async () => {
@@ -1297,6 +3226,16 @@ test("sync list endpoint accepts API tokens and returns JSON bookmarks", async (
   });
   const createBody = await createResponse.json();
 
+  const rejected = await syncListHandler({
+    request: new Request("https://example.com/api/bookmarks/sync"),
+    env,
+  });
+  const rejectedBody = await rejected.json();
+  assert.equal(rejected.status, 401);
+  assert.equal(rejectedBody.success, false);
+  assert.equal(typeof rejectedBody.timestamp, "string");
+  assert.equal(rejected.headers.get("Access-Control-Allow-Origin"), "*");
+
   const response = await syncListHandler({
     request: new Request(
       "https://example.com/api/bookmarks/sync?page=1&limit=100",
@@ -1311,9 +3250,114 @@ test("sync list endpoint accepts API tokens and returns JSON bookmarks", async (
 
   assert.equal(response.status, 200);
   assert.match(response.headers.get("Content-Type"), /application\/json/);
+  assert.equal(response.headers.get("Access-Control-Allow-Origin"), "*");
+  assert.equal(
+    response.headers.get("Access-Control-Allow-Headers"),
+    "Content-Type, X-API-Token",
+  );
   const body = await response.json();
   assert.equal(body.success, true);
+  assert.equal(typeof body.timestamp, "string");
   assert.equal(body.data.bookmarks.length, 1);
+});
+
+test("sync import keeps extension CORS and Chinese default category behavior", async () => {
+  let activeTokenId = null;
+  const createdCategories = [];
+  const insertedBookmarks = [];
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return params[0] === activeTokenId
+            ? { config_key: activeTokenId }
+            : null;
+        }
+        if (sql.includes("SELECT id FROM categories WHERE name = ?")) {
+          return null;
+        }
+        if (sql.includes("SELECT id FROM bookmarks WHERE url = ?")) {
+          return null;
+        }
+        return null;
+      },
+      runResult({ sql, params }) {
+        if (String(params[0] || "").startsWith("api_token_")) {
+          activeTokenId = params[0];
+          return { success: true, changes: 1 };
+        }
+        if (sql.includes("INSERT INTO categories")) {
+          createdCategories.push(params);
+          return {
+            success: true,
+            meta: { last_row_id: createdCategories.length },
+          };
+        }
+        if (sql.includes("INSERT INTO bookmarks")) {
+          insertedBookmarks.push(params);
+          return {
+            success: true,
+            meta: { last_row_id: insertedBookmarks.length },
+          };
+        }
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+  const createResponse = await tokenCreateHandler({
+    request: new Request("https://example.com/api/auth/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ name: "Chrome Sync" }),
+    }),
+    env,
+  });
+  const createBody = await createResponse.json();
+
+  const response = await syncPostHandler({
+    request: new Request("https://example.com/api/bookmarks/sync", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Token": createBody.data.token,
+      },
+      body: JSON.stringify({
+        bookmarks: [
+          {
+            title: "Example",
+            url: "https://example.com",
+            category: "书签栏",
+          },
+        ],
+      }),
+    }),
+    env,
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("Access-Control-Allow-Origin"), "*");
+  assert.equal(body.success, true);
+  assert.equal(typeof body.timestamp, "string");
+  assert.equal(body.data.successCount, 1);
+  assert.equal(createdCategories[0][0], "Chrome同步");
+  assert.equal(createdCategories[0][2], "Chrome浏览器同步的书签");
+  assert.equal(insertedBookmarks[0][3], 1);
 });
 
 test("token verification uses generated jwt secret instead of a fixed fallback", async () => {

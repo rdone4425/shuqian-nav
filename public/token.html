@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
@@ -13,10 +13,14 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/css/styles.css" />
-    <link rel="stylesheet" href="/css/workspace-refresh.css" />
+    <link
+      rel="stylesheet"
+      href="/css/workspace-refresh.css?v=nav-20260602-public-home"
+    />
+    <link rel="stylesheet" href="/css/admin.css?v=nav-20260603-admin-shell" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
-  <body class="nav-site">
+  <body class="nav-site admin-site">
     <div class="container">
       <div
         data-site-header
@@ -26,6 +30,17 @@
         data-logo-subtitle="用于 Chrome 扩展和自动化同步设置"
         class="header"
       ></div>
+
+      <section class="workspace-section-heading">
+        <div>
+          <span class="section-kicker">账号与安全</span>
+          <h2 class="section-title">集中管理同步令牌，避免入口散落在首页</h2>
+        </div>
+        <p class="section-copy">
+          令牌用于 Chrome
+          扩展和自动化同步。生成、复制和撤销都留在受保护后台，首页只保留公开导航体验。
+        </p>
+      </section>
 
       <main class="token-container token-page-shell">
         <section class="token-intro-card">
@@ -147,268 +162,10 @@
       </main>
     </div>
 
-    <div
-      id="deleteTokenModal"
-      class="token-confirm-modal hidden"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="deleteTokenTitle"
-    >
-      <div class="token-confirm-card">
-        <div class="token-confirm-header">
-          <div>
-            <span class="token-kicker">危险操作</span>
-            <h3 id="deleteTokenTitle">删除同步令牌</h3>
-          </div>
-          <button id="closeDeleteTokenModal" class="btn btn-soft" type="button">
-            关闭
-          </button>
-        </div>
-        <p id="deleteTokenMessage" class="token-confirm-copy"></p>
-        <p class="token-confirm-hint">
-          删除后，正在使用这个令牌的浏览器扩展或自动化同步会立刻失效。
-        </p>
-        <div class="token-confirm-actions">
-          <button id="cancelDeleteToken" class="btn btn-soft" type="button">
-            取消
-          </button>
-          <button id="confirmDeleteToken" class="btn btn-danger" type="button">
-            删除令牌
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <script src="/js/auth.js"></script>
-    <script src="/js/site-menu.js?v=nav-20260601-unified-menu"></script>
-    <script>
-      const tokenState = {
-        tokens: [],
-        busy: false,
-        pendingDeleteToken: null,
-      };
-
-      function setTokenStatus(message) {
-        document.getElementById("tokenGuardStatus").textContent = message;
-      }
-
-      function tokenHeaders() {
-        return {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          ...window.Auth.getAuthHeaders(),
-        };
-      }
-
-      function showTokenForm(visible) {
-        document
-          .getElementById("tokenForm")
-          .classList.toggle("hidden", !visible);
-      }
-
-      function renderTokenList() {
-        const listEl = document.getElementById("tokenList");
-        if (!tokenState.tokens.length) {
-          listEl.innerHTML =
-            '<article class="token-mini-card"><strong>暂无令牌</strong><span>点击“生成令牌”创建第一个同步令牌。</span></article>';
-          return;
-        }
-
-        listEl.innerHTML = tokenState.tokens
-          .map(
-            (token) => `
-              <article class="token-mini-card">
-                <strong>${escapeHtml(token.name || "未命名令牌")}</strong>
-                <span>${escapeHtml(token.description || "无说明")}</span>
-                <span>创建：${formatDate(token.created || token.createdAt)}</span>
-                <span>过期：${formatDate(token.expires)}</span>
-                <button class="btn btn-soft delete-token-btn" type="button" data-token-id="${escapeHtml(token.id)}" data-token-name="${escapeHtml(token.name || "未命名令牌")}">
-                  删除
-                </button>
-              </article>
-            `,
-          )
-          .join("");
-
-        listEl.querySelectorAll(".delete-token-btn").forEach((button) => {
-          button.addEventListener("click", () =>
-            requestDeleteToken(
-              button.dataset.tokenId,
-              button.dataset.tokenName,
-            ),
-          );
-        });
-      }
-
-      function escapeHtml(value) {
-        const div = document.createElement("div");
-        div.textContent = value || "";
-        return div.innerHTML;
-      }
-
-      function formatDate(value) {
-        if (!value) return "未知";
-        const date = new Date(value);
-        if (Number.isNaN(date.getTime())) return value;
-        return date.toLocaleString();
-      }
-
-      async function refreshTokenGuardStatus() {
-        setTokenStatus("正在检查当前配置...");
-
-        try {
-          const response = await fetch("/api/auth/token", {
-            method: "GET",
-            headers: tokenHeaders(),
-          });
-
-          const data = await response.json().catch(() => ({}));
-
-          if (response.status === 403) {
-            showTokenForm(false);
-            setTokenStatus(
-              "令牌管理被配置关闭。请移除 PUBLIC_API_TOKEN_MANAGEMENT=disabled 后再生成令牌。",
-            );
-            return;
-          }
-
-          if (response.ok) {
-            tokenState.tokens = data.data || [];
-            showTokenForm(true);
-            renderTokenList();
-            setTokenStatus("已登录管理员，可以生成和管理同步令牌。");
-            return;
-          }
-
-          setTokenStatus(
-            data.error || "令牌状态检查失败，HTTP 状态码：" + response.status,
-          );
-        } catch (error) {
-          setTokenStatus("令牌状态检查失败：" + error.message);
-        }
-      }
-
-      async function createToken(event) {
-        event.preventDefault();
-        if (tokenState.busy) return;
-
-        tokenState.busy = true;
-        const button = document.getElementById("createTokenBtn");
-        const originalText = button.textContent;
-        button.disabled = true;
-        button.textContent = "生成中...";
-
-        try {
-          const response = await fetch("/api/auth/token", {
-            method: "POST",
-            headers: tokenHeaders(),
-            body: JSON.stringify({
-              name: document.getElementById("tokenName").value.trim(),
-              description: document
-                .getElementById("tokenDescription")
-                .value.trim(),
-              expiresIn:
-                parseInt(document.getElementById("tokenExpiresIn").value, 10) ||
-                365,
-            }),
-          });
-          const data = await response.json().catch(() => ({}));
-          if (!response.ok || !data.success) {
-            throw new Error(data.error || data.message || "生成令牌失败");
-          }
-
-          document.getElementById("createdTokenValue").textContent =
-            data.data.token;
-          document.getElementById("tokenResult").classList.remove("hidden");
-          setTokenStatus("令牌已生成，请立即复制保存。");
-          await refreshTokenGuardStatus();
-        } catch (error) {
-          setTokenStatus("生成令牌失败：" + error.message);
-        } finally {
-          tokenState.busy = false;
-          button.disabled = false;
-          button.textContent = originalText;
-        }
-      }
-
-      async function copyCreatedToken() {
-        const token = document.getElementById("createdTokenValue").textContent;
-        if (!token) return;
-        await navigator.clipboard.writeText(token);
-        setTokenStatus("令牌已复制。");
-      }
-
-      function requestDeleteToken(tokenId, tokenName) {
-        if (!tokenId) return;
-        tokenState.pendingDeleteToken = tokenId;
-        document.getElementById("deleteTokenMessage").textContent =
-          `确定删除同步令牌“${tokenName || "未命名令牌"}”吗？`;
-        document.getElementById("deleteTokenModal").classList.remove("hidden");
-        document.getElementById("confirmDeleteToken").focus();
-      }
-
-      function closeDeleteTokenModal() {
-        tokenState.pendingDeleteToken = null;
-        document.getElementById("deleteTokenModal").classList.add("hidden");
-      }
-
-      async function deleteToken(tokenId = tokenState.pendingDeleteToken) {
-        if (!tokenId) return;
-
-        try {
-          const response = await fetch("/api/auth/token", {
-            method: "POST",
-            headers: tokenHeaders(),
-            body: JSON.stringify({ action: "delete", tokenId }),
-          });
-          const data = await response.json().catch(() => ({}));
-          if (!response.ok || !data.success) {
-            throw new Error(data.error || data.message || "删除令牌失败");
-          }
-          closeDeleteTokenModal();
-          setTokenStatus("令牌已删除。");
-          await refreshTokenGuardStatus();
-        } catch (error) {
-          setTokenStatus("删除令牌失败：" + error.message);
-        }
-      }
-
-      document.addEventListener("DOMContentLoaded", async () => {
-        const authenticated = await window.Auth.init({ requireAuth: true });
-        if (!authenticated) return;
-
-        document.getElementById("syncEndpoint").textContent =
-          window.location.origin + "/api/bookmarks/sync";
-        document
-          .getElementById("checkTokenGuardBtn")
-          .addEventListener("click", refreshTokenGuardStatus);
-        document
-          .getElementById("refreshTokensBtn")
-          .addEventListener("click", refreshTokenGuardStatus);
-        document
-          .getElementById("tokenForm")
-          .addEventListener("submit", createToken);
-        document
-          .getElementById("copyTokenBtn")
-          .addEventListener("click", copyCreatedToken);
-        document
-          .getElementById("closeDeleteTokenModal")
-          .addEventListener("click", closeDeleteTokenModal);
-        document
-          .getElementById("cancelDeleteToken")
-          .addEventListener("click", closeDeleteTokenModal);
-        document
-          .getElementById("confirmDeleteToken")
-          .addEventListener("click", () => deleteToken());
-        document
-          .getElementById("deleteTokenModal")
-          .addEventListener("click", (event) => {
-            if (event.target.id === "deleteTokenModal") {
-              closeDeleteTokenModal();
-            }
-          });
-        refreshTokenGuardStatus();
-      });
-    </script>
+    <script src="/js/shared/auth.js?v=nav-20260602-auth-cache"></script>
+    <script src="/js/shared/site-menu.js?v=nav-20260603-admin-shell"></script>
+    <script src="/js/shared/admin-common.js?v=nav-20260602-shared-runtime"></script>
+    <script src="/js/shared/admin-shell.js?v=nav-20260603-admin-shell"></script>
+    <script src="/js/admin/token-page.js?v=nav-20260602-admin-runtime"></script>
   </body>
 </html>

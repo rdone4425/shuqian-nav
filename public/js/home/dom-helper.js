@@ -178,45 +178,66 @@ class DOMHelper {
       return;
     }
 
-    // 创建分页HTML
-    let html = '<div class="pagination">';
+    const pagination = document.createElement("div");
+    pagination.className = "pagination";
 
-    // 上一页按钮
-    const prevDisabled = currentPage <= 1 ? "disabled" : "";
-    html += `<button class="pagination-btn ${prevDisabled}"
-             onclick="(${onPageChange})(${Math.max(1, currentPage - 1)})">上一页</button>`;
+    const addButton = (label, page, options = {}) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "pagination-btn";
+      button.textContent = label;
+      button.dataset.page = String(page);
 
-    // 页码按钮
+      if (options.active) {
+        button.classList.add("active");
+      }
+      if (options.disabled) {
+        button.classList.add("disabled");
+        button.disabled = true;
+      } else if (typeof onPageChange === "function") {
+        button.addEventListener("click", () => onPageChange(page));
+      }
+
+      pagination.appendChild(button);
+    };
+
+    const addEllipsis = () => {
+      const ellipsis = document.createElement("span");
+      ellipsis.className = "pagination-ellipsis";
+      ellipsis.textContent = "...";
+      pagination.appendChild(ellipsis);
+    };
+
+    addButton("上一页", Math.max(1, currentPage - 1), {
+      disabled: currentPage <= 1,
+    });
+
     const startPage = Math.max(1, currentPage - 2);
     const endPage = Math.min(totalPages, currentPage + 2);
 
     if (startPage > 1) {
-      html += `<button class="pagination-btn" onclick="(${onPageChange})(1)">1</button>`;
+      addButton("1", 1);
       if (startPage > 2) {
-        html += '<span class="pagination-ellipsis">...</span>';
+        addEllipsis();
       }
     }
 
-    for (let i = startPage; i <= endPage; i++) {
-      const activeClass = i === currentPage ? "active" : "";
-      html += `<button class="pagination-btn ${activeClass}"
-               onclick="(${onPageChange})(${i})">${i}</button>`;
+    for (let i = startPage; i <= endPage; i += 1) {
+      addButton(String(i), i, { active: i === currentPage });
     }
 
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
-        html += '<span class="pagination-ellipsis">...</span>';
+        addEllipsis();
       }
-      html += `<button class="pagination-btn" onclick="(${onPageChange})(${totalPages})">${totalPages}</button>`;
+      addButton(String(totalPages), totalPages);
     }
 
-    // 下一页按钮
-    const nextDisabled = currentPage >= totalPages ? "disabled" : "";
-    html += `<button class="pagination-btn ${nextDisabled}"
-             onclick="(${onPageChange})(${Math.min(totalPages, currentPage + 1)})">下一页</button>`;
+    addButton("下一页", Math.min(totalPages, currentPage + 1), {
+      disabled: currentPage >= totalPages,
+    });
 
-    html += "</div>";
-    element.innerHTML = html;
+    element.replaceChildren(pagination);
   }
 
   /**
@@ -245,7 +266,10 @@ class DOMHelper {
         if (showRetry && onRetry) {
           const retryBtn = this.get("retryBtn");
           if (retryBtn) {
-            retryBtn.onclick = onRetry;
+            const freshRetryBtn = retryBtn.cloneNode(true);
+            retryBtn.replaceWith(freshRetryBtn);
+            this.elementCache.set("retryBtn", freshRetryBtn);
+            freshRetryBtn.addEventListener("click", onRetry);
             this.show("retryBtn");
           }
         }

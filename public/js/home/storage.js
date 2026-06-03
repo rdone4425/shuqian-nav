@@ -43,13 +43,13 @@ const Storage = {
     }
   },
 
-  // 删除存储项
+  // 移除存储项
   remove(key) {
     try {
       localStorage.removeItem(key);
       return true;
     } catch (error) {
-      console.error("删除存储项失败:", error);
+      console.error("移除存储项失败:", error);
       return false;
     }
   },
@@ -185,59 +185,6 @@ const Storage = {
         sortOrder,
       });
     },
-  },
-
-  // 数据导出
-  export() {
-    try {
-      const data = {};
-      for (let key in localStorage) {
-        if (localStorage.hasOwnProperty(key) && key.startsWith("bookmark_")) {
-          data[key] = localStorage[key];
-        }
-      }
-      return {
-        success: true,
-        data: data,
-        timestamp: new Date().toISOString(),
-        version: "1.0.0",
-      };
-    } catch (error) {
-      console.error("导出数据失败:", error);
-      return {
-        success: false,
-        error: error.message,
-      };
-    }
-  },
-
-  // 数据导入
-  import(data) {
-    try {
-      if (!data || typeof data !== "object") {
-        throw new Error("无效的导入数据格式");
-      }
-
-      let importedCount = 0;
-      for (let key in data.data || data) {
-        if (key.startsWith("bookmark_")) {
-          localStorage.setItem(key, data.data ? data.data[key] : data[key]);
-          importedCount++;
-        }
-      }
-
-      return {
-        success: true,
-        importedCount: importedCount,
-        message: `成功导入 ${importedCount} 项设置`,
-      };
-    } catch (error) {
-      console.error("导入数据失败:", error);
-      return {
-        success: false,
-        error: error.message,
-      };
-    }
   },
 };
 

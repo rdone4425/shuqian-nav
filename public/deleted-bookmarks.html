@@ -13,11 +13,18 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/css/styles.css" />
-    <link rel="stylesheet" href="/css/workspace-refresh.css" />
-    <link rel="stylesheet" href="/css/deleted-bookmarks-enhanced.css" />
+    <link
+      rel="stylesheet"
+      href="/css/workspace-refresh.css?v=nav-20260602-public-home"
+    />
+    <link
+      rel="stylesheet"
+      href="/css/deleted-bookmarks-enhanced.css?v=nav-20260602-admin-confirm"
+    />
+    <link rel="stylesheet" href="/css/admin.css?v=nav-20260603-admin-shell" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
-  <body class="nav-site">
+  <body class="nav-site admin-site">
     <div class="container">
       <div
         data-site-header
@@ -94,6 +101,12 @@
               <option value="link_check_failed">链接检查失败</option>
               <option value="batch_delete_inaccessible">批量删除</option>
             </select>
+            <select id="rangeSelect" class="filter-select">
+              <option value="all">全部时间</option>
+              <option value="today">今天</option>
+              <option value="7d">最近 7 天</option>
+              <option value="30d">最近 30 天</option>
+            </select>
             <input
               type="search"
               id="searchInput"
@@ -162,52 +175,11 @@
       </div>
     </div>
 
-    <div
-      id="actionConfirmModal"
-      class="deleted-confirm-modal hidden"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="actionConfirmTitle"
-    >
-      <div class="deleted-confirm-card">
-        <div class="deleted-confirm-header">
-          <div>
-            <span id="actionConfirmKicker" class="danger-kicker">确认操作</span>
-            <h3 id="actionConfirmTitle">确认操作</h3>
-          </div>
-          <button
-            id="closeActionConfirm"
-            class="btn btn-secondary"
-            type="button"
-          >
-            关闭
-          </button>
-        </div>
-        <p id="actionConfirmMessage" class="deleted-confirm-copy"></p>
-        <p id="actionConfirmHint" class="deleted-confirm-hint"></p>
-        <div class="deleted-confirm-actions">
-          <button
-            id="cancelActionConfirm"
-            class="btn btn-secondary"
-            type="button"
-          >
-            取消
-          </button>
-          <button
-            id="confirmActionConfirm"
-            class="btn btn-danger"
-            type="button"
-          >
-            确认
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <script src="/js/utils/api.js"></script>
-    <script src="/js/auth.js"></script>
-    <script src="/js/site-menu.js?v=nav-20260601-unified-menu"></script>
-    <script src="/js/admin-common.js"></script>
-    <script src="/js/deleted-bookmarks.js?v=20260531-batch"></script>
+    <script src="/js/shared/api.js?v=nav-20260602-shared-runtime"></script>
+    <script src="/js/shared/auth.js?v=nav-20260602-auth-cache"></script>
+    <script src="/js/shared/site-menu.js?v=nav-20260603-admin-shell"></script>
+    <script src="/js/shared/admin-common.js?v=nav-20260602-shared-runtime"></script>
+    <script src="/js/shared/admin-shell.js?v=nav-20260603-admin-shell"></script>
+    <script src="/js/admin/deleted-bookmarks.js?v=nav-20260602-admin-runtime"></script>
   </body>
 </html>

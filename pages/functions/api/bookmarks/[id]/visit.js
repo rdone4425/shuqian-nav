@@ -1,5 +1,6 @@
 // 书签访问记录API
 import { bookmarkAnalytics } from "../../../utils/bookmark-analytics.js";
+import { ResponseHelper } from "../../../utils/response-helper.js";
 
 export async function onRequestPost(context) {
   const { request, params, env } = context;
@@ -20,21 +21,7 @@ export async function onRequestPost(context) {
       .first();
 
     if (!bookmark) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "书签不存在",
-        }),
-        {
-          status: 404,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type",
-          },
-        },
-      );
+      return ResponseHelper.notFound("书签不存在");
     }
 
     // 更新数据库中的访问统计
@@ -61,55 +48,23 @@ export async function onRequestPost(context) {
       });
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: "访问记录成功",
-        data: {
-          bookmarkId,
-          visitCount: newVisitCount,
-          lastVisited: visitTime,
-        },
-      }),
+    return ResponseHelper.success(
       {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type",
-        },
+        bookmarkId,
+        visitCount: newVisitCount,
+        lastVisited: visitTime,
       },
+      "访问记录成功",
     );
   } catch (error) {
     console.error("记录访问失败:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "记录访问失败",
-        message: error.message,
-      }),
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type",
-        },
-      },
-    );
+    return ResponseHelper.serverError("记录访问失败", error.message);
   }
 }
 
 // 处理 CORS 预检请求
-export async function onRequestOptions(context) {
+export async function onRequestOptions() {
   return new Response(null, {
-    status: 200,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-    },
+    status: 204,
   });
 }

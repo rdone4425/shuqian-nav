@@ -1,56 +1,50 @@
-// 删除书签记录管理API
 import { authenticateRequest } from "../auth/verify.js";
+import { ResponseHelper } from "../../utils/response-helper.js";
 
-// 获取删除的书签列表
 export async function onRequestGet(context) {
   const { request, env } = context;
 
   try {
-    // 验证认证
     const auth = await authenticateRequest(request, env);
     if (!auth.authenticated) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: auth.error,
-        }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.unauthorized(auth.error);
     }
 
     const url = new URL(request.url);
-    const page = parseInt(url.searchParams.get("page")) || 1;
-    const limit = parseInt(url.searchParams.get("limit")) || 50;
+    const page = parseInt(url.searchParams.get("page"), 10) || 1;
+    const limit = parseInt(url.searchParams.get("limit"), 10) || 50;
     const offset = (page - 1) * limit;
     const filter = url.searchParams.get("filter");
+    const range = url.searchParams.get("range");
     const search = url.searchParams.get("search");
 
-    // 构建查询条件
     let whereClause = "";
-    let params = [];
+    const params = [];
+
+    const addWhere = (clause, ...values) => {
+      whereClause += whereClause ? ` AND ${clause}` : ` WHERE ${clause}`;
+      params.push(...values);
+    };
 
     if (filter && filter !== "all") {
-      whereClause += " WHERE deleted_reason = ?";
-      params.push(filter);
+      addWhere("deleted_reason = ?", filter);
+    }
+
+    const rangeStart = getDeletedRangeStart(range);
+    if (rangeStart) {
+      addWhere("deleted_at >= ?", rangeStart);
     }
 
     if (search) {
-      const searchClause = whereClause ? " AND" : " WHERE";
-      whereClause += `${searchClause} (title LIKE ? OR url LIKE ?)`;
-      params.push(`%${search}%`, `%${search}%`);
+      addWhere("(title LIKE ? OR url LIKE ?)", `%${search}%`, `%${search}%`);
     }
 
-    // 获取删除记录总数
     const countResult = await env.BOOKMARKS_DB.prepare(
       `SELECT COUNT(*) as total FROM deleted_bookmarks${whereClause}`,
     )
       .bind(...params)
       .first();
 
-    // 获取删除记录列表
     const deletedBookmarksResult = await env.BOOKMARKS_DB.prepare(
       `
       SELECT
@@ -78,76 +72,36 @@ export async function onRequestGet(context) {
       .bind(...params, limit, offset)
       .all();
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        data: {
-          bookmarks: deletedBookmarksResult.results || [],
-          pagination: {
-            page,
-            limit,
-            total: countResult.total,
-            totalPages: Math.ceil(countResult.total / limit),
-          },
-        },
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
+    const total = countResult?.total || 0;
+    return ResponseHelper.success({
+      bookmarks: deletedBookmarksResult.results || [],
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
       },
-    );
+    });
   } catch (error) {
-    console.error("获取删除记录失败:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "获取删除记录失败",
-        message: error.message,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    console.error("Failed to list deleted bookmarks:", error);
+    return ResponseHelper.serverError("获取删除记录失败", error.message);
   }
 }
 
-// 恢复删除的书签
 export async function onRequestPost(context) {
   const { request, env } = context;
 
   try {
-    // 验证认证
     const auth = await authenticateRequest(request, env);
     if (!auth.authenticated) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: auth.error,
-        }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.unauthorized(auth.error);
     }
 
     const { deletedId } = await request.json();
-
     if (!deletedId) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "删除记录ID是必填的",
-        }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.validationError("删除记录ID是必填的");
     }
 
-    // 获取删除记录
     const deletedRecord = await env.BOOKMARKS_DB.prepare(
       "SELECT * FROM deleted_bookmarks WHERE id = ?",
     )
@@ -155,19 +109,9 @@ export async function onRequestPost(context) {
       .first();
 
     if (!deletedRecord) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "删除记录不存在",
-        }),
-        {
-          status: 404,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.notFound("删除记录不存在");
     }
 
-    // 检查URL是否已存在
     const existingBookmark = await env.BOOKMARKS_DB.prepare(
       "SELECT id FROM bookmarks WHERE url = ?",
     )
@@ -175,44 +119,10 @@ export async function onRequestPost(context) {
       .first();
 
     if (existingBookmark) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "该URL的书签已存在，无法恢复",
-        }),
-        {
-          status: 409,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.error("该URL的书签已存在，无法恢复", 409);
     }
 
-    // 获取或创建分类
-    let categoryId = null;
-    if (deletedRecord.category) {
-      const category = await env.BOOKMARKS_DB.prepare(
-        "SELECT id FROM categories WHERE name = ?",
-      )
-        .bind(deletedRecord.category)
-        .first();
-
-      if (category) {
-        categoryId = category.id;
-      } else {
-        // 创建新分类
-        const newCategory = await env.BOOKMARKS_DB.prepare(
-          `
-          INSERT INTO categories (name, color, created_at, updated_at)
-          VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-        `,
-        )
-          .bind(deletedRecord.category, "#6366f1")
-          .run();
-        categoryId = newCategory.meta.last_row_id;
-      }
-    }
-
-    // 恢复书签
+    const categoryId = await getOrCreateCategoryId(env, deletedRecord.category);
     const restoreResult = await env.BOOKMARKS_DB.prepare(
       `
       INSERT INTO bookmarks (
@@ -224,92 +134,48 @@ export async function onRequestPost(context) {
       .bind(
         deletedRecord.title,
         deletedRecord.url,
-        deletedRecord.description,
+        deletedRecord.description || null,
         categoryId,
-        deletedRecord.favicon_url,
-        deletedRecord.tags,
-        deletedRecord.created_at,
-        deletedRecord.keep_status,
+        deletedRecord.favicon_url || null,
+        deletedRecord.tags || null,
+        deletedRecord.created_at || toSqlTimestamp(Date.now()),
+        deletedRecord.keep_status || "normal",
       )
       .run();
 
-    if (restoreResult.success) {
-      // 删除恢复记录
-      await env.BOOKMARKS_DB.prepare(
-        "DELETE FROM deleted_bookmarks WHERE id = ?",
-      )
-        .bind(deletedId)
-        .run();
-
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message: `书签 "${deletedRecord.title}" 恢复成功`,
-          data: {
-            bookmarkId: restoreResult.meta.last_row_id,
-          },
-        }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-    } else {
+    if (!restoreResult.success) {
       throw new Error("恢复书签失败");
     }
-  } catch (error) {
-    console.error("恢复书签失败:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "恢复书签失败",
-        message: error.message,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
+
+    await env.BOOKMARKS_DB.prepare("DELETE FROM deleted_bookmarks WHERE id = ?")
+      .bind(deletedId)
+      .run();
+
+    return ResponseHelper.success(
+      { bookmarkId: restoreResult.meta?.last_row_id || null },
+      `书签 "${deletedRecord.title}" 恢复成功`,
     );
+  } catch (error) {
+    console.error("Failed to restore deleted bookmark:", error);
+    return ResponseHelper.serverError("恢复书签失败", error.message);
   }
 }
 
-// 永久删除记录
 export async function onRequestDelete(context) {
   const { request, env } = context;
 
   try {
-    // 验证认证
     const auth = await authenticateRequest(request, env);
     if (!auth.authenticated) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: auth.error,
-        }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.unauthorized(auth.error);
     }
 
     const url = new URL(request.url);
     const deletedId = url.searchParams.get("id");
-
     if (!deletedId) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "删除记录ID是必填的",
-        }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.validationError("删除记录ID是必填的");
     }
 
-    // 获取删除记录
     const deletedRecord = await env.BOOKMARKS_DB.prepare(
       "SELECT title FROM deleted_bookmarks WHERE id = ?",
     )
@@ -317,51 +183,80 @@ export async function onRequestDelete(context) {
       .first();
 
     if (!deletedRecord) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "删除记录不存在",
-        }),
-        {
-          status: 404,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.notFound("删除记录不存在");
     }
 
-    // 永久删除记录
     const result = await env.BOOKMARKS_DB.prepare(
       "DELETE FROM deleted_bookmarks WHERE id = ?",
     )
       .bind(deletedId)
       .run();
 
-    if (result.success) {
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message: `删除记录 "${deletedRecord.title}" 已永久删除`,
-        }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-    } else {
+    if (!result.success) {
       throw new Error("永久删除失败");
     }
+
+    return ResponseHelper.success(
+      { deletedId },
+      `删除记录 "${deletedRecord.title}" 已永久删除`,
+    );
   } catch (error) {
-    console.error("永久删除记录失败:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "永久删除记录失败",
-        message: error.message,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
+    console.error("Failed to permanently delete bookmark record:", error);
+    return ResponseHelper.serverError("永久删除记录失败", error.message);
+  }
+}
+
+async function getOrCreateCategoryId(env, categoryName) {
+  if (!categoryName) {
+    return null;
+  }
+
+  const category = await env.BOOKMARKS_DB.prepare(
+    "SELECT id FROM categories WHERE name = ?",
+  )
+    .bind(categoryName)
+    .first();
+
+  if (category) {
+    return category.id;
+  }
+
+  const newCategory = await env.BOOKMARKS_DB.prepare(
+    `
+    INSERT INTO categories (name, color, created_at, updated_at)
+    VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+  `,
+  )
+    .bind(categoryName, "#6366f1")
+    .run();
+
+  return newCategory.meta?.last_row_id || null;
+}
+
+function getDeletedRangeStart(range) {
+  if (!range || range === "all") {
+    return null;
+  }
+
+  const now = new Date();
+  if (range === "today") {
+    return toSqlTimestamp(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
     );
   }
+
+  const daysByRange = {
+    "7d": 7,
+    "30d": 30,
+  };
+  const days = daysByRange[range];
+  if (!days) {
+    return null;
+  }
+
+  return toSqlTimestamp(now.getTime() - days * 24 * 60 * 60 * 1000);
+}
+
+function toSqlTimestamp(timestamp) {
+  return new Date(timestamp).toISOString().slice(0, 19).replace("T", " ");
 }

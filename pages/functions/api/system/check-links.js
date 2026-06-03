@@ -1,4 +1,3 @@
-// 链接检查和清理API
 import { authenticateRequest } from "../auth/verify.js";
 import { insertDeletedBookmarksBatch } from "../../utils/deleted-bookmarks.js";
 import { getKnownProtectedSiteResult } from "../../utils/link-checker-protection.js";
@@ -6,8 +5,24 @@ import {
   classifyHttpResponse,
   classifyNetworkError,
 } from "../../utils/link-checker-status.js";
+import { ResponseHelper } from "../../utils/response-helper.js";
 
-// 检查单个URL的可访问性
+const PRESET_URLS = [
+  "https://github.com",
+  "https://stackoverflow.com",
+  "https://developer.mozilla.org",
+  "https://youtube.com",
+  "https://twitter.com",
+  "https://reddit.com",
+  "https://amazon.com",
+  "https://google.com",
+];
+
+async function requireAdminAccess(request, env) {
+  const auth = await authenticateRequest(request, env);
+  return auth.authenticated ? null : ResponseHelper.unauthorized(auth.error);
+}
+
 async function checkUrl(url, timeout = 15000) {
   const protectedSiteResult = getKnownProtectedSiteResult(url);
   if (protectedSiteResult) {
@@ -15,22 +30,19 @@ async function checkUrl(url, timeout = 15000) {
   }
 
   try {
-    // 使用Promise.race来实现超时控制，避免AbortController问题
-    const fetchPromise = fetch(url, {
-      method: "HEAD", // 只获取头部信息，节省带宽
-      headers: {
-        "User-Agent": "BookmarkNavigator/1.0 Link Checker",
-        Accept: "*/*",
-        "Cache-Control": "no-cache",
-      },
-    });
-
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error("Request timeout")), timeout);
-    });
-
-    const response = await Promise.race([fetchPromise, timeoutPromise]);
-
+    const response = await Promise.race([
+      fetch(url, {
+        method: "HEAD",
+        headers: {
+          "User-Agent": "BookmarkNavigator/1.0 Link Checker",
+          Accept: "*/*",
+          "Cache-Control": "no-cache",
+        },
+      }),
+      new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("Request timeout")), timeout);
+      }),
+    ]);
     const classification = classifyHttpResponse(response);
 
     return {
@@ -41,8 +53,7 @@ async function checkUrl(url, timeout = 15000) {
       error: classification.accessible ? null : response.statusText,
       checkedAt: new Date().toISOString(),
     };
-  } catch (error) {
-    // 如果HEAD请求失败，尝试GET请求（某些服务器不支持HEAD）
+  } catch (headError) {
     try {
       const getResponse = await Promise.race([
         fetch(url, {
@@ -57,7 +68,6 @@ async function checkUrl(url, timeout = 15000) {
           setTimeout(() => reject(new Error("GET request timeout")), timeout);
         }),
       ]);
-
       const classification = classifyHttpResponse(getResponse);
 
       return {
@@ -75,101 +85,57 @@ async function checkUrl(url, timeout = 15000) {
         ...classification,
         status: 0,
         statusText: "Network Error",
-        error: error.message.includes("timeout")
+        error: headError.message.includes("timeout")
           ? "Request timeout"
-          : error.message,
+          : getError.message,
         checkedAt: new Date().toISOString(),
       };
     }
   }
 }
 
-// 批量检查链接
 export async function onRequestPost(context) {
   const { request, env } = context;
 
   try {
-    // 验证管理员权限
-    const auth = await authenticateRequest(request, env);
-    if (!auth.authenticated) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "需要管理员权限",
-        }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-    }
+    const blocked = await requireAdminAccess(request, env);
+    if (blocked) return blocked;
 
     const { autoDelete = false, batchSize = 10 } = await request.json();
-
-    // 检查是否有用户数据
     const hasUserData = await env.BOOKMARKS_DB.prepare(
       "SELECT config_value FROM system_config WHERE config_key = ?",
     )
       .bind("has_user_data")
       .first();
 
-    // 获取书签列表（如果有用户数据，排除预设书签）
     let bookmarksQuery =
       "SELECT id, title, url, category_id, created_at FROM bookmarks";
+    const hasRealUserData = hasUserData?.config_value === "true";
 
-    // 如果有用户数据，排除预设书签
-    if (hasUserData && hasUserData.config_value === "true") {
-      const presetUrls = [
-        "https://github.com",
-        "https://stackoverflow.com",
-        "https://developer.mozilla.org",
-        "https://youtube.com",
-        "https://twitter.com",
-        "https://reddit.com",
-        "https://amazon.com",
-        "https://google.com",
-      ];
-
-      const placeholders = presetUrls.map(() => "?").join(",");
+    if (hasRealUserData) {
+      const placeholders = PRESET_URLS.map(() => "?").join(",");
       bookmarksQuery += ` WHERE url NOT IN (${placeholders})`;
     }
-
     bookmarksQuery += " ORDER BY id";
 
-    const bookmarks =
-      hasUserData && hasUserData.config_value === "true"
-        ? await env.BOOKMARKS_DB.prepare(bookmarksQuery)
-            .bind(
-              "https://github.com",
-              "https://stackoverflow.com",
-              "https://developer.mozilla.org",
-              "https://youtube.com",
-              "https://twitter.com",
-              "https://reddit.com",
-              "https://amazon.com",
-              "https://google.com",
-            )
-            .all()
-        : await env.BOOKMARKS_DB.prepare(bookmarksQuery).all();
+    const bookmarks = hasRealUserData
+      ? await env.BOOKMARKS_DB.prepare(bookmarksQuery)
+          .bind(...PRESET_URLS)
+          .all()
+      : await env.BOOKMARKS_DB.prepare(bookmarksQuery).all();
+    const bookmarkRows = bookmarks.results || [];
 
-    if (!bookmarks.results.length) {
-      return new Response(
-        JSON.stringify({
-          success: true,
-          data: {
-            total: 0,
-            checked: 0,
-            accessible: 0,
-            inaccessible: 0,
-            deleted: 0,
-            results: [],
-          },
-          message: "没有书签需要检查",
-        }),
+    if (!bookmarkRows.length) {
+      return ResponseHelper.success(
         {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
+          total: 0,
+          checked: 0,
+          accessible: 0,
+          inaccessible: 0,
+          deleted: 0,
+          results: [],
         },
+        "No bookmarks need checking.",
       );
     }
 
@@ -179,24 +145,21 @@ export async function onRequestPost(context) {
     let accessibleCount = 0;
     let inaccessibleCount = 0;
 
-    // 分批检查，避免同时发起太多请求
-    for (let i = 0; i < bookmarks.results.length; i += batchSize) {
-      const batch = bookmarks.results.slice(i, i + batchSize);
-
-      const batchPromises = batch.map((bookmark) =>
-        checkUrl(bookmark.url).then((result) => ({
-          ...result,
-          bookmarkId: bookmark.id,
-          title: bookmark.title,
-          categoryId: bookmark.category_id,
-          createdAt: bookmark.created_at,
-        })),
+    for (let i = 0; i < bookmarkRows.length; i += batchSize) {
+      const batch = bookmarkRows.slice(i, i + batchSize);
+      const batchResults = await Promise.all(
+        batch.map((bookmark) =>
+          checkUrl(bookmark.url).then((result) => ({
+            ...result,
+            bookmarkId: bookmark.id,
+            title: bookmark.title,
+            categoryId: bookmark.category_id,
+            createdAt: bookmark.created_at,
+          })),
+        ),
       );
 
-      const batchResults = await Promise.all(batchPromises);
       results.push(...batchResults);
-
-      // 统计结果
       batchResults.forEach((result) => {
         checkedCount++;
         if (result.accessible) {
@@ -207,16 +170,14 @@ export async function onRequestPost(context) {
         }
       });
 
-      // 添加延迟，避免过于频繁的请求
-      if (i + batchSize < bookmarks.results.length) {
+      if (i + batchSize < bookmarkRows.length) {
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
 
-    // 记录检查结果到数据库
     const checkRecord = {
       checkedAt: new Date().toISOString(),
-      total: bookmarks.results.length,
+      total: bookmarkRows.length,
       accessible: accessibleCount,
       inaccessible: inaccessibleCount,
       autoDelete,
@@ -230,16 +191,14 @@ export async function onRequestPost(context) {
       .bind(
         `link_check_${Date.now()}`,
         JSON.stringify(checkRecord),
-        `链接检查记录 - ${new Date().toLocaleString()}`,
+        `Link check record - ${new Date().toLocaleString()}`,
       )
       .run();
 
     let deletedCount = 0;
     const deletedBookmarks = [];
 
-    // 如果启用自动删除，删除无效链接
     if (autoDelete && inaccessibleBookmarks.length > 0) {
-      // 先批量保存删除记录
       const bookmarksToDelete = inaccessibleBookmarks.map((bookmark) => ({
         id: bookmark.bookmarkId,
         title: bookmark.title,
@@ -253,29 +212,20 @@ export async function onRequestPost(context) {
       }));
 
       try {
-        const batchResult = await insertDeletedBookmarksBatch(
-          env,
-          bookmarksToDelete,
-          {
-            deleteReason: "link_check_failed",
-            checkStatus: "failed",
-            deletedBy: "system",
-          },
-        );
-        console.log(
-          `批量保存删除记录: ${batchResult.inserted} 新增, ${batchResult.skipped} 跳过`,
-        );
+        await insertDeletedBookmarksBatch(env, bookmarksToDelete, {
+          deleteReason: "link_check_failed",
+          checkStatus: "failed",
+          deletedBy: "system",
+        });
       } catch (error) {
-        console.error("批量保存删除记录失败:", error);
+        console.error("Failed to archive inaccessible bookmarks:", error);
       }
 
-      // 然后删除书签
       for (const bookmark of inaccessibleBookmarks) {
         try {
           await env.BOOKMARKS_DB.prepare("DELETE FROM bookmarks WHERE id = ?")
             .bind(bookmark.bookmarkId)
             .run();
-
           deletedCount++;
           deletedBookmarks.push({
             id: bookmark.bookmarkId,
@@ -285,68 +235,40 @@ export async function onRequestPost(context) {
             error: bookmark.error,
           });
         } catch (error) {
-          console.error(`删除书签失败 (ID: ${bookmark.bookmarkId}):`, error);
+          console.error(
+            `Failed to delete bookmark ${bookmark.bookmarkId}:`,
+            error,
+          );
         }
       }
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        data: {
-          total: bookmarks.results.length,
-          checked: checkedCount,
-          accessible: accessibleCount,
-          inaccessible: inaccessibleCount,
-          deleted: deletedCount,
-          deletedBookmarks,
-          inaccessibleBookmarks: autoDelete ? [] : inaccessibleBookmarks,
-          checkTime: new Date().toISOString(),
-        },
-        message: `检查完成: ${accessibleCount}个可访问, ${inaccessibleCount}个不可访问${autoDelete ? `, ${deletedCount}个已删除` : ""}`,
-      }),
+    return ResponseHelper.success(
       {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
+        total: bookmarkRows.length,
+        checked: checkedCount,
+        accessible: accessibleCount,
+        inaccessible: inaccessibleCount,
+        deleted: deletedCount,
+        deletedBookmarks,
+        inaccessibleBookmarks: autoDelete ? [] : inaccessibleBookmarks,
+        checkTime: new Date().toISOString(),
       },
+      `Check complete: ${accessibleCount} accessible, ${inaccessibleCount} inaccessible${autoDelete ? `, ${deletedCount} deleted` : ""}`,
     );
   } catch (error) {
-    console.error("链接检查失败:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "链接检查失败",
-        message: error.message,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    console.error("Link check failed:", error);
+    return ResponseHelper.serverError("Link check failed.", error.message);
   }
 }
 
-// 获取检查历史记录
 export async function onRequestGet(context) {
   const { request, env } = context;
 
   try {
-    // 验证管理员权限
-    const auth = await authenticateRequest(request, env);
-    if (!auth.authenticated) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "需要管理员权限",
-        }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-    }
+    const blocked = await requireAdminAccess(request, env);
+    if (blocked) return blocked;
 
-    // 获取检查历史记录
     const records = await env.BOOKMARKS_DB.prepare(
       `SELECT config_key, config_value, description, created_at
                 FROM system_config
@@ -355,7 +277,7 @@ export async function onRequestGet(context) {
                 LIMIT 20`,
     ).all();
 
-    const history = records.results
+    const history = (records.results || [])
       .map((record) => {
         try {
           const data = JSON.parse(record.config_value);
@@ -364,34 +286,18 @@ export async function onRequestGet(context) {
             ...data,
             createdAt: record.created_at,
           };
-        } catch (e) {
+        } catch {
           return null;
         }
       })
       .filter(Boolean);
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        data: history,
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    return ResponseHelper.success(history);
   } catch (error) {
-    console.error("获取检查历史失败:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "获取检查历史失败",
-        message: error.message,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
+    console.error("Failed to load link check history:", error);
+    return ResponseHelper.serverError(
+      "Failed to load link check history.",
+      error.message,
     );
   }
 }

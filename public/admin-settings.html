@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>后台设置 - 书签导航</title>
+    <meta
+      name="description"
+      content="修改管理员密码，导出书签，并创建完整备份。"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+SC:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="/css/workspace-refresh.css?v=nav-20260602-public-home"
+    />
+    <link rel="stylesheet" href="/css/management.css?v=nav-20260602-shell" />
+    <link rel="stylesheet" href="/css/admin.css?v=nav-20260603-admin-shell" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  </head>
+  <body class="nav-site admin-site">
+    <div class="container">
+      <div
+        data-site-header
+        data-page-key="admin-settings"
+        data-logo-icon="SET"
+        data-logo-text="后台设置"
+        data-logo-subtitle="密码、导出与完整备份"
+        class="header"
+      ></div>
+
+      <section class="workspace-section-heading">
+        <div>
+          <span class="section-kicker">安全</span>
+          <h2 class="section-title">把账号和数据维护集中在受保护后台</h2>
+        </div>
+        <p class="section-copy">
+          首页保持公开导航体验，密码修改、导出和备份只在登录后的后台页面中操作。
+        </p>
+      </section>
+
+      <main class="management-shell">
+        <section class="management-panel">
+          <div class="management-summary">
+            <div class="management-form-heading">
+              <div>
+                <span class="section-kicker">数据</span>
+                <h3>导出与备份</h3>
+                <p>导出适合迁移书签；完整备份会从后端生成数据库级备份文件。</p>
+              </div>
+              <div class="management-actions">
+                <button
+                  id="exportHtmlBtn"
+                  class="btn btn-outline"
+                  type="button"
+                >
+                  导出 HTML
+                </button>
+                <button
+                  id="exportJsonBtn"
+                  class="btn btn-outline"
+                  type="button"
+                >
+                  导出 JSON
+                </button>
+                <button
+                  id="backupJsonBtn"
+                  class="btn btn-primary"
+                  type="button"
+                >
+                  完整备份 JSON
+                </button>
+                <button
+                  id="backupHtmlBtn"
+                  class="btn btn-primary"
+                  type="button"
+                >
+                  完整备份 HTML
+                </button>
+              </div>
+            </div>
+            <p id="dataActionStatus" class="muted-text">等待操作。</p>
+          </div>
+
+          <form id="changePasswordForm" class="management-form">
+            <div class="management-form-heading">
+              <div>
+                <span class="section-kicker">账号</span>
+                <h3>修改管理员密码</h3>
+                <p>修改成功后会退出当前登录，请使用新密码重新进入后台。</p>
+              </div>
+            </div>
+
+            <div class="management-fields">
+              <label class="field-stack grow">
+                <span>当前密码</span>
+                <input
+                  id="currentPassword"
+                  class="management-input"
+                  type="password"
+                  autocomplete="current-password"
+                  required
+                />
+              </label>
+              <label class="field-stack grow">
+                <span>新密码</span>
+                <input
+                  id="newPassword"
+                  class="management-input"
+                  type="password"
+                  autocomplete="new-password"
+                  minlength="6"
+                  required
+                />
+              </label>
+              <label class="field-stack grow">
+                <span>确认新密码</span>
+                <input
+                  id="confirmPassword"
+                  class="management-input"
+                  type="password"
+                  autocomplete="new-password"
+                  minlength="6"
+                  required
+                />
+              </label>
+              <button
+                id="changePasswordBtn"
+                class="btn btn-primary"
+                type="submit"
+              >
+                修改密码
+              </button>
+            </div>
+            <p id="passwordStatus" class="muted-text">请填写完整密码信息。</p>
+          </form>
+        </section>
+      </main>
+    </div>
+
+    <script src="/js/shared/api.js?v=nav-20260602-shared-runtime"></script>
+    <script src="/js/shared/auth.js?v=nav-20260602-auth-cache"></script>
+    <script src="/js/shared/site-menu.js?v=nav-20260603-admin-shell"></script>
+    <script src="/js/shared/admin-common.js?v=nav-20260602-shared-runtime"></script>
+    <script src="/js/shared/admin-shell.js?v=nav-20260603-admin-shell"></script>
+    <script src="/js/admin/admin-settings.js?v=nav-20260602-admin-runtime"></script>
+  </body>
+</html>

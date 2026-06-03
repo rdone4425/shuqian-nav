@@ -1,37 +1,60 @@
-// 书签同步API - 支持Chrome插件访问
 import { verifyApiToken } from "../auth/token.js";
+import { ResponseHelper } from "../../utils/response-helper.js";
 
-// 验证API令牌中间件
 async function authenticateApiRequest(request, env) {
   const apiToken = request.headers.get("X-API-Token");
 
   if (!apiToken) {
-    return { authenticated: false, error: "缺少API访问令牌" };
+    return { authenticated: false, error: "Missing API access token." };
   }
 
   const verification = await verifyApiToken(apiToken, env);
 
   if (!verification.valid) {
-    return { authenticated: false, error: "无效的API访问令牌" };
+    return { authenticated: false, error: "Invalid API access token." };
   }
 
   return { authenticated: true, payload: verification.payload };
 }
 
-// 批量同步书签
+function corsHeaders() {
+  return {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, X-API-Token",
+    "Access-Control-Max-Age": "86400",
+  };
+}
+
+function withExtensionCors(response) {
+  const headers = new Headers(response.headers);
+  for (const [name, value] of Object.entries(corsHeaders())) {
+    headers.set(name, value);
+  }
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+function corsSuccess(data = null, message = null, status = 200) {
+  return withExtensionCors(ResponseHelper.success(data, message, status));
+}
+
+function corsError(error, status = 500, details = null) {
+  return withExtensionCors(ResponseHelper.error(error, status, details));
+}
+
 export async function onRequestGet(context) {
   const { request, env } = context;
 
   try {
     const auth = await authenticateApiRequest(request, env);
     if (!auth.authenticated) {
-      return createCorsJsonResponse(
-        {
-          success: false,
-          error: auth.error,
-        },
-        401,
-      );
+      return corsError(auth.error, 401);
     }
 
     const url = new URL(request.url);
@@ -63,28 +86,20 @@ export async function onRequestGet(context) {
       .bind(limit, offset)
       .all();
 
-    return createCorsJsonResponse({
-      success: true,
-      data: {
-        bookmarks: result.results || [],
-        pagination: {
-          page,
-          limit,
-          count: (result.results || []).length,
-          hasNext: (result.results || []).length === limit,
-        },
+    const bookmarks = result.results || [];
+
+    return corsSuccess({
+      bookmarks,
+      pagination: {
+        page,
+        limit,
+        count: bookmarks.length,
+        hasNext: bookmarks.length === limit,
       },
     });
   } catch (error) {
-    console.error("读取同步书签失败:", error);
-    return createCorsJsonResponse(
-      {
-        success: false,
-        error: "读取同步书签失败",
-        message: error.message,
-      },
-      500,
-    );
+    console.error("Failed to read sync bookmarks:", error);
+    return corsError("Failed to read sync bookmarks.", 500, error.message);
   }
 }
 
@@ -92,47 +107,37 @@ export async function onRequestPost(context) {
   const { request, env } = context;
 
   try {
-    // 验证API令牌
     const auth = await authenticateApiRequest(request, env);
     if (!auth.authenticated) {
-      return createCorsJsonResponse(
-        {
-          success: false,
-          error: auth.error,
-        },
-        401,
-      );
+      return corsError(auth.error, 401);
     }
 
     const { bookmarks } = await request.json();
 
     if (!Array.isArray(bookmarks)) {
-      return createCorsJsonResponse(
-        {
-          success: false,
-          error: "书签数据格式错误",
-        },
-        400,
+      return withExtensionCors(
+        ResponseHelper.validationError(
+          "bookmarks must be an array",
+          "Invalid bookmark data format.",
+        ),
       );
     }
 
     let successCount = 0;
     let errorCount = 0;
     const errors = [];
-
-    // 获取或创建默认分类
-    let defaultCategoryId = await getOrCreateDefaultCategory(env);
+    const defaultCategoryId = await getOrCreateDefaultCategory(env);
 
     for (const bookmark of bookmarks) {
       try {
-        // 验证必需字段
         if (!bookmark.title || !bookmark.url) {
           errorCount++;
-          errors.push(`书签缺少必需字段: ${bookmark.title || bookmark.url}`);
+          errors.push(
+            `Bookmark missing required fields: ${bookmark.title || bookmark.url}`,
+          );
           continue;
         }
 
-        // 检查是否已存在
         const existing = await env.BOOKMARKS_DB.prepare(
           "SELECT id FROM bookmarks WHERE url = ?",
         )
@@ -140,20 +145,14 @@ export async function onRequestPost(context) {
           .first();
 
         if (existing) {
-          // 书签已存在，跳过
           continue;
         }
 
-        // 处理分类
         let categoryId = defaultCategoryId;
         if (bookmark.category && bookmark.category !== "书签栏") {
           categoryId = await getOrCreateCategory(env, bookmark.category);
         }
 
-        // 生成favicon URL
-        const faviconUrl = generateFaviconUrl(bookmark.url);
-
-        // 插入书签
         await env.BOOKMARKS_DB.prepare(
           `INSERT INTO bookmarks (title, url, description, category_id, favicon_url)
                     VALUES (?, ?, ?, ?, ?)`,
@@ -163,78 +162,51 @@ export async function onRequestPost(context) {
             bookmark.url,
             bookmark.description || "",
             categoryId,
-            faviconUrl,
+            generateFaviconUrl(bookmark.url),
           )
           .run();
 
         successCount++;
       } catch (error) {
         errorCount++;
-        errors.push(`处理书签失败 "${bookmark.title}": ${error.message}`);
-        console.error("插入书签失败:", error);
+        errors.push(
+          `Failed to process bookmark "${bookmark.title}": ${error.message}`,
+        );
+        console.error("Failed to insert synced bookmark:", error);
       }
     }
 
-    return createCorsJsonResponse({
-      success: true,
-      data: {
+    return corsSuccess(
+      {
         total: bookmarks.length,
         successCount,
         errorCount,
-        errors: errors.slice(0, 10), // 只返回前10个错误
+        errors: errors.slice(0, 10),
       },
-      message: `同步完成: 成功 ${successCount} 个，失败 ${errorCount} 个`,
-    });
-  } catch (error) {
-    console.error("书签同步失败:", error);
-    return createCorsJsonResponse(
-      {
-        success: false,
-        error: "书签同步失败",
-        message: error.message,
-      },
-      500,
+      `Sync completed: ${successCount} succeeded, ${errorCount} failed.`,
     );
+  } catch (error) {
+    console.error("Bookmark sync failed:", error);
+    return corsError("Bookmark sync failed.", 500, error.message);
   }
 }
 
-// 处理OPTIONS请求（CORS预检）
-export async function onRequestOptions(context) {
+export async function onRequestOptions() {
   return new Response(null, {
     status: 200,
     headers: corsHeaders(),
   });
 }
 
-function corsHeaders() {
-  return {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, X-API-Token",
-    "Access-Control-Max-Age": "86400",
-  };
-}
-
-function createCorsJsonResponse(body, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: corsHeaders(),
-  });
-}
-
-// 获取或创建默认分类
 async function getOrCreateDefaultCategory(env) {
   try {
-    // 查找默认分类
-    let category = await env.BOOKMARKS_DB.prepare(
+    const category = await env.BOOKMARKS_DB.prepare(
       "SELECT id FROM categories WHERE name = ?",
     )
       .bind("Chrome同步")
       .first();
 
     if (!category) {
-      // 创建默认分类
       const result = await env.BOOKMARKS_DB.prepare(
         "INSERT INTO categories (name, color, description) VALUES (?, ?, ?)",
       )
@@ -246,23 +218,20 @@ async function getOrCreateDefaultCategory(env) {
 
     return category.id;
   } catch (error) {
-    console.error("获取默认分类失败:", error);
-    return 1; // 返回第一个分类ID作为后备
+    console.error("Failed to get default sync category:", error);
+    return 1;
   }
 }
 
-// 获取或创建分类
 async function getOrCreateCategory(env, categoryName) {
   try {
-    // 查找现有分类
-    let category = await env.BOOKMARKS_DB.prepare(
+    const category = await env.BOOKMARKS_DB.prepare(
       "SELECT id FROM categories WHERE name = ?",
     )
       .bind(categoryName)
       .first();
 
     if (!category) {
-      // 创建新分类
       const result = await env.BOOKMARKS_DB.prepare(
         "INSERT INTO categories (name, color, description) VALUES (?, ?, ?)",
       )
@@ -274,17 +243,16 @@ async function getOrCreateCategory(env, categoryName) {
 
     return category.id;
   } catch (error) {
-    console.error("获取分类失败:", error);
+    console.error("Failed to get sync category:", error);
     return await getOrCreateDefaultCategory(env);
   }
 }
 
-// 生成favicon URL
 function generateFaviconUrl(url) {
   try {
     const domain = new URL(url).hostname;
     return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
-  } catch (error) {
+  } catch {
     return "https://www.google.com/s2/favicons?domain=example.com&sz=128";
   }
 }

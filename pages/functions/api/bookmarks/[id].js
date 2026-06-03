@@ -52,32 +52,14 @@ export async function onRequestPut(context) {
     // 验证认证
     const auth = await authenticateRequest(request, env);
     if (!auth.authenticated) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: auth.error,
-        }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.unauthorized(auth.error);
     }
 
     const { title, url, description, category_id } = await request.json();
 
     // 验证必填字段
     if (!title || !url) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "标题和URL是必填字段",
-        }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.error("标题和URL是必填字段", 400);
     }
 
     // 检查书签是否存在
@@ -88,16 +70,7 @@ export async function onRequestPut(context) {
       .first();
 
     if (!existingBookmark) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "书签不存在",
-        }),
-        {
-          status: 404,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.notFound("书签不存在");
     }
 
     // 生成新的favicon URL
@@ -145,33 +118,13 @@ export async function onRequestPut(context) {
         .bind(bookmarkId)
         .first();
 
-      return new Response(
-        JSON.stringify({
-          success: true,
-          data: updatedBookmark,
-          message: "书签更新成功",
-        }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.success(updatedBookmark, "书签更新成功");
     } else {
       throw new Error("数据库更新失败");
     }
   } catch (error) {
     console.error("更新书签错误:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "更新书签失败",
-        message: error.message,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    return ResponseHelper.serverError("更新书签失败", error.message);
   }
 }
 
@@ -184,16 +137,7 @@ export async function onRequestDelete(context) {
     // 验证认证
     const auth = await authenticateRequest(request, env);
     if (!auth.authenticated) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: auth.error,
-        }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.unauthorized(auth.error);
     }
 
     // 获取完整的书签信息用于备份
@@ -218,16 +162,7 @@ export async function onRequestDelete(context) {
       .first();
 
     if (!existingBookmark) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "书签不存在",
-        }),
-        {
-          status: 404,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.notFound("书签不存在");
     }
 
     // 获取删除原因和检查状态信息（从请求体中）
@@ -274,32 +209,16 @@ export async function onRequestDelete(context) {
       .run();
 
     if (result.success) {
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message: `书签 "${existingBookmark.title}" 删除成功`,
-        }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        },
+      return ResponseHelper.success(
+        null,
+        `书签 "${existingBookmark.title}" 删除成功`,
       );
     } else {
       throw new Error("数据库删除失败");
     }
   } catch (error) {
     console.error("删除书签错误:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "删除书签失败",
-        message: error.message,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    return ResponseHelper.error("删除书签失败", 500, error.message);
   }
 }
 
@@ -326,16 +245,7 @@ export async function onRequestPost(context) {
         .first();
 
       if (!bookmark) {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: "书签不存在",
-          }),
-          {
-            status: 404,
-            headers: { "Content-Type": "application/json" },
-          },
-        );
+        return ResponseHelper.notFound("书签不存在");
       }
 
       // 更新数据库中的访问统计
@@ -360,46 +270,20 @@ export async function onRequestPost(context) {
         referrer: referrer || "",
       });
 
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message: "访问记录成功",
-          data: {
-            bookmarkId,
-            visitCount: newVisitCount,
-            lastVisited: visitTime,
-          },
-        }),
+      return ResponseHelper.success(
         {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
+          bookmarkId,
+          visitCount: newVisitCount,
+          lastVisited: visitTime,
         },
+        "访问记录成功",
       );
     } catch (error) {
       console.error("记录访问失败:", error);
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "记录访问失败",
-          message: error.message,
-        }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.serverError("记录访问失败", error.message);
     }
   }
 
   // 如果不是访问记录请求，返回405
-  return new Response(
-    JSON.stringify({
-      success: false,
-      error: "不支持的操作",
-    }),
-    {
-      status: 405,
-      headers: { "Content-Type": "application/json" },
-    },
-  );
+  return ResponseHelper.error("不支持的操作", 405);
 }

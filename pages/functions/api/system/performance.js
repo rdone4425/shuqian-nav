@@ -1,6 +1,7 @@
 // 性能监控API端点
 import { authenticateRequest } from "../auth/verify.js";
 import { performanceMonitor } from "../../utils/performance-monitor.js";
+import { ResponseHelper } from "../../utils/response-helper.js";
 
 // 获取性能报告
 export async function onRequestGet(context) {
@@ -10,16 +11,7 @@ export async function onRequestGet(context) {
     // 验证管理员权限
     const auth = await authenticateRequest(request, env);
     if (!auth.authenticated) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "需要管理员权限",
-        }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.unauthorized("需要管理员权限");
     }
 
     const url = new URL(request.url);
@@ -51,33 +43,13 @@ export async function onRequestGet(context) {
         report = performanceMonitor.getPerformanceReport();
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        data: report,
-        generatedAt: new Date().toISOString(),
-      }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          "Cache-Control": "no-cache",
-        },
-      },
-    );
+    return ResponseHelper.success({
+      report,
+      generatedAt: new Date().toISOString(),
+    });
   } catch (error) {
     console.error("获取性能报告失败:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "获取性能报告失败",
-        details: error.message,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    return ResponseHelper.serverError("获取性能报告失败", error.message);
   }
 }
 
@@ -89,16 +61,7 @@ export async function onRequestPost(context) {
     // 验证管理员权限
     const auth = await authenticateRequest(request, env);
     if (!auth.authenticated) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "需要管理员权限",
-        }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.unauthorized("需要管理员权限");
     }
 
     const { action, data } = await request.json();
@@ -132,42 +95,16 @@ export async function onRequestPost(context) {
         break;
 
       default:
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: "不支持的操作",
-          }),
-          {
-            status: 400,
-            headers: { "Content-Type": "application/json" },
-          },
-        );
+        return ResponseHelper.error("不支持的操作", 400);
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: "配置更新成功",
-        currentThresholds: performanceMonitor.thresholds,
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      },
+    return ResponseHelper.success(
+      { currentThresholds: performanceMonitor.thresholds },
+      "配置更新成功",
     );
   } catch (error) {
     console.error("配置性能监控失败:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "配置失败",
-        details: error.message,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    return ResponseHelper.serverError("配置失败", error.message);
   }
 }
 
@@ -179,31 +116,16 @@ export async function onRequestPut(context) {
     // 验证管理员权限
     const auth = await authenticateRequest(request, env);
     if (!auth.authenticated) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "需要管理员权限",
-        }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.unauthorized("需要管理员权限");
     }
 
     const { endpoint, startTime, endTime, status, error } =
       await request.json();
 
     if (!endpoint || !startTime || !endTime || !status) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "缺少必要参数: endpoint, startTime, endTime, status",
-        }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        },
+      return ResponseHelper.error(
+        "缺少必要参数: endpoint, startTime, endTime, status",
+        400,
       );
     }
 
@@ -215,34 +137,19 @@ export async function onRequestPut(context) {
       error ? new Error(error) : null,
     );
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: "性能数据记录成功",
+    return ResponseHelper.success(
+      {
         metric: {
           endpoint: metric.endpoint,
           totalCalls: metric.totalCalls,
           avgResponseTime: metric.avgResponseTime,
           errorRate: metric.errorRate,
         },
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
       },
+      "性能数据记录成功",
     );
   } catch (error) {
     console.error("记录性能数据失败:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "记录失败",
-        details: error.message,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    return ResponseHelper.serverError("记录失败", error.message);
   }
 }

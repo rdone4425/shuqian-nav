@@ -1,6 +1,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
 import puppeteer from "puppeteer-core";
 
@@ -11,6 +12,7 @@ const executablePath =
 const password = process.env.AUDIT_PASSWORD || "admin123";
 const auditDir = join(tmpdir(), "shuqian-nav-audit");
 const importFixturePath = join(auditDir, "bookmarks-audit.json");
+const extensionPopupUrl = pathToFileURL(resolve("chrome", "popup.html")).href;
 
 const results = [];
 const failures = [];
@@ -458,6 +460,7 @@ async function commonMenu(page, pageName) {
     "/import.html",
     "/link-checker.html",
     "/deleted-bookmarks",
+    "/admin-settings.html",
     "/token.html",
     "/notifications.html",
   ];
@@ -595,28 +598,30 @@ async function testHome(page) {
   } else {
     record(name, "home page number button", true, "single visible page");
   }
-  await clickIf(page, name, "#toolsMenuToggle", "open menu for settings");
-  await clickVisible(page, name, "#settingsToggle", "open settings panel");
-  await clickIf(page, name, "#exportBtn", "settings export html button", {
+  const hasHomeSettingsPanel = await page.$("#settingsPanel");
+  record(
+    name,
+    "home does not render admin settings panel",
+    !hasHomeSettingsPanel,
+  );
+}
+
+async function testAdminSettings(page) {
+  const name = "admin-settings";
+  await goto(page, name, "/admin-settings.html");
+  await commonMenu(page, name);
+  await clickIf(page, name, "#exportHtmlBtn", "settings export html button", {
     wait: 1000,
   });
-  await clickIf(page, name, "#exportJSONBtn", "settings export json button", {
+  await clickIf(page, name, "#exportJsonBtn", "settings export json button", {
     wait: 1000,
   });
-  await clickIf(
-    page,
-    name,
-    "#fullBackupJSONBtn",
-    "settings full backup json button",
-    { wait: 1000 },
-  );
-  await clickIf(
-    page,
-    name,
-    "#fullBackupHTMLBtn",
-    "settings full backup html button",
-    { wait: 1000 },
-  );
+  await clickIf(page, name, "#backupJsonBtn", "settings backup json button", {
+    wait: 1000,
+  });
+  await clickIf(page, name, "#backupHtmlBtn", "settings backup html button", {
+    wait: 1000,
+  });
   await clickIf(
     page,
     name,
@@ -632,13 +637,15 @@ async function testHome(page) {
     "#changePasswordBtn",
     "change password mismatch validation button",
   );
-  await clickIf(page, name, "#settingsClose", "close settings panel");
-  await goto(page, name, "/?view=grid");
-  await clickIf(page, name, "#toolsMenuToggle", "open menu for import");
-  await clickVisible(page, name, "#settingsToggle", "reopen settings panel");
-  await clickVisible(page, name, "#importBtn", "settings import button", {
-    wait: 1000,
-  });
+  await clickVisible(
+    page,
+    name,
+    'a.btn[href="/import.html"]',
+    "settings import link",
+    {
+      wait: 1000,
+    },
+  );
   record(
     name,
     "settings import navigates to import page",
@@ -1083,14 +1090,14 @@ async function testNotifications(page) {
 async function testAdminDashboard(page) {
   const name = "admin-dashboard";
   await goto(page, name, "/admin-dashboard.html");
-  if (page.url().includes("/?settings=security")) {
-    record(name, "redirects to security settings", true, page.url());
+  if (page.url().includes("/admin-settings")) {
+    record(name, "redirects to admin settings", true, page.url());
     return;
   }
   await clickIf(
     page,
     name,
-    'a.btn[href="/?settings=security"]',
+    'a.btn[href="/admin-settings.html"]',
     "enter settings link",
   );
 }
@@ -1106,6 +1113,157 @@ async function testLogoutLogin(page) {
     page.url(),
   );
   await login(page);
+}
+
+async function installChromeExtensionMocks(page) {
+  await page.evaluateOnNewDocument(() => {
+    const storageData = {
+      apiUrl: "http://127.0.0.1:8788",
+      apiToken: "audit-token",
+    };
+    const bookmarkTree = [
+      {
+        title: "书签栏",
+        children: [
+          {
+            title: "Audit Local Bookmark",
+            url: "https://example.com/audit-local",
+            dateAdded: Date.now(),
+          },
+        ],
+      },
+    ];
+
+    window.chrome = {
+      storage: {
+        local: {
+          async get(keys) {
+            if (Array.isArray(keys)) {
+              return Object.fromEntries(
+                keys.map((key) => [key, storageData[key]]),
+              );
+            }
+
+            if (typeof keys === "string") {
+              return { [keys]: storageData[keys] };
+            }
+
+            return { ...storageData };
+          },
+          async set(values) {
+            Object.assign(storageData, values);
+          },
+        },
+      },
+      bookmarks: {
+        getTree(callback) {
+          callback(bookmarkTree);
+        },
+      },
+    };
+
+    window.fetch = async (url, options = {}) => {
+      const requestUrl = String(url);
+      const method = String(options.method || "GET").toUpperCase();
+
+      if (requestUrl.endsWith("/api/health")) {
+        return new Response(JSON.stringify({ success: true, status: "ok" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      if (requestUrl.includes("/api/bookmarks/sync")) {
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data:
+              method === "POST"
+                ? { successCount: 1 }
+                : { bookmarks: [], pagination: { hasNext: false } },
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+  });
+}
+
+async function testChromePopup(browser) {
+  const name = "chrome-popup";
+  currentPageName = name;
+  const popupPage = await browser.newPage();
+  popupPage.setDefaultTimeout(12000);
+  await watchPage(popupPage, name);
+  await installChromeExtensionMocks(popupPage);
+
+  try {
+    const response = await popupPage.goto(extensionPopupUrl, {
+      waitUntil: "networkidle2",
+      timeout: 30000,
+    });
+    const status = response?.status() || 0;
+    record(
+      name,
+      "open chrome popup",
+      status > 0 && status < 400,
+      status ? `HTTP ${status}` : extensionPopupUrl,
+    );
+
+    await waitForAny(
+      popupPage,
+      name,
+      "#connectionStatus",
+      "popup status renders",
+    );
+    await clickIf(popupPage, name, "#settingsToggle", "open settings button");
+    await clearInput(popupPage, "#apiUrl");
+    await popupPage.type("#apiUrl", "127.0.0.1:8788");
+    await clearInput(popupPage, "#apiToken");
+    await popupPage.type("#apiToken", "audit-token");
+    await clickIf(popupPage, name, "#testBtn", "test connection button", {
+      wait: 1000,
+    });
+    await clickVisible(
+      popupPage,
+      name,
+      "#settingsClose",
+      "close settings button",
+    );
+    await clickIf(popupPage, name, "#settingsToggle", "reopen settings button");
+    await clearInput(popupPage, "#apiUrl");
+    await popupPage.type("#apiUrl", "127.0.0.1:8788");
+    await clearInput(popupPage, "#apiToken");
+    await popupPage.type("#apiToken", "audit-token");
+    await clickIf(popupPage, name, "#saveBtn", "save settings button", {
+      wait: 1000,
+    });
+    const panelClosed = await popupPage
+      .$eval("#settingsPanel", (node) => node.classList.contains("hidden"))
+      .catch(() => false);
+    record(name, "settings panel closes after save", panelClosed);
+    await clickIf(popupPage, name, "#syncBtn", "sync button", {
+      wait: 1500,
+    });
+    await waitForAny(
+      popupPage,
+      name,
+      "#messageContainer:not(.hidden)",
+      "popup message renders",
+      3000,
+    );
+  } finally {
+    await popupPage.close();
+    currentPageName = "browser";
+  }
 }
 
 const browser = await puppeteer.launch({
@@ -1134,6 +1292,7 @@ try {
   await initDatabase(page);
   await seed(page);
   await testHome(page);
+  await testAdminSettings(page);
   await testBookmarkManage(page);
   await testCategories(page);
   await testImport(page);
@@ -1143,6 +1302,7 @@ try {
   await testNotifications(page);
   await testAdminDashboard(page);
   await testLogoutLogin(page);
+  await testChromePopup(browser);
 } finally {
   await browser.close();
 }

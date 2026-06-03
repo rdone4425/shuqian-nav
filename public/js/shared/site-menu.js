@@ -30,6 +30,14 @@ const SiteMenu = {
       desc: "返回书签导航首页",
     },
     {
+      key: "admin-dashboard",
+      href: "/admin-dashboard.html",
+      icon: "概览",
+      text: "后台首页",
+      desc: "查看书签、分类和维护摘要",
+      requiresAuth: true,
+    },
+    {
       key: "bookmarks-manage",
       href: "/bookmarks-manage.html",
       icon: "书签",
@@ -47,10 +55,10 @@ const SiteMenu = {
     },
     {
       key: "quick-add-bookmark",
-      href: "/?new=bookmark",
+      href: "/bookmarks-manage.html?new=bookmark",
       icon: "新增",
       text: "新增书签",
-      desc: "打开首页添加站点弹窗",
+      desc: "打开书签管理页添加站点",
       requiresAuth: true,
     },
     {
@@ -79,7 +87,7 @@ const SiteMenu = {
     },
     {
       key: "deleted-bookmarks",
-      href: "/deleted-bookmarks",
+      href: "/deleted-bookmarks.html",
       icon: "回收",
       text: "回收站",
       desc: "查看和恢复删除记录",
@@ -94,6 +102,14 @@ const SiteMenu = {
       requiresAuth: true,
     },
     {
+      key: "admin-settings",
+      href: "/admin-settings.html",
+      icon: "设置",
+      text: "设置与密码",
+      desc: "修改密码、导出书签和完整备份",
+      requiresAuth: true,
+    },
+    {
       key: "notifications",
       href: "/notifications.html",
       icon: "通知",
@@ -104,16 +120,27 @@ const SiteMenu = {
   ],
 
   menuGroups: [
-    { label: "概览", keys: ["home"] },
+    { label: "概览", keys: ["home", "admin-dashboard"] },
     {
       label: "内容管理",
       keys: ["bookmarks-manage", "categories", "deleted-bookmarks"],
     },
-    { label: "快速新建", keys: ["quick-add-bookmark", "quick-add-category"] },
     { label: "数据工具", keys: ["import"] },
     { label: "维护工具", keys: ["link-checker", "notifications"] },
-    { label: "账号与安全", keys: ["token"] },
+    { label: "账号与安全", keys: ["admin-settings", "token"] },
   ],
+
+  getAdminMenuGroups() {
+    return this.menuGroups
+      .map((group) => ({
+        label: group.label,
+        items: group.keys
+          .filter((key) => key !== "home")
+          .map((key) => this.items.find((item) => item.key === key))
+          .filter(Boolean),
+      }))
+      .filter((group) => group.items.length);
+  },
 
   async init() {
     if (this.initialized) return;
@@ -128,13 +155,13 @@ const SiteMenu = {
       this.markActive(host);
       this.initialized = true;
 
+      const requireAuth = host.getAttribute("data-require-auth") !== "false";
       if (window.Auth) {
-        const requireAuth = host.getAttribute("data-require-auth") !== "false";
         const ok = await Auth.init({ requireAuth });
         if (requireAuth && !ok) return;
-        this.syncAuthState(host, requireAuth);
-        this.syncMenuAuthState(host, requireAuth);
       }
+      this.syncAuthState(host, requireAuth);
+      this.syncMenuAuthState(host, requireAuth);
 
       if (window.I18n?.apply) {
         I18n.apply();
@@ -205,22 +232,24 @@ const SiteMenu = {
     dropdown.innerHTML = this.menuGroups
       .map((group) => this.renderGroup(group))
       .join("");
+    dropdown.appendChild(this.renderGuestLoginPrompt());
+  },
 
-    if (document.getElementById("settingsPanel")) {
-      dropdown.insertAdjacentHTML(
-        "beforeend",
-        `
-          <div class="dropdown-divider"></div>
-          <button id="settingsToggle" class="dropdown-item" role="menuitem" type="button" data-auth-required="true">
-            <span class="item-icon">设置</span>
-            <div class="item-content">
-              <span class="item-text">设置与密码</span>
-              <span class="item-desc">导出、备份和修改密码</span>
-            </div>
-          </button>
-        `,
-      );
-    }
+  renderGuestLoginPrompt() {
+    const section = document.createElement("div");
+    section.className = "dropdown-section public-login-prompt hidden";
+    section.setAttribute("data-public-login-prompt", "true");
+    section.innerHTML = `
+      <div class="dropdown-section-label">后台</div>
+      <a href="/login.html" class="dropdown-item" role="menuitem" data-site-menu-login>
+        <span class="item-icon">登录</span>
+        <div class="item-content">
+          <span class="item-text">登录后台</span>
+          <span class="item-desc">管理书签、分类、导入和系统工具</span>
+        </div>
+      </a>
+    `;
+    return section;
   },
 
   renderGroup(group) {
@@ -314,21 +343,18 @@ const SiteMenu = {
     });
 
     host.querySelector("#logoutBtn")?.addEventListener("click", () => {
+      const requireAuth = host.getAttribute("data-require-auth") !== "false";
+      if (!requireAuth && window.Auth?.isAuthenticated) {
+        window.location.href = "/admin-dashboard.html";
+        return;
+      }
+
       if (window.Auth?.isAuthenticated) {
         window.Auth.logout({ redirect: true });
         return;
       }
 
-      this.redirectToLogin();
-    });
-
-    host.querySelector("#settingsToggle")?.addEventListener("click", () => {
-      if (!this.requireAdmin()) {
-        return;
-      }
-
-      this.closeMenu(host);
-      document.getElementById("settingsPanel")?.classList.toggle("hidden");
+      this.redirectToLogin("/admin-dashboard.html");
     });
   },
 
@@ -337,36 +363,73 @@ const SiteMenu = {
     if (!logoutBtn) return;
 
     const authenticated = Boolean(window.Auth?.isAuthenticated);
+    const isPublicPage = !requireAuth;
+    const isAdminEntry = isPublicPage && authenticated;
     logoutBtn.classList.toggle("is-login-action", !authenticated);
-    logoutBtn.title = authenticated ? "退出登录" : "登录后台";
-    logoutBtn.querySelector(".btn-icon").textContent = authenticated
-      ? "退出"
-      : "登录";
-    logoutBtn.querySelector(".action-btn-label").textContent = authenticated
-      ? "退出"
-      : "登录后台";
-
-    if (!requireAuth && !authenticated) {
-      host
-        .querySelector("#settingsToggle")
-        ?.setAttribute("data-auth-required", "true");
-    }
+    logoutBtn.classList.toggle("is-admin-entry", isAdminEntry);
+    logoutBtn.title = isAdminEntry
+      ? "进入后台"
+      : authenticated
+        ? "退出登录"
+        : "登录后台";
+    logoutBtn.querySelector(".btn-icon").textContent = isAdminEntry
+      ? "后台"
+      : authenticated
+        ? "退出"
+        : "登录";
+    logoutBtn.querySelector(".action-btn-label").textContent = isAdminEntry
+      ? "进入后台"
+      : authenticated
+        ? "退出"
+        : "登录后台";
   },
 
   syncMenuAuthState(host, requireAuth) {
     const authenticated = Boolean(window.Auth?.isAuthenticated);
-    const isPublicGuest = !requireAuth && !authenticated;
+    const isPublicPage = !requireAuth;
+    const isPublicGuest = isPublicPage && !authenticated;
+    const dropdown = host.querySelector("#toolsDropdown");
+    const guestPrompt = host.querySelector("[data-public-login-prompt]");
 
-    host.querySelectorAll('[data-menu-group="快速新建"]').forEach((group) => {
-      group.classList.toggle("hidden", isPublicGuest);
+    host.querySelectorAll("[data-auth-group]").forEach((group) => {
+      group.classList.toggle("hidden", isPublicPage);
     });
 
+    guestPrompt?.classList.toggle("hidden", !isPublicPage);
+    const publicEntry = guestPrompt?.querySelector("[data-site-menu-login]");
+    if (publicEntry) {
+      publicEntry.setAttribute(
+        "href",
+        authenticated
+          ? "/admin-dashboard.html"
+          : `/login.html?next=${encodeURIComponent("/admin-dashboard.html")}`,
+      );
+      publicEntry.querySelector(".item-icon").textContent = authenticated
+        ? "后台"
+        : "登录";
+      publicEntry.querySelector(".item-text").textContent = authenticated
+        ? "进入后台"
+        : "登录后台";
+      publicEntry.querySelector(".item-desc").textContent = authenticated
+        ? "打开统一管理工作台"
+        : "登录后管理书签、分类和系统工具";
+    }
+
+    dropdown?.classList.toggle("is-public-guest-menu", isPublicPage);
+
     host.querySelectorAll("[data-auth-required]").forEach((element) => {
+      const hiddenOnPublicHome = isPublicPage;
       element.classList.toggle("requires-login", !authenticated);
-      if (!authenticated) {
-        element.setAttribute("aria-label", "登录后台后使用");
+      element.classList.toggle("hidden", hiddenOnPublicHome);
+      element.setAttribute("tabindex", hiddenOnPublicHome ? "-1" : "0");
+      if (!authenticated || hiddenOnPublicHome) {
+        element.setAttribute(
+          "aria-label",
+          hiddenOnPublicHome ? "进入后台后使用" : "登录后台后使用",
+        );
       } else {
         element.removeAttribute("aria-label");
+        element.removeAttribute("tabindex");
       }
     });
   },
@@ -417,7 +480,6 @@ const SiteMenu = {
 
   markActive(host) {
     const pageKey = host.getAttribute("data-page-key");
-    const path = this.normalizePath(window.location.pathname);
 
     // Highlight the dropdown entry whose key matches the page.
     if (pageKey) {
@@ -430,23 +492,6 @@ const SiteMenu = {
           }
         });
     }
-
-    // Highlight the inline nav menu link based on path (fallback when no
-    // page-key is provided).
-    const navLinks = host.querySelectorAll("[data-site-header-nav-link]");
-    navLinks.forEach((link) => {
-      const href = this.normalizePath(link.getAttribute("href") || "");
-      const isHome = href === "/" && (path === "/" || path === "/index");
-      if (href === path || isHome) {
-        link.classList.add("active");
-        link.setAttribute("aria-current", "page");
-      }
-    });
-  },
-
-  normalizePath(value) {
-    const path = value.split("?")[0].replace(/\/$/, "") || "/";
-    return path.replace(/\.html$/, "");
   },
 };
 

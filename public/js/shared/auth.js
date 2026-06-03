@@ -3,6 +3,9 @@ const Auth = {
   userKey: "bookmark_nav_user",
   isAuthenticated: false,
   currentUser: null,
+  verifiedToken: null,
+  verifyPromise: null,
+  verifyPromiseToken: null,
   listeners: {
     authChange: [],
   },
@@ -17,10 +20,40 @@ const Auth = {
       return false;
     }
 
+    if (this.isAuthenticated && this.verifiedToken === token) {
+      return true;
+    }
+
+    const ok = await this.verifySession(token);
+    if (!ok && requireAuth) {
+      this.redirectToLogin();
+    }
+    return ok;
+  },
+
+  async verifySession(token) {
+    if (this.verifyPromise && this.verifyPromiseToken === token) {
+      return await this.verifyPromise;
+    }
+
+    this.verifyPromiseToken = token;
+    this.verifyPromise = this.fetchAndApplySession(token);
+
+    try {
+      return await this.verifyPromise;
+    } finally {
+      if (this.verifyPromiseToken === token) {
+        this.verifyPromise = null;
+        this.verifyPromiseToken = null;
+      }
+    }
+  },
+
+  async fetchAndApplySession(token) {
     try {
       const response = await fetch("/api/auth/verify", {
         method: "POST",
-        headers: this.getAuthHeaders(),
+        headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
 
@@ -28,8 +61,11 @@ const Auth = {
         throw new Error(data.error || "Authentication failed.");
       }
 
+      const user = data.user || data.data?.user || { role: "admin" };
+
       this.isAuthenticated = true;
-      this.currentUser = data.user || { role: "admin" };
+      this.currentUser = user;
+      this.verifiedToken = token;
       localStorage.setItem(this.userKey, JSON.stringify(this.currentUser));
       this.triggerEvent("authChange", {
         authenticated: true,
@@ -38,7 +74,9 @@ const Auth = {
       return true;
     } catch (error) {
       console.error("Auth verification failed:", error);
-      this.logout({ redirect: requireAuth });
+      localStorage.removeItem(this.tokenKey);
+      localStorage.removeItem(this.userKey);
+      this.setSignedOut();
       return false;
     }
   },
@@ -54,14 +92,20 @@ const Auth = {
     });
     const data = await response.json();
 
-    if (!response.ok || !data.success || !data.token) {
+    const token = data.token || data.data?.token;
+    const user = data.user || data.data?.user || { role: "admin" };
+
+    if (!response.ok || !data.success || !token) {
       throw new Error(data.error || "Login failed.");
     }
 
-    localStorage.setItem(this.tokenKey, data.token);
-    this.currentUser = data.user || { role: "admin" };
+    localStorage.setItem(this.tokenKey, token);
+    this.currentUser = user;
     localStorage.setItem(this.userKey, JSON.stringify(this.currentUser));
     this.isAuthenticated = true;
+    this.verifiedToken = token;
+    this.verifyPromise = null;
+    this.verifyPromiseToken = null;
     this.triggerEvent("authChange", {
       authenticated: true,
       user: this.currentUser,
@@ -81,6 +125,9 @@ const Auth = {
   setSignedOut() {
     this.isAuthenticated = false;
     this.currentUser = null;
+    this.verifiedToken = null;
+    this.verifyPromise = null;
+    this.verifyPromiseToken = null;
     this.triggerEvent("authChange", { authenticated: false, user: null });
   },
 

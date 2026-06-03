@@ -1,4 +1,5 @@
 import { authenticateRequest } from "./verify.js";
+import { ResponseHelper } from "../../utils/response-helper.js";
 
 async function readAdminPassword(env = {}) {
   let storedPassword = null;
@@ -29,33 +30,26 @@ async function readAdminPassword(env = {}) {
   return storedPassword || "admin123";
 }
 
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
 export async function onRequestPost(context) {
   const { request, env } = context;
   const auth = await authenticateRequest(request, env);
   if (!auth.authenticated) {
-    return json({ success: false, error: auth.error }, 401);
+    return ResponseHelper.unauthorized(auth.error);
   }
 
   const { currentPassword, newPassword } = await request.json();
   const adminPassword = await readAdminPassword(env);
 
   if (!currentPassword || currentPassword !== adminPassword) {
-    return json({ success: false, error: "当前密码不正确。" }, 400);
+    return ResponseHelper.error("当前密码不正确。", 400);
   }
 
   if (!newPassword || newPassword.length < 6) {
-    return json({ success: false, error: "新密码至少需要 6 位。" }, 400);
+    return ResponseHelper.error("新密码至少需要 6 位。", 400);
   }
 
   if (typeof env.BOOKMARKS_DB?.prepare !== "function") {
-    return json({ success: false, error: "数据库不可用，无法修改密码。" }, 500);
+    return ResponseHelper.error("数据库不可用，无法修改密码。", 500);
   }
 
   await env.BOOKMARKS_DB.prepare(
@@ -64,5 +58,5 @@ export async function onRequestPost(context) {
     .bind("admin_password", newPassword, "Administrator password")
     .run();
 
-  return json({ success: true, message: "密码已更新。" });
+  return ResponseHelper.success(null, "密码已更新。");
 }

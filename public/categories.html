@@ -14,12 +14,13 @@
     <link rel="stylesheet" href="/css/styles.css" />
     <link
       rel="stylesheet"
-      href="/css/workspace-refresh.css?v=nav-20260601-ui-refresh"
+      href="/css/workspace-refresh.css?v=nav-20260602-public-home"
     />
-    <link rel="stylesheet" href="/css/management.css" />
+    <link rel="stylesheet" href="/css/management.css?v=nav-20260602-shell" />
+    <link rel="stylesheet" href="/css/admin.css?v=nav-20260603-admin-shell" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
-  <body class="nav-site">
+  <body class="nav-site admin-site">
     <div class="container">
       <div
         data-site-header
@@ -181,20 +182,21 @@
             </button>
             <button
               id="confirmDeleteCategoryBtn"
-              class="btn btn-danger"
+              class="btn btn-primary"
               type="button"
             >
-              确认删除
+              继续确认
             </button>
           </div>
         </div>
       </div>
     </div>
 
-    <script src="/js/utils/api.js"></script>
-    <script src="/js/auth.js"></script>
-    <script src="/js/site-menu.js?v=nav-20260601-menu-actions"></script>
-    <script src="/js/admin-common.js"></script>
-    <script src="/js/category-manager.js?v=nav-20260601-create-focus"></script>
+    <script src="/js/shared/api.js?v=nav-20260602-shared-runtime"></script>
+    <script src="/js/shared/auth.js?v=nav-20260602-auth-cache"></script>
+    <script src="/js/shared/site-menu.js?v=nav-20260603-admin-shell"></script>
+    <script src="/js/shared/admin-common.js?v=nav-20260602-shared-runtime"></script>
+    <script src="/js/shared/admin-shell.js?v=nav-20260603-admin-shell"></script>
+    <script src="/js/admin/category-manager.js?v=nav-20260602-category-confirm"></script>
   </body>
 </html>

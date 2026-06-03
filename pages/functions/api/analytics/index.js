@@ -1,257 +1,143 @@
-// 书签统计API端点
 import { authenticateRequest } from "../auth/verify.js";
 import { bookmarkAnalytics } from "../../utils/bookmark-analytics.js";
+import { ResponseHelper } from "../../utils/response-helper.js";
 
-// 获取使用统计报告
+function toPositiveInteger(value, fallback) {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function getAnalyticsReport(reportType, days, limit) {
+  switch (reportType) {
+    case "popular":
+      return {
+        popularBookmarks: bookmarkAnalytics.getPopularBookmarks(limit, days),
+      };
+    case "usage":
+      return bookmarkAnalytics.getUsageReport(days);
+    case "search":
+      return {
+        searchStats: bookmarkAnalytics.getSearchStatistics(days),
+      };
+    case "time":
+      return {
+        timeDistribution: bookmarkAnalytics.getTimeDistribution(days),
+      };
+    case "export":
+      return bookmarkAnalytics.exportData();
+    default: {
+      const weeklyReport = bookmarkAnalytics.getUsageReport(7);
+      return {
+        summary: weeklyReport.summary,
+        popularBookmarks: bookmarkAnalytics.getPopularBookmarks(5, 7),
+        recentInsights: weeklyReport.insights.slice(0, 3),
+      };
+    }
+  }
+}
+
+async function requireAdmin(request, env) {
+  const auth = await authenticateRequest(request, env);
+  if (!auth.authenticated) {
+    return { error: ResponseHelper.unauthorized(auth.error) };
+  }
+  return { auth };
+}
+
 export async function onRequestGet(context) {
-  const { request, env } = context;
+  const { request } = context;
 
   try {
-    // 验证认证（可选，根据需求决定）
-    const auth = await authenticateRequest(request, env);
-    if (!auth.authenticated) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "需要登录才能查看统计",
-        }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-    }
-
     const url = new URL(request.url);
     const reportType = url.searchParams.get("type") || "summary";
-    const days = parseInt(url.searchParams.get("days")) || 30;
-    const limit = parseInt(url.searchParams.get("limit")) || 10;
+    const days = toPositiveInteger(url.searchParams.get("days"), 30);
+    const limit = toPositiveInteger(url.searchParams.get("limit"), 10);
 
-    let data;
-
-    switch (reportType) {
-      case "popular":
-        data = {
-          popularBookmarks: bookmarkAnalytics.getPopularBookmarks(limit, days),
-        };
-        break;
-
-      case "usage":
-        data = bookmarkAnalytics.getUsageReport(days);
-        break;
-
-      case "search":
-        data = {
-          searchStats: bookmarkAnalytics.getSearchStatistics(days),
-        };
-        break;
-
-      case "time":
-        data = {
-          timeDistribution: bookmarkAnalytics.getTimeDistribution(days),
-        };
-        break;
-
-      case "export":
-        data = bookmarkAnalytics.exportData();
-        break;
-
-      default:
-        // 返回汇总信息
-        data = {
-          summary: bookmarkAnalytics.getUsageReport(7).summary,
-          popularBookmarks: bookmarkAnalytics.getPopularBookmarks(5, 7),
-          recentInsights: bookmarkAnalytics
-            .getUsageReport(7)
-            .insights.slice(0, 3),
-        };
-    }
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        data: data,
-        generatedAt: new Date().toISOString(),
-      }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          "Cache-Control": "no-cache",
-        },
-      },
-    );
+    return ResponseHelper.success({
+      ...getAnalyticsReport(reportType, days, limit),
+      generatedAt: new Date().toISOString(),
+    });
   } catch (error) {
-    console.error("获取统计数据失败:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "获取统计数据失败",
-        details: error.message,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
+    console.error("Failed to get analytics data:", error);
+    return ResponseHelper.serverError(
+      "Failed to get analytics data",
+      error.message,
     );
   }
 }
 
-// 记录书签访问
 export async function onRequestPost(context) {
-  const { request, env } = context;
+  const { request } = context;
 
   try {
-    const { bookmarkId, bookmarkData, action } = await request.json();
+    const { bookmarkId, bookmarkData = {}, action } = await request.json();
 
     if (!bookmarkId) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "缺少bookmarkId参数",
-        }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.error("Missing bookmarkId parameter", 400);
     }
 
     let result;
-
     switch (action) {
       case "visit":
-        // 记录书签访问
         result = bookmarkAnalytics.recordVisit(bookmarkId, {
           ...bookmarkData,
           userAgent: request.headers.get("User-Agent"),
           referrer: request.headers.get("Referer"),
         });
         break;
-
-      case "search":
-        // 记录搜索行为
+      case "search": {
         const { searchTerm, resultCount } = bookmarkData;
         result = bookmarkAnalytics.recordSearch(searchTerm, resultCount);
         break;
-
+      }
       default:
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: "不支持的操作类型",
-          }),
-          {
-            status: 400,
-            headers: { "Content-Type": "application/json" },
-          },
-        );
+        return ResponseHelper.error("Unsupported analytics action", 400);
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: "统计数据记录成功",
-        data: result,
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    return ResponseHelper.success(result, "Analytics data recorded");
   } catch (error) {
-    console.error("记录统计数据失败:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "记录统计数据失败",
-        details: error.message,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
+    console.error("Failed to record analytics data:", error);
+    return ResponseHelper.serverError(
+      "Failed to record analytics data",
+      error.message,
     );
   }
 }
 
-// 管理统计数据
 export async function onRequestPut(context) {
   const { request, env } = context;
 
   try {
-    // 验证管理员权限
-    const auth = await authenticateRequest(request, env);
-    if (!auth.authenticated) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "需要管理员权限",
-        }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-    }
+    const admin = await requireAdmin(request, env);
+    if (admin.error) return admin.error;
 
     const { action, data } = await request.json();
 
     switch (action) {
       case "cleanup":
-        const daysToKeep = data?.daysToKeep || 90;
-        bookmarkAnalytics.cleanup(daysToKeep);
+        bookmarkAnalytics.cleanup(data?.daysToKeep || 90);
         break;
-
       case "import":
         if (data?.analytics) {
           bookmarkAnalytics.importData(data.analytics);
         }
         break;
-
       case "reset":
-        // 重置所有统计数据
         bookmarkAnalytics.visits.clear();
         bookmarkAnalytics.dailyStats.clear();
         bookmarkAnalytics.categories.clear();
         bookmarkAnalytics.searchTerms.clear();
         break;
-
       default:
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: "不支持的管理操作",
-          }),
-          {
-            status: 400,
-            headers: { "Content-Type": "application/json" },
-          },
-        );
+        return ResponseHelper.error("Unsupported analytics admin action", 400);
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: "操作完成成功",
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    return ResponseHelper.success(null, "Analytics operation completed");
   } catch (error) {
-    console.error("管理统计数据失败:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "管理操作失败",
-        details: error.message,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
+    console.error("Failed to manage analytics data:", error);
+    return ResponseHelper.serverError(
+      "Failed to manage analytics data",
+      error.message,
     );
   }
 }

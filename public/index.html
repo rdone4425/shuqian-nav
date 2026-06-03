@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="/css/styles.css" />
     <link
       rel="stylesheet"
-      href="/css/workspace-refresh.css?v=nav-20260601-ui-refresh"
+      href="/css/workspace-refresh.css?v=nav-20260602-public-home"
     />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
@@ -40,18 +40,6 @@
           <span class="btn-icon">⌕</span>
           <span class="action-btn-label" data-i18n="header.searchButton"
             >搜索</span
-          >
-        </button>
-        <button
-          id="addBookmarkBtn"
-          class="action-btn-icon has-label"
-          title="添加站点"
-          data-i18n-title="header.addTitle"
-          data-site-header-primary
-        >
-          <span class="btn-icon">+</span>
-          <span class="action-btn-label" data-i18n="header.addButton"
-            >新增站点</span
           >
         </button>
       </div>
@@ -192,7 +180,7 @@
               常用站点
             </h2>
             <p data-i18n="home.bookmarksCopy">
-              按当前分类和排序展示，点击网址直接访问，也可以编辑或删除。
+              按当前分类和排序展示，点击网址直接访问。
             </p>
           </div>
           <div
@@ -209,7 +197,7 @@
           <div class="empty-icon">+</div>
           <h3 data-i18n="empty.noBookmarks">还没有站点</h3>
           <p data-i18n="empty.noBookmarksHint">
-            点击顶部“新增站点”按钮添加第一个导航链接。
+            登录后台后，可以在书签管理里添加第一个导航链接。
           </p>
         </div>
         <div id="errorState" class="error-state hidden">
@@ -246,227 +234,20 @@
       </main>
     </div>
 
-    <div id="bookmarkModal" class="modal hidden">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3 id="modalTitle" data-i18n="bookmarkModal.addTitle">添加站点</h3>
-          <button id="closeModalBtn" class="btn-close" aria-label="关闭">
-            ×
-          </button>
-        </div>
-        <form id="bookmarkForm" class="modal-body">
-          <div class="form-group">
-            <label for="bookmarkTitle" data-i18n="bookmarkModal.title"
-              >标题 *</label
-            >
-            <input type="text" id="bookmarkTitle" required class="form-input" />
-          </div>
-          <div class="form-group">
-            <label for="bookmarkUrl" data-i18n="bookmarkModal.url">URL *</label>
-            <input type="url" id="bookmarkUrl" required class="form-input" />
-          </div>
-          <div class="form-group">
-            <label
-              for="bookmarkDescription"
-              data-i18n="bookmarkModal.description"
-              >描述</label
-            >
-            <textarea
-              id="bookmarkDescription"
-              placeholder="可选的描述..."
-              data-i18n-placeholder="bookmarkModal.descriptionPlaceholder"
-              class="form-textarea"
-              rows="3"
-            ></textarea>
-          </div>
-          <div class="form-group">
-            <label for="bookmarkCategory" data-i18n="bookmarkModal.category"
-              >分类</label
-            >
-            <div class="category-select-row">
-              <select id="bookmarkCategory" class="form-select">
-                <option value="" data-i18n="bookmarkModal.noCategory">
-                  无分类
-                </option>
-              </select>
-              <button
-                id="quickCreateCategoryBtn"
-                class="btn btn-secondary quick-category-btn"
-                type="button"
-              >
-                新建
-              </button>
-            </div>
-            <div id="quickCategoryForm" class="quick-category-form hidden">
-              <input
-                id="quickCategoryName"
-                class="form-input"
-                type="text"
-                maxlength="60"
-                placeholder="输入新分类名称"
-              />
-              <input
-                id="quickCategoryColor"
-                class="form-input quick-category-color"
-                type="color"
-                value="#3B82F6"
-                aria-label="分类颜色"
-              />
-              <button
-                id="confirmQuickCategoryBtn"
-                class="btn btn-primary"
-                type="button"
-              >
-                创建
-              </button>
-              <button
-                id="cancelQuickCategoryBtn"
-                class="btn btn-secondary"
-                type="button"
-              >
-                取消
-              </button>
-            </div>
-          </div>
-          <div class="modal-actions">
-            <button
-              type="button"
-              id="cancelBtn"
-              class="btn btn-secondary"
-              data-i18n="bookmarkModal.cancelBtn"
-            >
-              取消
-            </button>
-            <button
-              type="submit"
-              id="saveBtn"
-              class="btn btn-primary"
-              data-i18n="bookmarkModal.saveBtn"
-            >
-              保存
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div id="settingsPanel" class="settings-panel hidden">
-      <div class="panel-header">
-        <h3 data-i18n="settings.title">设置</h3>
-        <button id="settingsClose" class="btn-close" aria-label="关闭">
-          ×
-        </button>
-      </div>
-      <div class="panel-content">
-        <div class="settings-section">
-          <h4 data-i18n="settings.data">数据</h4>
-          <div class="export-buttons">
-            <button
-              id="exportBtn"
-              class="btn btn-outline"
-              data-i18n="settings.exportHtml"
-            >
-              导出 HTML
-            </button>
-            <button
-              id="exportJSONBtn"
-              class="btn btn-outline"
-              data-i18n="settings.exportJson"
-            >
-              导出 JSON
-            </button>
-          </div>
-          <div class="backup-buttons">
-            <button
-              id="fullBackupJSONBtn"
-              class="btn btn-primary"
-              data-i18n="settings.backupJson"
-            >
-              完整备份 (JSON)
-            </button>
-            <button
-              id="fullBackupHTMLBtn"
-              class="btn btn-primary"
-              data-i18n="settings.backupHtml"
-            >
-              完整备份 (HTML)
-            </button>
-          </div>
-          <button
-            id="importBtn"
-            class="btn btn-outline"
-            data-i18n="settings.import"
-          >
-            导入书签
-          </button>
-        </div>
-        <div class="settings-section">
-          <h4>安全</h4>
-          <form id="changePasswordForm" class="settings-form">
-            <div class="form-group">
-              <label for="currentPassword">当前密码</label>
-              <input
-                type="password"
-                id="currentPassword"
-                class="form-input"
-                autocomplete="current-password"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label for="newPassword">新密码</label>
-              <input
-                type="password"
-                id="newPassword"
-                class="form-input"
-                autocomplete="new-password"
-                minlength="6"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label for="confirmPassword">确认新密码</label>
-              <input
-                type="password"
-                id="confirmPassword"
-                class="form-input"
-                autocomplete="new-password"
-                minlength="6"
-                required
-              />
-            </div>
-            <button
-              id="changePasswordBtn"
-              type="submit"
-              class="btn btn-primary"
-            >
-              修改密码
-            </button>
-          </form>
-        </div>
-        <div class="settings-section settings-note">
-          <p data-i18n="home.settingsNote">
-            导入、检查、恢复和备份集中放在菜单与设置里。
-          </p>
-        </div>
-      </div>
-    </div>
-
     <div id="messageContainer" class="message-container hidden">
       <div id="messageText" class="message-text"></div>
     </div>
 
-    <script src="/js/i18n.js?v=nav-20260531-card-i18n"></script>
-    <script src="/js/auth.js"></script>
-    <script src="/js/home/storage.js?v=nav-20260601-home-split"></script>
-    <script src="/js/utils/api.js"></script>
+    <script src="/js/home/i18n.js?v=nav-20260602-home-runtime"></script>
+    <script src="/js/home/storage.js?v=nav-20260602-public-home"></script>
+    <script src="/js/shared/api.js?v=nav-20260602-shared-runtime"></script>
     <script src="/js/home/sorting.js?v=nav-20260601-home-split"></script>
     <script src="/js/home/dom-helper.js?v=nav-20260601-home-split"></script>
-    <script src="/js/home/ui-helper.js?v=nav-20260601-home-split"></script>
-    <script src="/js/home/bookmarks.js?v=nav-20260601-home-split"></script>
+    <script src="/js/home/ui-helper.js?v=nav-20260602-confirm-dialog"></script>
+    <script src="/js/home/bookmarks.js?v=nav-20260602-public-home"></script>
     <script src="/js/home/ui-enhancements.js?v=nav-20260601-home-split"></script>
-    <script src="/js/site-menu.js?v=nav-20260601-public-home"></script>
-    <script src="/js/home/app.js?v=nav-20260601-home-split"></script>
+    <script src="/js/shared/site-menu.js?v=nav-20260603-admin-shell"></script>
+    <script src="/js/home/app.js?v=nav-20260602-public-home"></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         if (window.I18n) {

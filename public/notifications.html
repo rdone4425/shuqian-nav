@@ -15,15 +15,16 @@
     <link rel="stylesheet" href="/css/styles.css" />
     <link
       rel="stylesheet"
-      href="/css/workspace-refresh.css?v=nav-20260601-ui-refresh"
+      href="/css/workspace-refresh.css?v=nav-20260602-public-home"
     />
     <link
       rel="stylesheet"
-      href="/css/notifications-enhanced.css?v=20260601-filtering"
+      href="/css/notifications-enhanced.css?v=nav-20260602-shell"
     />
+    <link rel="stylesheet" href="/css/admin.css?v=nav-20260603-admin-shell" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
-  <body class="nav-site">
+  <body class="nav-site admin-site">
     <div class="container">
       <div
         data-site-header
@@ -102,196 +103,11 @@
       </main>
     </div>
 
-    <script src="/js/utils/api.js"></script>
-    <script src="/js/auth.js"></script>
-    <script src="/js/site-menu.js?v=nav-20260601-menu-actions"></script>
-    <script src="/js/admin-common.js"></script>
-    <script>
-      const notificationState = {
-        items: [],
-        filter: "all",
-        loading: false,
-      };
-
-      function getNotificationLabel(type) {
-        if (type === "weekly_check_notification") return "自动通知";
-        if (type === "weekly_auto_check") return "自动检查";
-        return "系统记录";
-      }
-
-      function getInaccessibleCount(item) {
-        return item.inaccessible ?? item.inaccessibleCount ?? 0;
-      }
-
-      function matchesNotificationFilter(item) {
-        const inaccessible = getInaccessibleCount(item);
-        switch (notificationState.filter) {
-          case "issues":
-            return inaccessible > 0;
-          case "clean":
-            return inaccessible === 0;
-          case "weekly_auto_check":
-          case "weekly_check_notification":
-            return item.type === notificationState.filter;
-          case "all":
-          default:
-            return true;
-        }
-      }
-
-      function getFilterLabel() {
-        const filter = document.getElementById("notificationFilter");
-        return filter?.selectedOptions?.[0]?.textContent || "全部记录";
-      }
-
-      function renderNotificationItem(item) {
-        const typeLabel = getNotificationLabel(item.type);
-        const sample = item.inaccessibleBookmarks || [];
-        const total =
-          typeof item.total === "number"
-            ? item.total
-            : item.inaccessibleCount || 0;
-        const inaccessible = getInaccessibleCount(item);
-        const deleted =
-          typeof item.deleted === "number"
-            ? item.deleted
-            : item.deletedCount || 0;
-        const statusClass =
-          inaccessible > 0
-            ? "critical"
-            : item.type === "weekly_auto_check"
-              ? "important"
-              : "unread";
-
-        return `
-          <article class="notification-item ${statusClass}">
-            <div class="notification-header">
-              <div class="notification-info">
-                <h3 class="notification-title">${typeLabel}</h3>
-                <p class="notification-subtitle">${AdminUI.formatDate(item.checkedAt || item.timestamp || item.createdAt)}</p>
-              </div>
-            </div>
-            <div class="notification-content">
-              <p class="notification-description">
-                ${
-                  inaccessible > 0
-                    ? `发现 ${inaccessible} 个不可访问链接。`
-                    : "本次运行没有发现不可访问链接。"
-                }
-              </p>
-            </div>
-            <div class="notification-stats">
-              <div class="stat-group"><span class="stat-text">已检查</span><span class="stat-value">${total}</span></div>
-              <div class="stat-group"><span class="stat-text">可访问</span><span class="stat-value">${item.accessible ?? 0}</span></div>
-              <div class="stat-group"><span class="stat-text">不可访问</span><span class="stat-value">${inaccessible}</span></div>
-              <div class="stat-group"><span class="stat-text">已删除</span><span class="stat-value">${deleted}</span></div>
-            </div>
-            ${
-              sample.length
-                ? `<div class="notification-content"><div class="notification-description"><strong>示例：</strong><ul>${sample
-                    .slice(0, 5)
-                    .map(
-                      (bookmark) =>
-                        `<li>${AdminUI.escapeHtml(bookmark.title || bookmark.url || "未命名")}${
-                          bookmark.url
-                            ? ` - ${AdminUI.escapeHtml(bookmark.url)}`
-                            : ""
-                        }</li>`,
-                    )
-                    .join("")}</ul></div></div>`
-                : ""
-            }
-          </article>
-        `;
-      }
-
-      function updateSummary(items, visibleItems) {
-        const totalChecks = items.length;
-        const totalInaccessible = items.reduce(
-          (sum, item) => sum + getInaccessibleCount(item),
-          0,
-        );
-        const lastItem = items[0];
-        document.getElementById("totalChecks").textContent = totalChecks;
-        document.getElementById("totalInaccessible").textContent =
-          totalInaccessible;
-        document.getElementById("visibleNotifications").textContent =
-          visibleItems.length;
-        document.getElementById("lastCheckTime").textContent = lastItem
-          ? AdminUI.formatDate(
-              lastItem.checkedAt || lastItem.timestamp || lastItem.createdAt,
-            )
-          : "-";
-      }
-
-      function renderNotifications() {
-        const container = document.getElementById("notificationsList");
-        const visibleItems = notificationState.items.filter(
-          matchesNotificationFilter,
-        );
-
-        updateSummary(notificationState.items, visibleItems);
-        document.getElementById("filterStatus").textContent =
-          `${getFilterLabel()}：${visibleItems.length}/${notificationState.items.length} 条`;
-
-        if (!notificationState.items.length) {
-          container.innerHTML =
-            '<div class="notification-description">暂时还没有通知记录。</div>';
-          return;
-        }
-
-        if (!visibleItems.length) {
-          container.innerHTML = `<div class="notification-description">当前筛选下没有记录。</div>`;
-          return;
-        }
-
-        container.innerHTML = visibleItems.map(renderNotificationItem).join("");
-      }
-
-      async function loadNotifications() {
-        const container = document.getElementById("notificationsList");
-        const button = document.getElementById("refreshBtn");
-        const originalText = button.textContent;
-        notificationState.loading = true;
-        button.disabled = true;
-        button.textContent = "刷新中...";
-        container.innerHTML =
-          '<div class="notification-description">正在加载通知记录...</div>';
-
-        try {
-          const response = await API.get("/api/cron/weekly-check");
-          if (!response.success) {
-            throw new Error(response.error || "加载记录失败");
-          }
-
-          notificationState.items = response.data || [];
-          renderNotifications();
-        } catch (error) {
-          notificationState.items = [];
-          updateSummary([], []);
-          container.innerHTML = `<div class="notification-description">加载失败：${AdminUI.escapeHtml(error.message)}</div>`;
-        } finally {
-          notificationState.loading = false;
-          button.disabled = false;
-          button.textContent = originalText;
-        }
-      }
-
-      document.addEventListener("DOMContentLoaded", async () => {
-        const authenticated = await AdminUI.requireAuth();
-        if (!authenticated) return;
-
-        document
-          .getElementById("refreshBtn")
-          .addEventListener("click", loadNotifications);
-        document
-          .getElementById("notificationFilter")
-          .addEventListener("change", (event) => {
-            notificationState.filter = event.target.value;
-            renderNotifications();
-          });
-        await loadNotifications();
-      });
-    </script>
+    <script src="/js/shared/api.js?v=nav-20260602-shared-runtime"></script>
+    <script src="/js/shared/auth.js?v=nav-20260602-auth-cache"></script>
+    <script src="/js/shared/site-menu.js?v=nav-20260603-admin-shell"></script>
+    <script src="/js/shared/admin-common.js?v=nav-20260602-shared-runtime"></script>
+    <script src="/js/shared/admin-shell.js?v=nav-20260603-admin-shell"></script>
+    <script src="/js/admin/notifications-page.js?v=nav-20260602-admin-runtime"></script>
   </body>
 </html>

@@ -1,5 +1,6 @@
 import { SignJWT } from "jose";
 import { JWTKeyManager } from "../../utils/jwt-manager.js";
+import { ResponseHelper } from "../../utils/response-helper.js";
 
 async function readAdminPassword(env = {}) {
   let storedPassword = null;
@@ -11,6 +12,7 @@ async function readAdminPassword(env = {}) {
       )
         .bind("admin_password")
         .first();
+
       if (row?.config_value) {
         storedPassword = row.config_value;
       }
@@ -30,11 +32,25 @@ async function readAdminPassword(env = {}) {
   return storedPassword || "admin123";
 }
 
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
+function loginSuccess(token) {
+  const user = { role: "admin" };
+  const response = ResponseHelper.success({ token, user }, "Login successful.");
+  const headers = new Headers(response.headers);
+
+  return new Response(
+    JSON.stringify({
+      success: true,
+      token,
+      user,
+      data: { token, user },
+      message: "Login successful.",
+      timestamp: new Date().toISOString(),
+    }),
+    {
+      status: response.status,
+      headers,
+    },
+  );
 }
 
 export async function onRequestPost(context) {
@@ -45,7 +61,7 @@ export async function onRequestPost(context) {
     const adminPassword = await readAdminPassword(env);
 
     if (!password || password !== adminPassword) {
-      return json({ success: false, error: "密码不正确。" }, 401);
+      return ResponseHelper.unauthorized("Incorrect password.");
     }
 
     const secret = await JWTKeyManager.getJWTSecret(env);
@@ -60,22 +76,13 @@ export async function onRequestPost(context) {
       .setExpirationTime("7d")
       .sign(key);
 
-    return json({
-      success: true,
-      token,
-      user: { role: "admin" },
-      message: "登录成功。",
-    });
+    return loginSuccess(token);
   } catch (error) {
     console.error("Login failed:", error);
     const isDevelopment =
       String(env?.ENVIRONMENT || "").toLowerCase() === "development";
-    return json(
-      {
-        success: false,
-        error: isDevelopment ? `登录失败：${error.message}` : "登录失败。",
-      },
-      500,
+    return ResponseHelper.serverError(
+      isDevelopment ? `Login failed: ${error.message}` : "Login failed.",
     );
   }
 }

@@ -1,12 +1,6 @@
 import { jwtVerify } from "jose";
 import { JWTKeyManager } from "../../utils/jwt-manager.js";
-
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
+import { ResponseHelper } from "../../utils/response-helper.js";
 
 function getBearerToken(request) {
   const header = request?.headers?.get("Authorization") || "";
@@ -62,11 +56,8 @@ export async function onRequestPost(context) {
   const auth = await authenticateRequest(request, env);
 
   if (!auth.authenticated) {
-    return json({ success: false, error: auth.error }, 401);
+    return ResponseHelper.unauthorized(auth.error);
   }
 
-  return json({
-    success: true,
-    user: auth.user,
-  });
+  return ResponseHelper.success({ user: auth.user });
 }

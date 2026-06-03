@@ -3,23 +3,107 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="refresh" content="0; url=/?settings=security" />
-    <title>后台设置 - 书签导航</title>
+    <title>后台首页 - 书签导航</title>
+    <meta name="description" content="查看书签导航后台的关键摘要和快捷入口。" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+SC:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/css/styles.css" />
-    <link rel="stylesheet" href="/css/workspace-refresh.css" />
+    <link
+      rel="stylesheet"
+      href="/css/workspace-refresh.css?v=nav-20260603-admin-shell"
+    />
+    <link rel="stylesheet" href="/css/admin.css?v=nav-20260603-admin-shell" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
-  <body class="nav-site">
-    <main class="container" style="padding: 48px 24px">
+  <body class="nav-site admin-site">
+    <div class="container">
+      <div
+        data-site-header
+        data-page-key="admin-dashboard"
+        data-logo-icon="ADM"
+        data-logo-text="后台首页"
+        data-logo-subtitle="书签、分类和维护摘要"
+        class="header"
+      ></div>
+
       <section class="workspace-section-heading">
         <div>
-          <span class="section-kicker">后台</span>
-          <h1 class="section-title">正在打开后台设置</h1>
+          <span class="section-kicker">概览</span>
+          <h2 class="section-title">统一管理入口</h2>
         </div>
         <p class="section-copy">
-          密码修改、备份和导入功能已统一放在首页设置面板里。
+          首页只负责公开导航，新增、编辑、删除和维护操作都从这里进入后台。
         </p>
-        <a class="btn btn-primary" href="/?settings=security">进入设置</a>
       </section>
-    </main>
+
+      <main class="admin-dashboard-grid">
+        <section class="admin-dashboard-metrics" aria-label="后台摘要">
+          <article class="admin-dashboard-card">
+            <span>书签总数</span>
+            <strong id="dashboardBookmarkTotal">-</strong>
+          </article>
+          <article class="admin-dashboard-card">
+            <span>分类总数</span>
+            <strong id="dashboardCategoryTotal">-</strong>
+          </article>
+          <article class="admin-dashboard-card">
+            <span>当前显示</span>
+            <strong id="dashboardVisibleTotal">-</strong>
+          </article>
+          <article class="admin-dashboard-card">
+            <span>最近访问记录</span>
+            <strong id="dashboardVisitedTotal">-</strong>
+          </article>
+        </section>
+
+        <section class="admin-dashboard-actions" aria-label="快捷操作">
+          <a
+            class="admin-dashboard-action"
+            href="/bookmarks-manage.html?new=bookmark"
+          >
+            <strong>新增书签</strong>
+            <span>进入书签管理页添加站点。</span>
+          </a>
+          <a class="admin-dashboard-action" href="/categories.html?create=1">
+            <strong>新建分类</strong>
+            <span>维护分类名称、颜色和归属。</span>
+          </a>
+          <a class="admin-dashboard-action" href="/import.html">
+            <strong>导入书签</strong>
+            <span>先预览，再合并或替换导入。</span>
+          </a>
+          <a class="admin-dashboard-action" href="/link-checker.html">
+            <strong>链接检查</strong>
+            <span>检查可访问性后再清理异常项。</span>
+          </a>
+        </section>
+
+        <section class="admin-dashboard-lists">
+          <article class="admin-dashboard-card admin-dashboard-list">
+            <h3>最近收录</h3>
+            <div id="dashboardRecentBookmarks">
+              <p>正在加载最近书签...</p>
+            </div>
+          </article>
+          <article class="admin-dashboard-card admin-dashboard-list">
+            <h3>分类概况</h3>
+            <div id="dashboardCategories">
+              <p>正在加载分类...</p>
+            </div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script src="/js/shared/api.js?v=nav-20260602-shared-runtime"></script>
+    <script src="/js/shared/auth.js?v=nav-20260602-auth-cache"></script>
+    <script src="/js/shared/site-menu.js?v=nav-20260603-admin-shell"></script>
+    <script src="/js/shared/admin-common.js?v=nav-20260602-shared-runtime"></script>
+    <script src="/js/shared/admin-shell.js?v=nav-20260603-admin-shell"></script>
+    <script src="/js/admin/admin-dashboard.js?v=nav-20260603-admin-shell"></script>
   </body>
 </html>

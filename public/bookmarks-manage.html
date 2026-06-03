@@ -14,12 +14,13 @@
     <link rel="stylesheet" href="/css/styles.css" />
     <link
       rel="stylesheet"
-      href="/css/workspace-refresh.css?v=nav-20260601-ui-refresh"
+      href="/css/workspace-refresh.css?v=nav-20260602-public-home"
     />
-    <link rel="stylesheet" href="/css/management.css" />
+    <link rel="stylesheet" href="/css/management.css?v=nav-20260602-shell" />
+    <link rel="stylesheet" href="/css/admin.css?v=nav-20260603-admin-shell" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
-  <body class="nav-site">
+  <body class="nav-site admin-site">
     <div class="container">
       <div
         data-site-header
@@ -33,15 +34,83 @@
       <section class="workspace-section-heading">
         <div>
           <span class="section-kicker">管理</span>
-          <h2 class="section-title">搜索、筛选，然后把书签移动到正确分类</h2>
+          <h2 class="section-title">新增书签，或搜索筛选后批量整理</h2>
         </div>
-        <p class="section-copy">
-          勾选多条书签后可一次移动，也可以直接在单行里切换分类。
-        </p>
+        <div class="section-action-stack">
+          <p class="section-copy">
+            在顶部表单里直接添加书签；下方列表支持搜索、筛选、批量移动与删除。
+          </p>
+          <button
+            id="focusCreateBookmarkBtn"
+            class="btn btn-primary"
+            type="button"
+          >
+            新增书签
+          </button>
+        </div>
       </section>
 
       <main class="management-shell">
         <section class="management-panel">
+          <form id="createBookmarkForm" class="management-form">
+            <div class="management-form-heading">
+              <div>
+                <span class="section-kicker">新增书签</span>
+                <h3>手动添加一条书签</h3>
+              </div>
+              <p>标题和 URL 必填，创建后会出现在首页和下方列表里。</p>
+            </div>
+            <div class="management-fields">
+              <label class="field-stack grow">
+                <span>标题</span>
+                <input
+                  id="createBookmarkTitle"
+                  class="management-input"
+                  type="text"
+                  required
+                />
+              </label>
+              <label class="field-stack grow">
+                <span>URL</span>
+                <input
+                  id="createBookmarkUrl"
+                  class="management-input"
+                  type="url"
+                  required
+                />
+              </label>
+              <label class="field-stack grow">
+                <span>描述</span>
+                <input
+                  id="createBookmarkDescription"
+                  class="management-input"
+                  type="text"
+                />
+              </label>
+              <label class="field-stack">
+                <span>分类</span>
+                <select
+                  id="createBookmarkCategory"
+                  class="management-select"
+                ></select>
+              </label>
+              <button
+                id="saveCreateBookmarkBtn"
+                class="btn btn-primary"
+                type="submit"
+              >
+                创建书签
+              </button>
+              <button
+                id="resetCreateBookmarkBtn"
+                class="btn btn-secondary"
+                type="button"
+              >
+                清空
+              </button>
+            </div>
+          </form>
+
           <div class="management-toolbar">
             <div class="management-fields">
               <label class="field-stack grow">
@@ -113,56 +182,13 @@
           </div>
         </section>
       </main>
-
-      <div
-        id="deleteBookmarksModal"
-        class="management-modal hidden"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="deleteBookmarksTitle"
-      >
-        <div class="management-modal-card">
-          <div class="management-modal-header">
-            <div>
-              <span class="section-kicker">批量删除</span>
-              <h3 id="deleteBookmarksTitle">确认删除选中的书签</h3>
-            </div>
-            <button
-              id="closeDeleteBookmarksModal"
-              class="btn btn-secondary"
-              type="button"
-            >
-              关闭
-            </button>
-          </div>
-          <p id="deleteBookmarksSummary" class="management-modal-copy"></p>
-          <p class="management-modal-copy muted-text">
-            删除后的书签会进入回收站，可以在回收站页面恢复。
-          </p>
-          <div class="management-modal-actions">
-            <button
-              id="cancelDeleteBookmarksBtn"
-              class="btn btn-secondary"
-              type="button"
-            >
-              取消
-            </button>
-            <button
-              id="confirmDeleteBookmarksBtn"
-              class="btn btn-danger"
-              type="button"
-            >
-              确认删除
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <script src="/js/utils/api.js"></script>
-    <script src="/js/auth.js"></script>
-    <script src="/js/site-menu.js?v=nav-20260601-menu-actions"></script>
-    <script src="/js/admin-common.js"></script>
-    <script src="/js/bookmark-manager-page.js?v=nav-20260601-batch-delete"></script>
+    <script src="/js/shared/api.js?v=nav-20260602-shared-runtime"></script>
+    <script src="/js/shared/auth.js?v=nav-20260602-auth-cache"></script>
+    <script src="/js/shared/site-menu.js?v=nav-20260603-admin-shell"></script>
+    <script src="/js/shared/admin-common.js?v=nav-20260602-shared-runtime"></script>
+    <script src="/js/shared/admin-shell.js?v=nav-20260603-admin-shell"></script>
+    <script src="/js/admin/bookmark-manager-page.js?v=nav-20260602-public-home"></script>
   </body>
 </html>

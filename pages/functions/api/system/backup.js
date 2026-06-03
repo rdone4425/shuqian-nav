@@ -4,22 +4,14 @@
  */
 
 import { authenticateRequest } from "../auth/verify.js";
+import { ResponseHelper } from "../../utils/response-helper.js";
 
 export async function onRequestGet(context) {
   try {
     // 验证认证
     const auth = await authenticateRequest(context.request, context.env);
     if (!auth.authenticated) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: auth.error,
-        }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.unauthorized(auth.error);
     }
 
     const db = context.env.BOOKMARKS_DB;
@@ -133,16 +125,7 @@ export async function onRequestGet(context) {
   } catch (error) {
     console.error("备份失败:", error);
 
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "备份失败: " + error.message,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    return ResponseHelper.serverError("备份失败", error.message);
   }
 }
 
@@ -195,7 +178,7 @@ function generateBackupHTML(exportData) {
             <h1>📚 书签备份</h1>
             <p>导出时间: ${new Date(metadata.exportTime).toLocaleString("zh-CN")}</p>
         </div>
-        
+
         <div class="stats">
             <div class="stat-card">
                 <div class="stat-number">${metadata.totalBookmarks}</div>

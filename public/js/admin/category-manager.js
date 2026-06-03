@@ -279,6 +279,24 @@ const CategoryManagerPage = {
     const button = this.elements.confirmDelete;
     const previousText = button?.textContent;
     const moveToCategoryId = this.elements.deleteTarget?.value || null;
+    const targetLabel =
+      this.elements.deleteTarget?.selectedOptions?.[0]?.textContent?.trim() ||
+      "未分类";
+    const count = Number(category.bookmark_count || 0);
+
+    this.elements.deleteModal?.classList.add("hidden");
+    const confirmed = await AdminUI.confirm({
+      title: "删除分类",
+      message: `确定删除分类「${category.name}」吗？`,
+      hint: `该分类下的 ${count} 条书签会先迁移到「${targetLabel}」。删除分类后，分类本身无法恢复。`,
+      confirmText: "删除分类",
+      variant: "danger",
+    });
+    if (!confirmed) {
+      this.elements.deleteModal?.classList.remove("hidden");
+      this.elements.deleteTarget?.focus();
+      return;
+    }
 
     try {
       if (button) {
@@ -301,7 +319,7 @@ const CategoryManagerPage = {
     } finally {
       if (button) {
         button.disabled = false;
-        button.textContent = previousText || "确认删除";
+        button.textContent = previousText || "继续确认";
       }
     }
   },

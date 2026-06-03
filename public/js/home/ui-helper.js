@@ -105,13 +105,14 @@ class UIHelper {
       showCancel = true,
     } = options;
 
-    // 创建模态框HTML
+    this.hideModal("dynamicModal");
+
     const modalHtml = `
       <div class="modal-overlay" id="dynamicModal">
         <div class="modal-content">
           <div class="modal-header">
             <h3>${title}</h3>
-            <button class="modal-close" onclick="UIHelper.hideModal('dynamicModal')">&times;</button>
+            <button class="modal-close" type="button">&times;</button>
           </div>
           <div class="modal-body">
             ${content}
@@ -124,14 +125,17 @@ class UIHelper {
       </div>
     `;
 
-    // 添加到页面
     document.body.insertAdjacentHTML("beforeend", modalHtml);
 
     const modal = document.getElementById("dynamicModal");
-
-    // 绑定事件
     const confirmBtn = modal.querySelector(".modal-confirm");
     const cancelBtn = modal.querySelector(".modal-cancel");
+    const closeBtn = modal.querySelector(".modal-close");
+
+    const cancel = () => {
+      onCancel();
+      this.hideModal("dynamicModal");
+    };
 
     confirmBtn.addEventListener("click", () => {
       onConfirm();
@@ -139,11 +143,16 @@ class UIHelper {
     });
 
     if (cancelBtn) {
-      cancelBtn.addEventListener("click", () => {
-        onCancel();
-        this.hideModal("dynamicModal");
-      });
+      cancelBtn.addEventListener("click", cancel);
     }
+
+    closeBtn?.addEventListener("click", cancel);
+
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        cancel();
+      }
+    });
 
     return modal;
   }
@@ -217,53 +226,64 @@ class UIHelper {
       return;
     }
 
-    let paginationHtml = '<div class="pagination">';
+    const pagination = document.createElement("div");
+    pagination.className = "pagination";
 
-    // 上一页
-    paginationHtml += `
-      <button class="pagination-btn ${currentPage <= 1 ? "disabled" : ""}"
-              onclick="${currentPage > 1 ? `(${onPageChange})(${currentPage - 1})` : ""}">
-        上一页
-      </button>
-    `;
+    const addButton = (label, page, options = {}) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "pagination-btn";
+      button.textContent = label;
+      button.dataset.page = String(page);
 
-    // 页码
+      if (options.active) {
+        button.classList.add("active");
+      }
+      if (options.disabled) {
+        button.classList.add("disabled");
+        button.disabled = true;
+      } else if (typeof onPageChange === "function") {
+        button.addEventListener("click", () => onPageChange(page));
+      }
+
+      pagination.appendChild(button);
+    };
+
+    const addEllipsis = () => {
+      const ellipsis = document.createElement("span");
+      ellipsis.className = "pagination-ellipsis";
+      ellipsis.textContent = "...";
+      pagination.appendChild(ellipsis);
+    };
+
+    addButton("上一页", currentPage - 1, { disabled: currentPage <= 1 });
+
     const startPage = Math.max(1, currentPage - 2);
     const endPage = Math.min(totalPages, currentPage + 2);
 
     if (startPage > 1) {
-      paginationHtml += `<button class="pagination-btn" onclick="(${onPageChange})(1)">1</button>`;
+      addButton("1", 1);
       if (startPage > 2) {
-        paginationHtml += '<span class="pagination-ellipsis">...</span>';
+        addEllipsis();
       }
     }
 
-    for (let i = startPage; i <= endPage; i++) {
-      paginationHtml += `
-        <button class="pagination-btn ${i === currentPage ? "active" : ""}"
-                onclick="(${onPageChange})(${i})">
-          ${i}
-        </button>
-      `;
+    for (let i = startPage; i <= endPage; i += 1) {
+      addButton(String(i), i, { active: i === currentPage });
     }
 
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
-        paginationHtml += '<span class="pagination-ellipsis">...</span>';
+        addEllipsis();
       }
-      paginationHtml += `<button class="pagination-btn" onclick="(${onPageChange})(${totalPages})">${totalPages}</button>`;
+      addButton(String(totalPages), totalPages);
     }
 
-    // 下一页
-    paginationHtml += `
-      <button class="pagination-btn ${currentPage >= totalPages ? "disabled" : ""}"
-              onclick="${currentPage < totalPages ? `(${onPageChange})(${currentPage + 1})` : ""}">
-        下一页
-      </button>
-    `;
+    addButton("下一页", currentPage + 1, {
+      disabled: currentPage >= totalPages,
+    });
 
-    paginationHtml += "</div>";
-    container.innerHTML = paginationHtml;
+    container.replaceChildren(pagination);
   }
 
   /**
@@ -329,13 +349,19 @@ class UIHelper {
     }
   }
 
+  static escapeHtml(text = "") {
+    const div = document.createElement("div");
+    div.textContent = String(text);
+    return div.innerHTML;
+  }
+
   /**
    * 确认对话框
    */
   static confirm(message, onConfirm, onCancel = () => {}) {
     return this.showModal({
       title: "确认操作",
-      content: `<p>${message}</p>`,
+      content: `<p>${this.escapeHtml(message)}</p>`,
       confirmText: "确定",
       cancelText: "取消",
       onConfirm,

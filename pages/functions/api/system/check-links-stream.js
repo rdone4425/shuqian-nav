@@ -1,4 +1,3 @@
-// 流式链接检查API - 实时返回检查结果
 import { authenticateRequest } from "../auth/verify.js";
 import { insertDeletedBookmarkSafe } from "../../utils/deleted-bookmarks.js";
 import { getKnownProtectedSiteResult } from "../../utils/link-checker-protection.js";
@@ -6,10 +5,25 @@ import {
   classifyHttpResponse,
   classifyNetworkError,
 } from "../../utils/link-checker-status.js";
+import { ResponseHelper } from "../../utils/response-helper.js";
 
-// 检查单个URL的可访问性 - 优化版本，更好地处理Cloudflare等防护
-async function checkUrl(url, timeout = 8000) {
-  // 更真实的浏览器User-Agent
+const PRESET_URLS = [
+  "https://github.com",
+  "https://stackoverflow.com",
+  "https://developer.mozilla.org",
+  "https://youtube.com",
+  "https://twitter.com",
+  "https://reddit.com",
+  "https://amazon.com",
+  "https://google.com",
+];
+
+async function requireAdminAccess(request, env) {
+  const auth = await authenticateRequest(request, env);
+  return auth.authenticated ? null : ResponseHelper.unauthorized(auth.error);
+}
+
+async function checkUrl(url) {
   const protectedSiteResult = getKnownProtectedSiteResult(url);
   if (protectedSiteResult) {
     return protectedSiteResult;
@@ -20,11 +34,8 @@ async function checkUrl(url, timeout = 8000) {
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
   ];
-
   const randomUserAgent =
     userAgents[Math.floor(Math.random() * userAgents.length)];
-
-  // 通用请求头，模拟真实浏览器
   const commonHeaders = {
     "User-Agent": randomUserAgent,
     Accept:
@@ -41,18 +52,13 @@ async function checkUrl(url, timeout = 8000) {
   };
 
   try {
-    // 第一次尝试：HEAD请求（快速检查）
     const headResponse = await Promise.race([
-      fetch(url, {
-        method: "HEAD",
-        headers: commonHeaders,
-      }),
+      fetch(url, { method: "HEAD", headers: commonHeaders }),
       new Promise((_, reject) => {
-        setTimeout(() => reject(new Error("HEAD request timeout")), 3000); // 3秒超时
+        setTimeout(() => reject(new Error("HEAD request timeout")), 3000);
       }),
     ]);
 
-    // HEAD请求成功且状态正常
     if (headResponse.ok) {
       return {
         url,
@@ -67,28 +73,17 @@ async function checkUrl(url, timeout = 8000) {
         checkedAt: new Date().toISOString(),
       };
     }
-
-    // HEAD请求返回错误状态，但可能是服务器不支持HEAD，继续尝试GET
-    if (headResponse.status >= 400) {
-      console.log(`HEAD请求返回 ${headResponse.status}，尝试GET请求: ${url}`);
-    }
   } catch (headError) {
-    console.log(`HEAD请求失败，尝试GET请求: ${url}`, headError.message);
+    console.log("HEAD request failed; trying GET:", url, headError.message);
   }
 
   try {
-    // 第二次尝试：GET请求（更完整的检查）
     const getResponse = await Promise.race([
-      fetch(url, {
-        method: "GET",
-        headers: commonHeaders,
-      }),
+      fetch(url, { method: "GET", headers: commonHeaders }),
       new Promise((_, reject) => {
-        setTimeout(() => reject(new Error("GET request timeout")), 5000); // 5秒超时
+        setTimeout(() => reject(new Error("GET request timeout")), 5000);
       }),
     ]);
-
-    // 检查响应状态
     const classification = classifyHttpResponse(getResponse);
 
     return {
@@ -102,7 +97,6 @@ async function checkUrl(url, timeout = 8000) {
     };
   } catch (getError) {
     const classification = classifyNetworkError(getError.message);
-    // 最终失败，返回错误信息
     return {
       url,
       ...classification,
@@ -115,7 +109,6 @@ async function checkUrl(url, timeout = 8000) {
   }
 }
 
-// 获取错误信息
 function getErrorMessage(response) {
   const server = response.headers.get("server") || "";
   const cfRay = response.headers.get("cf-ray");
@@ -123,82 +116,60 @@ function getErrorMessage(response) {
   switch (response.status) {
     case 403:
       if (server.toLowerCase().includes("cloudflare") || cfRay) {
-        return "Cloudflare防护 - 网站正常但有访问限制";
+        return "Cloudflare protection detected; review manually.";
       }
-      return "访问被禁止";
+      return "Access forbidden.";
     case 404:
-      return "页面不存在";
+      return "Page not found.";
     case 410:
-      return "页面已永久删除";
+      return "Page permanently removed.";
     case 429:
-      return "请求过于频繁";
+      return "Too many requests.";
     case 500:
-      return "服务器内部错误";
+      return "Internal server error.";
     case 502:
-      return "网关错误";
+      return "Bad gateway.";
     case 503:
       if (server.toLowerCase().includes("cloudflare") || cfRay) {
-        return "Cloudflare防护 - 网站可能正在维护";
+        return "Cloudflare protection or temporary maintenance detected; review manually.";
       }
-      return "服务暂时不可用";
+      return "Service unavailable.";
     case 504:
-      return "网关超时";
+      return "Gateway timeout.";
     default:
       return `HTTP ${response.status} ${response.statusText}`;
   }
 }
 
-// 分类网络错误
 function categorizeError(errorMessage) {
   const message = errorMessage.toLowerCase();
 
-  if (message.includes("timeout")) {
-    return "请求超时 - 网站响应缓慢";
-  }
+  if (message.includes("timeout")) return "Request timed out.";
   if (message.includes("enotfound") || message.includes("name not resolved")) {
-    return "域名不存在";
+    return "Domain does not exist.";
   }
-  if (message.includes("econnrefused")) {
-    return "连接被拒绝";
-  }
+  if (message.includes("econnrefused")) return "Connection refused.";
   if (message.includes("cert") || message.includes("certificate")) {
-    return "SSL证书问题";
+    return "SSL certificate problem.";
   }
-  if (message.includes("network")) {
-    return "网络连接问题";
-  }
+  if (message.includes("network")) return "Network connection problem.";
 
-  return `网络错误: ${errorMessage}`;
+  return `Network error: ${errorMessage}`;
 }
 
-// 获取所有书签用于检查
 export async function onRequestGet(context) {
   const { request, env } = context;
 
   try {
-    // 验证管理员权限
-    const auth = await authenticateRequest(request, env);
-    if (!auth.authenticated) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "需要管理员权限",
-        }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-    }
+    const blocked = await requireAdminAccess(request, env);
+    if (blocked) return blocked;
 
-    // 检查是否有用户数据
     const hasUserData = await env.BOOKMARKS_DB.prepare(
       "SELECT config_value FROM system_config WHERE config_key = ?",
     )
       .bind("has_user_data")
       .first();
 
-    // 获取书签列表（如果有用户数据，排除预设书签）
     let bookmarksQuery = `
       SELECT b.id, b.title, b.url, COALESCE(b.keep_status, 'normal') as keep_status,
              b.created_at, c.name as category_name, c.color as category_color
@@ -206,122 +177,59 @@ export async function onRequestGet(context) {
       LEFT JOIN categories c ON b.category_id = c.id
     `;
 
-    // 如果有用户数据，排除预设书签
-    if (hasUserData && hasUserData.config_value === "true") {
-      const presetUrls = [
-        "https://github.com",
-        "https://stackoverflow.com",
-        "https://developer.mozilla.org",
-        "https://youtube.com",
-        "https://twitter.com",
-        "https://reddit.com",
-        "https://amazon.com",
-        "https://google.com",
-      ];
-
-      const placeholders = presetUrls.map(() => "?").join(",");
+    const hasRealUserData = hasUserData?.config_value === "true";
+    if (hasRealUserData) {
+      const placeholders = PRESET_URLS.map(() => "?").join(",");
       bookmarksQuery += ` WHERE b.url NOT IN (${placeholders})`;
     }
 
-    bookmarksQuery += ` ORDER BY b.id DESC`;
+    bookmarksQuery += " ORDER BY b.id DESC";
+    const bookmarks = hasRealUserData
+      ? await env.BOOKMARKS_DB.prepare(bookmarksQuery)
+          .bind(...PRESET_URLS)
+          .all()
+      : await env.BOOKMARKS_DB.prepare(bookmarksQuery).all();
 
-    const bookmarks =
-      hasUserData && hasUserData.config_value === "true"
-        ? await env.BOOKMARKS_DB.prepare(bookmarksQuery)
-            .bind(
-              "https://github.com",
-              "https://stackoverflow.com",
-              "https://developer.mozilla.org",
-              "https://youtube.com",
-              "https://twitter.com",
-              "https://reddit.com",
-              "https://amazon.com",
-              "https://google.com",
-            )
-            .all()
-        : await env.BOOKMARKS_DB.prepare(bookmarksQuery).all();
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        data: bookmarks.results.map((bookmark) => ({
-          id: bookmark.id,
-          title: bookmark.title,
-          url: bookmark.url,
-          category: bookmark.category_name || "未分类",
-          categoryColor: bookmark.category_color || "#6B7280",
-          keepStatus: bookmark.keep_status || "normal", // 如果字段不存在，默认为normal
-          createdAt: bookmark.created_at,
-          status: "pending", // 初始状态
-          checked: false,
-        })),
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      },
+    return ResponseHelper.success(
+      (bookmarks.results || []).map((bookmark) => ({
+        id: bookmark.id,
+        title: bookmark.title,
+        url: bookmark.url,
+        category: bookmark.category_name || "未分类",
+        categoryColor: bookmark.category_color || "#6B7280",
+        keepStatus: bookmark.keep_status || "normal",
+        createdAt: bookmark.created_at,
+        status: "pending",
+        checked: false,
+      })),
     );
   } catch (error) {
-    console.error("获取书签列表失败:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "获取书签列表失败",
-        message: error.message,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
+    console.error("Failed to load bookmarks for link checking:", error);
+    return ResponseHelper.serverError(
+      "Failed to load bookmarks for link checking.",
+      error.message,
     );
   }
 }
 
-// 检查单个书签
 export async function onRequestPost(context) {
   const { request, env } = context;
 
   try {
-    // 验证管理员权限
-    const auth = await authenticateRequest(request, env);
-    if (!auth.authenticated) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "需要管理员权限",
-        }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-    }
+    const blocked = await requireAdminAccess(request, env);
+    if (blocked) return blocked;
 
     const { bookmarkId, url, autoDelete = false } = await request.json();
-
     if (!bookmarkId || !url) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "缺少必要参数",
-        }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return ResponseHelper.validationError("Missing required parameters.");
     }
 
-    // 检查URL
     const result = await checkUrl(url);
-
     let deleted = false;
     let deleteError = null;
 
-    // 如果启用自动删除，只删除明确坏链；超时、拦截、临时错误留给人工确认。
     if (autoDelete && result.deleteCandidate) {
       try {
-        // 先获取书签信息
         const bookmark = await env.BOOKMARKS_DB.prepare(
           `
           SELECT b.*, c.name as category_name
@@ -334,7 +242,6 @@ export async function onRequestPost(context) {
           .first();
 
         if (bookmark) {
-          // 保存删除记录
           await insertDeletedBookmarkSafe(env, bookmark, {
             deleteReason: "link_check_failed",
             checkStatus: "failed",
@@ -344,7 +251,6 @@ export async function onRequestPost(context) {
             deletedBy: "system",
           });
 
-          // 删除书签
           await env.BOOKMARKS_DB.prepare("DELETE FROM bookmarks WHERE id = ?")
             .bind(bookmarkId)
             .run();
@@ -352,37 +258,18 @@ export async function onRequestPost(context) {
         }
       } catch (error) {
         deleteError = error.message;
-        console.error(`删除书签失败 (ID: ${bookmarkId}):`, error);
+        console.error(`Failed to delete bookmark ${bookmarkId}:`, error);
       }
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        data: {
-          bookmarkId,
-          ...result,
-          deleted,
-          deleteError,
-        },
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    return ResponseHelper.success({
+      bookmarkId,
+      ...result,
+      deleted,
+      deleteError,
+    });
   } catch (error) {
-    console.error("检查链接失败:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "检查链接失败",
-        message: error.message,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    console.error("Failed to check link:", error);
+    return ResponseHelper.serverError("Failed to check link.", error.message);
   }
 }
