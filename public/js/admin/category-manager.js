@@ -20,7 +20,6 @@ const CategoryManagerPage = {
       name: document.getElementById("categoryName"),
       color: document.getElementById("categoryColor"),
       description: document.getElementById("categoryDescription"),
-      focusCreate: document.getElementById("focusCreateCategoryBtn"),
       save: document.getElementById("saveCategoryBtn"),
       reset: document.getElementById("resetCategoryBtn"),
       search: document.getElementById("categorySearch"),
@@ -44,9 +43,6 @@ const CategoryManagerPage = {
     });
 
     this.elements.reset?.addEventListener("click", () => this.resetForm());
-    this.elements.focusCreate?.addEventListener("click", () =>
-      this.focusCreateForm(),
-    );
 
     this.elements.search?.addEventListener("input", () => {
       this.filters.search = this.elements.search.value.trim().toLowerCase();

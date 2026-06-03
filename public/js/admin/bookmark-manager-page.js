@@ -36,7 +36,6 @@ const BookmarkManagePage = {
       createCategory: document.getElementById("createBookmarkCategory"),
       saveCreateBtn: document.getElementById("saveCreateBookmarkBtn"),
       resetCreateBtn: document.getElementById("resetCreateBookmarkBtn"),
-      focusCreateBtn: document.getElementById("focusCreateBookmarkBtn"),
     };
   },
 
@@ -113,9 +112,6 @@ const BookmarkManagePage = {
       this.resetCreateForm();
     });
 
-    this.elements.focusCreateBtn?.addEventListener("click", () => {
-      this.focusCreateForm();
-    });
   },
 
   handleQueryIntent() {
