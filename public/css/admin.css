@@ -125,8 +125,15 @@ body.nav-site.admin-site > .container:not(.nav-shell) {
   gap: 5px;
 }
 
+.admin-sidebar-divider {
+  height: 1px;
+  margin: 6px 4px;
+  background: var(--admin-line-soft);
+}
+
 .admin-sidebar-label {
-  padding: 0 10px;
+  padding: 8px 9px 5px;
+  margin-top: 4px;
   color: var(--admin-muted);
   font-size: 0.68rem;
   font-weight: 900;
@@ -134,15 +141,15 @@ body.nav-site.admin-site > .container:not(.nav-shell) {
 }
 
 .admin-sidebar-link {
-  display: grid;
-  gap: 2px;
-  padding: 10px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
   border: 1px solid transparent;
   border-radius: var(--admin-radius);
-  transition:
-    background 140ms ease,
-    border-color 140ms ease,
-    transform 140ms ease;
+  color: var(--admin-ink);
+  text-decoration: none;
+  transition: background var(--wr-fast), border-color var(--wr-fast);
 }
 
 .admin-sidebar-link:hover {
@@ -151,9 +158,9 @@ body.nav-site.admin-site > .container:not(.nav-shell) {
 }
 
 .admin-sidebar-link.active {
-  border-color: rgba(39, 100, 231, 0.18);
-  background: #edf4ff;
+  background: var(--admin-panel-soft);
   box-shadow: inset 3px 0 0 var(--admin-blue);
+  border-color: rgba(39, 100, 231, 0.15);
 }
 
 .admin-sidebar-link.active span {

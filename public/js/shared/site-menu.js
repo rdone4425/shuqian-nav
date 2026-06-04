@@ -181,6 +181,7 @@ const SiteMenu = {
       rendered.querySelector(".tools-menu")?.remove();
     } else {
       this.renderDropdown(rendered);
+      this.applyAdminPageTitle(rendered, host);
     }
     this.hoistPrimarySlots(rendered, host);
 
@@ -207,6 +208,30 @@ const SiteMenu = {
       subEl.textContent = subtitle;
       subEl.setAttribute("data-site-header-subtitle-original", subtitle);
     }
+  },
+
+  // Admin pages keep only a slim title bar in the top header — the brand,
+  // full navigation and logout all live in the sidebar (admin-shell.js).
+  // Show the current page name (from the menu registry, keyed by
+  // data-page-key) and drop the duplicate brand icon, subtitle and logout.
+  applyAdminPageTitle(rendered, host) {
+    const pageKey = host.getAttribute("data-page-key") || "";
+    const item = this.items.find((entry) => entry.key === pageKey);
+    const title = item?.text || host.getAttribute("data-logo-text") || "后台管理";
+
+    const logo = rendered.querySelector("[data-site-header-logo]");
+    const iconEl = rendered.querySelector("[data-site-header-logo-icon]");
+    const textEl = rendered.querySelector("[data-site-header-logo-text]");
+    const subEl = rendered.querySelector("[data-site-header-logo-subtitle]");
+
+    if (textEl) textEl.textContent = title;
+    if (iconEl) iconEl.remove();
+    if (subEl) subEl.remove();
+    if (logo) {
+      logo.removeAttribute("href");
+      logo.setAttribute("aria-label", title);
+    }
+    rendered.querySelector("#logoutBtn")?.remove();
   },
 
   restorePageSubtitle(host) {
