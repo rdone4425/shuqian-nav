@@ -6,15 +6,30 @@ const BookmarkManagePage = {
   filters: { search: "", category: "" },
   elements: {},
 
-  async init() {
+  async init(params = {}) {
     const authenticated = await AdminUI.requireAuth();
     if (!authenticated) return;
 
+    this.resetState();
     this.bindElements();
     this.bindEvents();
     await this.loadCategories();
     await this.loadBookmarks();
-    this.handleQueryIntent();
+    this.handleQueryIntent(params);
+  },
+
+  // SPA：每次进入该视图时重置单例状态，避免上次的筛选/选择残留。
+  resetState() {
+    this.categories = [];
+    this.bookmarks = [];
+    this.selectedIds = new Set();
+    this.pagination = { page: 1, totalPages: 1, total: 0 };
+    this.filters = { search: "", category: "" };
+  },
+
+  // SPA：同一视图已挂载、仅哈希 query 变化时由路由器调用（不重新加载）。
+  onParams(params = {}) {
+    this.handleQueryIntent(params);
   },
 
   bindElements() {
@@ -113,14 +128,12 @@ const BookmarkManagePage = {
     });
   },
 
-  handleQueryIntent() {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("new") === "bookmark") {
+  // params 来自路由器解析的哈希 query（SPA）；旧多页结构下回退到 location.search。
+  handleQueryIntent(params = {}) {
+    const intent =
+      params.new || new URLSearchParams(window.location.search).get("new");
+    if (intent === "bookmark") {
       this.focusCreateForm();
-      params.delete("new");
-      const remaining = params.toString();
-      const newPath = `${window.location.pathname}${remaining ? `?${remaining}` : ""}`;
-      window.history.replaceState({}, "", newPath);
     }
   },
 
@@ -417,8 +430,11 @@ const BookmarkManagePage = {
   },
 };
 
-document.addEventListener("DOMContentLoaded", () => {
-  BookmarkManagePage.init();
-});
+// 旧多页结构下自启动；在 SPA 外壳 /admin.html 内由路由器调用 init()。
+if (!window.location.pathname.endsWith("/admin.html")) {
+  document.addEventListener("DOMContentLoaded", () => {
+    BookmarkManagePage.init();
+  });
+}
 
 window.BookmarkManagePage = BookmarkManagePage;

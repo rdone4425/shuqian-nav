@@ -320,6 +320,7 @@ function auditAdminPage(pageName, expectedModule) {
     pageName === "token.html"
       ? [
           "/js/shared/auth.js",
+          "/js/shared/admin-menu.js",
           "/js/shared/site-menu.js",
           "/js/shared/admin-common.js",
           "/js/shared/admin-shell.js",
@@ -328,6 +329,7 @@ function auditAdminPage(pageName, expectedModule) {
       : [
           "/js/shared/api.js",
           "/js/shared/auth.js",
+          "/js/shared/admin-menu.js",
           "/js/shared/site-menu.js",
           "/js/shared/admin-common.js",
           "/js/shared/admin-shell.js",
@@ -706,9 +708,10 @@ function auditCurrentCacheVersions() {
   );
   const expectedVersions = new Map([
     ["/js/shared/auth.js", "nav-20260602-auth-cache"],
-    ["/js/shared/site-menu.js", "nav-20260603-logout-icon"],
+    ["/js/shared/admin-menu.js", "nav-20260605-admin-menu"],
+    ["/js/shared/site-menu.js", "nav-20260605-admin-menu"],
     ["/js/shared/admin-shell.js", "nav-20260603-admin-shell"],
-    ["/js/admin/bookmark-manager-page.js", "nav-20260602-public-home"],
+    ["/js/admin/bookmark-manager-page.js", "nav-20260605-spa"],
     ["/js/admin/category-manager.js", "nav-20260602-category-confirm"],
   ]);
 

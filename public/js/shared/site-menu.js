@@ -120,15 +120,9 @@ const SiteMenu = {
   ],
 
   getAdminMenuGroups() {
-    return this.menuGroups
-      .map((group) => ({
-        label: group.label,
-        items: group.keys
-          .filter((key) => key !== "home")
-          .map((key) => this.items.find((item) => item.key === key))
-          .filter(Boolean),
-      }))
-      .filter((group) => group.items.length);
+    // 后台菜单数据源已抽到 admin-menu.js（window.AdminMenu）。这里委托过去。
+    // 公开首页不加载 admin-menu.js，用可选链兜底返回空数组即可。
+    return window.AdminMenu?.getAdminMenuGroups?.() || [];
   },
 
   async init() {
@@ -217,7 +211,8 @@ const SiteMenu = {
   applyAdminPageTitle(rendered, host) {
     const pageKey = host.getAttribute("data-page-key") || "";
     const item = this.items.find((entry) => entry.key === pageKey);
-    const title = item?.text || host.getAttribute("data-logo-text") || "后台管理";
+    const title =
+      item?.text || host.getAttribute("data-logo-text") || "后台管理";
 
     const logo = rendered.querySelector("[data-site-header-logo]");
     const iconEl = rendered.querySelector("[data-site-header-logo-icon]");
@@ -232,6 +227,20 @@ const SiteMenu = {
       logo.setAttribute("aria-label", title);
     }
     rendered.querySelector("#logoutBtn")?.remove();
+  },
+
+  // SPA：路由切换后根据 host 的 data-page-key 刷新顶部标题文本。
+  refreshAdminTitle() {
+    const host = document.querySelector("[data-site-header]");
+    if (!host) return;
+    const pageKey = host.getAttribute("data-page-key") || "";
+    const item = window.AdminMenu?.get?.(pageKey);
+    const title =
+      item?.text || host.getAttribute("data-logo-text") || "后台管理";
+    const textEl = host.querySelector("[data-site-header-logo-text]");
+    if (textEl) textEl.textContent = title;
+    const logo = host.querySelector("[data-site-header-logo]");
+    if (logo) logo.setAttribute("aria-label", title);
   },
 
   restorePageSubtitle(host) {

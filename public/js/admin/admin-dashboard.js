@@ -119,8 +119,11 @@ const AdminDashboardPage = {
   },
 };
 
-document.addEventListener("DOMContentLoaded", () => {
-  AdminDashboardPage.init();
-});
+// 旧多页结构下自启动；在 SPA 外壳 /admin.html 内由路由器调用 init()。
+if (!window.location.pathname.endsWith("/admin.html")) {
+  document.addEventListener("DOMContentLoaded", () => {
+    AdminDashboardPage.init();
+  });
+}
 
 window.AdminDashboardPage = AdminDashboardPage;
