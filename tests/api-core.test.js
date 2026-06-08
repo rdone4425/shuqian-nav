@@ -1245,6 +1245,7 @@ test("bookmark visit tracking remains public and returns updated counters", asyn
 test("bookmark delete removes an inaccessible link and records it", async () => {
   let deleted = false;
   let deletionRecordInserted = false;
+  let deleteLookupSql = "";
   const bookmark = {
     id: 42,
     title: "Broken Link",
@@ -1262,6 +1263,7 @@ test("bookmark delete removes an inaccessible link and records it", async () => 
     BOOKMARKS_DB: createDbMock({
       firstResult({ sql }) {
         if (sql.includes("FROM bookmarks b")) {
+          deleteLookupSql = sql;
           return deleted ? null : bookmark;
         }
         if (sql.includes("FROM deleted_bookmarks")) {
@@ -1314,6 +1316,7 @@ test("bookmark delete removes an inaccessible link and records it", async () => 
   assert.equal(body.success, true);
   assert.equal(deletionRecordInserted, true);
   assert.equal(deleted, true);
+  assert.equal(deleteLookupSql.includes("category_hierarchy"), false);
 });
 
 test("replace import requires explicit clear confirmation before deleting bookmarks", async () => {

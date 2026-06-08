@@ -26,13 +26,11 @@ export async function onRequestGet(context) {
         c.id as category_id,
         c.name as category_name,
         c.color as category_color,
-        h.parent_id as category_parent_id,
-        p.name as category_parent_name,
-        CASE WHEN h.parent_id IS NULL THEN c.name ELSE p.name || ' / ' || c.name END as category_display_name
+        NULL as category_parent_id,
+        NULL as category_parent_name,
+        c.name as category_display_name
       FROM bookmarks b
       LEFT JOIN categories c ON b.category_id = c.id
-      LEFT JOIN category_hierarchy h ON h.category_id = c.id
-      LEFT JOIN categories p ON p.id = h.parent_id
       WHERE b.id = ?
     `,
     )
@@ -123,13 +121,11 @@ export async function onRequestPut(context) {
           c.id as category_id,
           c.name as category_name,
           c.color as category_color,
-          h.parent_id as category_parent_id,
-          p.name as category_parent_name,
-          CASE WHEN h.parent_id IS NULL THEN c.name ELSE p.name || ' / ' || c.name END as category_display_name
+          NULL as category_parent_id,
+          NULL as category_parent_name,
+          c.name as category_display_name
         FROM bookmarks b
         LEFT JOIN categories c ON b.category_id = c.id
-        LEFT JOIN category_hierarchy h ON h.category_id = c.id
-        LEFT JOIN categories p ON p.id = h.parent_id
         WHERE b.id = ?
       `,
       )
@@ -169,12 +165,10 @@ export async function onRequestDelete(context) {
         b.favicon_url,
         b.created_at,
         b.updated_at,
-        CASE WHEN h.parent_id IS NULL THEN c.name ELSE p.name || ' / ' || c.name END as category_name,
+        c.name as category_name,
         b.keep_status
       FROM bookmarks b
       LEFT JOIN categories c ON b.category_id = c.id
-      LEFT JOIN category_hierarchy h ON h.category_id = c.id
-      LEFT JOIN categories p ON p.id = h.parent_id
       WHERE b.id = ?
     `,
     )
