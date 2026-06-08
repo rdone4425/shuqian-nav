@@ -1,6 +1,7 @@
 // Bookmarks list API.
 import { authenticateRequest } from "../auth/verify.js";
 import { ResponseHelper } from "../../utils/response-helper.js";
+import { Validator } from "../../utils/validation.js";
 
 export async function onRequestGet(context) {
   const { request, env } = context;
@@ -8,10 +9,10 @@ export async function onRequestGet(context) {
 
   try {
     // 获取查询参数
-    const page = parseInt(url.searchParams.get("page")) || 1;
-    const requestedLimit = parseInt(url.searchParams.get("limit")) || 20;
+    const page = Math.max(parseInt(url.searchParams.get("page"), 10) || 1, 1);
+    const requestedLimit = parseInt(url.searchParams.get("limit"), 10) || 20;
     // 对于导出功能，允许更大的limit值，最大5000
-    const limit = Math.min(requestedLimit, 5000);
+    const limit = Math.min(Math.max(requestedLimit, 1), 5000);
     const search = url.searchParams.get("search") || "";
     const category = url.searchParams.get("category") || "";
     const sortBy = url.searchParams.get("sortBy") || "created_at";
@@ -32,8 +33,10 @@ export async function onRequestGet(context) {
     }
 
     if (category) {
-      whereConditions.push("b.category_id = ?");
-      params.push(category);
+      whereConditions.push(
+        "(b.category_id = ? OR b.category_id IN (SELECT category_id FROM category_hierarchy WHERE parent_id = ?))",
+      );
+      params.push(category, category);
     }
 
     const whereClause =
@@ -77,9 +80,14 @@ export async function onRequestGet(context) {
         b.updated_at,
         c.id as category_id,
         c.name as category_name,
-        c.color as category_color
+        c.color as category_color,
+        h.parent_id as category_parent_id,
+        p.name as category_parent_name,
+        CASE WHEN h.parent_id IS NULL THEN c.name ELSE p.name || ' / ' || c.name END as category_display_name
       FROM bookmarks b
       LEFT JOIN categories c ON b.category_id = c.id
+      LEFT JOIN category_hierarchy h ON h.category_id = c.id
+      LEFT JOIN categories p ON p.id = h.parent_id
       ${whereClause}
       ORDER BY b.${validSortBy} ${validSortOrder}
       LIMIT ? OFFSET ?
@@ -89,6 +97,8 @@ export async function onRequestGet(context) {
       SELECT COUNT(*) as total
       FROM bookmarks b
       LEFT JOIN categories c ON b.category_id = c.id
+      LEFT JOIN category_hierarchy h ON h.category_id = c.id
+      LEFT JOIN categories p ON p.id = h.parent_id
       ${whereClause}
     `;
 
@@ -157,14 +167,21 @@ export async function onRequestPost(context) {
     }
 
     const { title, url, description, category_id } = await request.json();
+    const bookmarkData = {
+      title: typeof title === "string" ? title.trim() : title,
+      url: typeof url === "string" ? url.trim() : url,
+      description:
+        typeof description === "string" ? description.trim() : description,
+      category_id,
+    };
 
-    // 验证必填字段
-    if (!title || !url) {
-      return ResponseHelper.validationError("标题和URL是必填字段");
+    const validation = Validator.validateBookmark(bookmarkData);
+    if (!validation.isValid) {
+      return ResponseHelper.validationError(validation.errors);
     }
 
     // 生成favicon URL
-    const domain = new URL(url).hostname;
+    const domain = new URL(bookmarkData.url).hostname;
     const favicon_url = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
 
     // 插入新书签
@@ -174,7 +191,13 @@ export async function onRequestPost(context) {
       VALUES (?, ?, ?, ?, ?)
     `,
     )
-      .bind(title, url, description || null, category_id || null, favicon_url)
+      .bind(
+        bookmarkData.title,
+        bookmarkData.url,
+        bookmarkData.description || null,
+        bookmarkData.category_id || null,
+        favicon_url,
+      )
       .run();
 
     if (result.success) {
@@ -191,9 +214,14 @@ export async function onRequestPost(context) {
           b.updated_at,
           c.id as category_id,
           c.name as category_name,
-          c.color as category_color
+          c.color as category_color,
+          h.parent_id as category_parent_id,
+          p.name as category_parent_name,
+          CASE WHEN h.parent_id IS NULL THEN c.name ELSE p.name || ' / ' || c.name END as category_display_name
         FROM bookmarks b
         LEFT JOIN categories c ON b.category_id = c.id
+        LEFT JOIN category_hierarchy h ON h.category_id = c.id
+        LEFT JOIN categories p ON p.id = h.parent_id
         WHERE b.id = ?
       `,
       )

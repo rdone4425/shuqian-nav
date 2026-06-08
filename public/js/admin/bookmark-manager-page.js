@@ -259,7 +259,7 @@ const BookmarkManagePage = {
     return `${empty}${this.categories
       .map(
         (category) =>
-          `<option value="${category.id}">${AdminUI.escapeHtml(category.name)}</option>`,
+          `<option value="${category.id}">${AdminUI.escapeHtml(category.display_name || category.name)}</option>`,
       )
       .join("")}`;
   },
@@ -273,7 +273,8 @@ const BookmarkManagePage = {
 
     this.elements.tableBody.innerHTML = this.bookmarks
       .map((bookmark) => {
-        const categoryName = bookmark.category_name || "未分类";
+        const categoryName =
+          bookmark.category_display_name || bookmark.category_name || "未分类";
         const categoryColor = bookmark.category_color || "#A6AFBD";
         return `
           <tr>

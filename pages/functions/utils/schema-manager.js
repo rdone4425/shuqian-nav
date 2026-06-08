@@ -15,6 +15,15 @@ const SCHEMA_STATEMENTS = [
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`,
+  `CREATE TABLE IF NOT EXISTS category_hierarchy (
+    category_id INTEGER PRIMARY KEY,
+    parent_id INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
+    FOREIGN KEY (parent_id) REFERENCES categories(id) ON DELETE CASCADE,
+    CHECK (category_id != parent_id)
+  )`,
   `CREATE TABLE IF NOT EXISTS bookmarks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
@@ -174,6 +183,7 @@ const INDEX_STATEMENTS = [
   "CREATE INDEX IF NOT EXISTS idx_system_config_updated_at ON system_config(updated_at DESC)",
   "CREATE INDEX IF NOT EXISTS idx_categories_name ON categories(name)",
   "CREATE INDEX IF NOT EXISTS idx_categories_created_at ON categories(created_at DESC)",
+  "CREATE INDEX IF NOT EXISTS idx_category_hierarchy_parent ON category_hierarchy(parent_id)",
 ];
 
 const SEED_STATEMENTS = [
@@ -222,6 +232,7 @@ const SEED_STATEMENTS = [
 export const CORE_TABLES = [
   "system_config",
   "categories",
+  "category_hierarchy",
   "bookmarks",
   "deleted_bookmarks",
 ];

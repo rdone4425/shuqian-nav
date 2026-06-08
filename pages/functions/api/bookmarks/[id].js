@@ -3,6 +3,7 @@ import { authenticateRequest } from "../auth/verify.js";
 import { insertDeletedBookmarkSafe } from "../../utils/deleted-bookmarks.js";
 import { bookmarkAnalytics } from "../../utils/bookmark-analytics.js";
 import { ResponseHelper } from "../../utils/response-helper.js";
+import { Validator } from "../../utils/validation.js";
 
 // 获取单个书签
 export async function onRequestGet(context) {
@@ -24,9 +25,14 @@ export async function onRequestGet(context) {
         b.updated_at,
         c.id as category_id,
         c.name as category_name,
-        c.color as category_color
+        c.color as category_color,
+        h.parent_id as category_parent_id,
+        p.name as category_parent_name,
+        CASE WHEN h.parent_id IS NULL THEN c.name ELSE p.name || ' / ' || c.name END as category_display_name
       FROM bookmarks b
       LEFT JOIN categories c ON b.category_id = c.id
+      LEFT JOIN category_hierarchy h ON h.category_id = c.id
+      LEFT JOIN categories p ON p.id = h.parent_id
       WHERE b.id = ?
     `,
     )
@@ -56,10 +62,17 @@ export async function onRequestPut(context) {
     }
 
     const { title, url, description, category_id } = await request.json();
+    const bookmarkData = {
+      title: typeof title === "string" ? title.trim() : title,
+      url: typeof url === "string" ? url.trim() : url,
+      description:
+        typeof description === "string" ? description.trim() : description,
+      category_id,
+    };
 
-    // 验证必填字段
-    if (!title || !url) {
-      return ResponseHelper.error("标题和URL是必填字段", 400);
+    const validation = Validator.validateBookmark(bookmarkData);
+    if (!validation.isValid) {
+      return ResponseHelper.validationError(validation.errors);
     }
 
     // 检查书签是否存在
@@ -74,7 +87,7 @@ export async function onRequestPut(context) {
     }
 
     // 生成新的favicon URL
-    const domain = new URL(url).hostname;
+    const domain = new URL(bookmarkData.url).hostname;
     const favicon_url = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
 
     // 更新书签
@@ -86,10 +99,10 @@ export async function onRequestPut(context) {
     `,
     )
       .bind(
-        title,
-        url,
-        description || null,
-        category_id || null,
+        bookmarkData.title,
+        bookmarkData.url,
+        bookmarkData.description || null,
+        bookmarkData.category_id || null,
         favicon_url,
         bookmarkId,
       )
@@ -109,9 +122,14 @@ export async function onRequestPut(context) {
           b.updated_at,
           c.id as category_id,
           c.name as category_name,
-          c.color as category_color
+          c.color as category_color,
+          h.parent_id as category_parent_id,
+          p.name as category_parent_name,
+          CASE WHEN h.parent_id IS NULL THEN c.name ELSE p.name || ' / ' || c.name END as category_display_name
         FROM bookmarks b
         LEFT JOIN categories c ON b.category_id = c.id
+        LEFT JOIN category_hierarchy h ON h.category_id = c.id
+        LEFT JOIN categories p ON p.id = h.parent_id
         WHERE b.id = ?
       `,
       )
@@ -151,10 +169,12 @@ export async function onRequestDelete(context) {
         b.favicon_url,
         b.created_at,
         b.updated_at,
-        c.name as category_name,
+        CASE WHEN h.parent_id IS NULL THEN c.name ELSE p.name || ' / ' || c.name END as category_name,
         b.keep_status
       FROM bookmarks b
       LEFT JOIN categories c ON b.category_id = c.id
+      LEFT JOIN category_hierarchy h ON h.category_id = c.id
+      LEFT JOIN categories p ON p.id = h.parent_id
       WHERE b.id = ?
     `,
     )

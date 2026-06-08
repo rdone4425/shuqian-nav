@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Root `package.json`** — dev/test tooling only (eslint, prettier, wrangler, puppeteer-core) plus `jose`. All quality commands run from here.
 - **`pages/package.json`** — the deployment wrapper. This is the wrangler that actually runs `dev`/`deploy` (pinned to wrangler v4; the root's wrangler v3 is only for tooling). D1 binding lives in `pages/wrangler.toml`.
 
-Install requires **both**: `npm install` *and* `npm --prefix pages install`.
+Install requires **both**: `npm install` _and_ `npm --prefix pages install`.
 
 ## Commands
 
@@ -30,13 +30,12 @@ The frontend audit alone (fast, no network): `node scripts/audit-loading-matrix.
 
 The other `scripts/` are **not** wired into `npm test`/CI — run them by hand when needed: `audit-buttons.mjs` (standalone button/markup audit) and `screenshot-admin.mjs` (puppeteer admin screenshots).
 
-### ⚠️ Missing scripts gotcha
+### Local setup notes
 
-`package.json` and `README.md` reference `npm run config`, `npm run reset`, `npm run reset:clean`, `npm run reset:custom`, and `npm run db:init:local` (and the `postinstall` hook points at the same flow), but **`scripts/setup-config.cjs` and `scripts/reset.cjs` do not exist in the repo** — those commands fail. What actually works:
+`scripts/setup-config.cjs` and `scripts/reset.cjs` do not exist in the repo. The root package intentionally exposes only the working D1 initializer:
 
 - `.dev.vars` (gitignored) and `pages/wrangler.toml` (committed) are already present; create/edit them by hand. `.dev.vars` needs `ADMIN_PASSWORD`, `JWT_SECRET`, `ENVIRONMENT=development`.
-- Local D1 lives in the gitignored `.wrangler/state`. To (re)apply the schema, mirror what CI does but with `--local`, from the `pages/` directory:
-  `npx wrangler d1 execute BOOKMARKS_DB --local --persist-to ../.wrangler/state --file ../db/schema.sql`
+- Local D1 lives in the gitignored `.wrangler/state`. Run `npm run db:init:local` from the repo root to apply `db/schema.sql` with the `pages/` wrangler.
 
 ## Backend: Pages Functions (`pages/functions/`)
 

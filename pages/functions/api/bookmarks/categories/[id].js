@@ -1,5 +1,6 @@
 import { authenticateRequest } from "../../auth/verify.js";
 import { ResponseHelper } from "../../../utils/response-helper.js";
+import { Validator } from "../../../utils/validation.js";
 
 function normalizeCategoryId(value) {
   if (value === null || value === undefined || value === "") {
@@ -18,17 +19,62 @@ async function getCategory(env, id) {
         c.name,
         c.color,
         c.description,
+        h.parent_id,
+        p.name as parent_name,
+        p.color as parent_color,
+        CASE WHEN h.parent_id IS NULL THEN c.name ELSE p.name || ' / ' || c.name END as display_name,
         c.created_at,
         c.updated_at,
         COUNT(b.id) as bookmark_count
       FROM categories c
+      LEFT JOIN category_hierarchy h ON h.category_id = c.id
+      LEFT JOIN categories p ON p.id = h.parent_id
       LEFT JOIN bookmarks b ON c.id = b.category_id
       WHERE c.id = ?
-      GROUP BY c.id, c.name, c.color, c.description, c.created_at, c.updated_at
+      GROUP BY c.id, c.name, c.color, c.description, h.parent_id, p.name, p.color, c.created_at, c.updated_at
     `,
   )
     .bind(id)
     .first();
+}
+
+async function validateParentCategory(env, categoryId, parentId) {
+  if (!parentId) return { valid: true, parentId: null };
+
+  if (parentId === categoryId) {
+    return { valid: false, error: "父分类不能是当前分类" };
+  }
+
+  const child = await env.BOOKMARKS_DB.prepare(
+    "SELECT category_id FROM category_hierarchy WHERE parent_id = ? LIMIT 1",
+  )
+    .bind(categoryId)
+    .first();
+
+  if (child) {
+    return { valid: false, error: "已有子分类的分类不能设为二级分类" };
+  }
+
+  const parent = await env.BOOKMARKS_DB.prepare(
+    `
+      SELECT c.id, h.parent_id
+      FROM categories c
+      LEFT JOIN category_hierarchy h ON h.category_id = c.id
+      WHERE c.id = ?
+    `,
+  )
+    .bind(parentId)
+    .first();
+
+  if (!parent) {
+    return { valid: false, error: "父分类不存在" };
+  }
+
+  if (parent.parent_id) {
+    return { valid: false, error: "父分类不能是二级分类" };
+  }
+
+  return { valid: true, parentId };
 }
 
 async function requireAuth(request, env) {
@@ -51,11 +97,24 @@ export async function onRequestPut(context) {
       return ResponseHelper.validationError("分类 ID 无效");
     }
 
-    const { name, color, description } = await request.json();
-    const normalizedName = String(name || "").trim();
+    const { name, color, description, parent_id } = await request.json();
+    const parentId = normalizeCategoryId(parent_id);
+    const hasParentValue =
+      parent_id !== null && parent_id !== undefined && parent_id !== "";
+    const categoryData = {
+      name: typeof name === "string" ? name.trim() : name,
+      color: typeof color === "string" ? color.trim() : color,
+      description:
+        typeof description === "string" ? description.trim() : description,
+    };
 
-    if (!normalizedName) {
-      return ResponseHelper.validationError("分类名称不能为空");
+    const validation = Validator.validateCategory(categoryData);
+    if (!validation.isValid) {
+      return ResponseHelper.validationError(validation.errors);
+    }
+
+    if (hasParentValue && !parentId) {
+      return ResponseHelper.validationError("父分类 ID 无效");
     }
 
     const existing = await env.BOOKMARKS_DB.prepare(
@@ -71,11 +130,20 @@ export async function onRequestPut(context) {
     const duplicate = await env.BOOKMARKS_DB.prepare(
       "SELECT id FROM categories WHERE name = ? AND id != ?",
     )
-      .bind(normalizedName, categoryId)
+      .bind(categoryData.name, categoryId)
       .first();
 
     if (duplicate) {
       return ResponseHelper.businessError("分类名称已存在");
+    }
+
+    const parentValidation = await validateParentCategory(
+      env,
+      categoryId,
+      parentId,
+    );
+    if (!parentValidation.valid) {
+      return ResponseHelper.validationError(parentValidation.error);
     }
 
     await env.BOOKMARKS_DB.prepare(
@@ -86,12 +154,29 @@ export async function onRequestPut(context) {
       `,
     )
       .bind(
-        normalizedName,
-        color || "#3B82F6",
-        description ? String(description).trim() : null,
+        categoryData.name,
+        categoryData.color || "#3B82F6",
+        categoryData.description || null,
         categoryId,
       )
       .run();
+
+    await env.BOOKMARKS_DB.prepare(
+      "DELETE FROM category_hierarchy WHERE category_id = ?",
+    )
+      .bind(categoryId)
+      .run();
+
+    if (parentValidation.parentId) {
+      await env.BOOKMARKS_DB.prepare(
+        `
+          INSERT INTO category_hierarchy (category_id, parent_id)
+          VALUES (?, ?)
+        `,
+      )
+        .bind(categoryId, parentValidation.parentId)
+        .run();
+    }
 
     const updatedCategory = await getCategory(env, categoryId);
     return ResponseHelper.success(updatedCategory, "分类已更新");
@@ -149,6 +234,12 @@ export async function onRequestDelete(context) {
       "UPDATE bookmarks SET category_id = ?, updated_at = CURRENT_TIMESTAMP WHERE category_id = ?",
     )
       .bind(moveToCategoryId, categoryId)
+      .run();
+
+    await env.BOOKMARKS_DB.prepare(
+      "DELETE FROM category_hierarchy WHERE category_id = ? OR parent_id = ?",
+    )
+      .bind(categoryId, categoryId)
       .run();
 
     await env.BOOKMARKS_DB.prepare("DELETE FROM categories WHERE id = ?")

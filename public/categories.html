@@ -22,11 +22,7 @@
   </head>
   <body class="nav-site admin-site">
     <div class="container">
-      <div
-        data-site-header
-        data-page-key="categories"
-        class="header"
-      ></div>
+      <div data-site-header data-page-key="categories" class="header"></div>
 
       <section class="workspace-section-heading">
         <div>
@@ -66,6 +62,12 @@
                   type="color"
                   value="#3B82F6"
                 />
+              </label>
+              <label class="field-stack">
+                <span>上级分类</span>
+                <select id="categoryParent" class="management-select">
+                  <option value="">一级分类</option>
+                </select>
               </label>
               <label class="field-stack grow">
                 <span>描述</span>
@@ -117,6 +119,7 @@
               <thead>
                 <tr>
                   <th>分类</th>
+                  <th>上级分类</th>
                   <th>描述</th>
                   <th>书签数</th>
                   <th>更新时间</th>
@@ -125,7 +128,7 @@
               </thead>
               <tbody id="categoriesTableBody">
                 <tr>
-                  <td colspan="5" class="management-empty">正在加载分类...</td>
+                  <td colspan="6" class="management-empty">正在加载分类...</td>
                 </tr>
               </tbody>
             </table>
@@ -188,6 +191,6 @@
     <script src="/js/shared/site-menu.js?v=nav-20260605-admin-menu"></script>
     <script src="/js/shared/admin-common.js?v=nav-20260602-shared-runtime"></script>
     <script src="/js/shared/admin-shell.js?v=nav-20260603-admin-shell"></script>
-    <script src="/js/admin/category-manager.js?v=nav-20260602-category-confirm"></script>
+    <script src="/js/admin/category-manager.js?v=nav-20260608-category-parent"></script>
   </body>
 </html>

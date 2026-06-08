@@ -648,6 +648,69 @@ test("bookmark and category lists are public read-only endpoints", async () => {
   assert.equal((await categoriesResponse.json()).data.length, 1);
 });
 
+test("bookmark list clamps unsafe pagination parameters", async () => {
+  let bookmarkQueryParams = null;
+  const env = {
+    BOOKMARKS_DB: createDbMock({
+      allResult({ sql, params }) {
+        if (sql.includes("FROM bookmarks b")) {
+          bookmarkQueryParams = params;
+        }
+        return { results: [] };
+      },
+      firstResult({ sql }) {
+        if (sql.includes("COUNT(*) as total")) {
+          return { total: 10 };
+        }
+        return null;
+      },
+    }),
+  };
+
+  const response = await bookmarkListHandler({
+    request: new Request("https://example.com/api/bookmarks?page=-2&limit=-1"),
+    env,
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(bookmarkQueryParams.slice(-2), [1, 0]);
+  assert.equal(body.data.pagination.page, 1);
+  assert.equal(body.data.pagination.limit, 1);
+  assert.equal(body.data.pagination.totalPages, 10);
+});
+
+test("bookmark list category filter includes child categories", async () => {
+  let bookmarkQuery = null;
+  let bookmarkQueryParams = null;
+  const env = {
+    BOOKMARKS_DB: createDbMock({
+      allResult({ sql, params }) {
+        if (sql.includes("FROM bookmarks b")) {
+          bookmarkQuery = sql;
+          bookmarkQueryParams = params;
+        }
+        return { results: [] };
+      },
+      firstResult({ sql }) {
+        if (sql.includes("COUNT(*) as total")) {
+          return { total: 0 };
+        }
+        return null;
+      },
+    }),
+  };
+
+  const response = await bookmarkListHandler({
+    request: new Request("https://example.com/api/bookmarks?category=5"),
+    env,
+  });
+
+  assert.equal(response.status, 200);
+  assert.match(bookmarkQuery, /SELECT category_id FROM category_hierarchy/);
+  assert.deepEqual(bookmarkQueryParams.slice(0, 2), ["5", "5"]);
+});
+
 test("bookmark and category writes still require login", async () => {
   const env = {
     ENVIRONMENT: "production",
@@ -702,6 +765,185 @@ test("bookmark and category writes still require login", async () => {
   assert.equal(importResponse.status, 401);
   assert.equal(deleteResponse.status, 401);
   assert.equal(updateResponse.status, 401);
+});
+
+test("bookmark creation rejects unsafe URL protocols and accepts valid URLs", async () => {
+  let insertAttempted = false;
+  let insertParams = null;
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        if (sql.includes("system_config WHERE config_key")) {
+          return null;
+        }
+        if (
+          sql.includes("FROM bookmarks b") &&
+          sql.includes("WHERE b.id = ?")
+        ) {
+          return {
+            id: Number(params[0]),
+            title: insertParams[0],
+            url: insertParams[1],
+            description: insertParams[2],
+            favicon_url: insertParams[4],
+          };
+        }
+        return null;
+      },
+      runResult({ sql, params }) {
+        if (sql.includes("INSERT INTO bookmarks")) {
+          insertAttempted = true;
+          insertParams = params;
+          return { success: true, meta: { last_row_id: 33 } };
+        }
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const blockedResponse = await bookmarkCreateHandler({
+    request: new Request("https://example.com/api/bookmarks", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({
+        title: "Unsafe",
+        url: "javascript:alert(1)",
+      }),
+    }),
+    env,
+  });
+
+  assert.equal(blockedResponse.status, 400);
+  assert.equal(insertAttempted, false);
+
+  const response = await bookmarkCreateHandler({
+    request: new Request("https://example.com/api/bookmarks", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({
+        title: " Example ",
+        url: " https://example.com/docs ",
+        description: " Docs ",
+      }),
+    }),
+    env,
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 201);
+  assert.equal(body.success, true);
+  assert.deepEqual(insertParams.slice(0, 3), [
+    "Example",
+    "https://example.com/docs",
+    "Docs",
+  ]);
+});
+
+test("bookmark update rejects unsafe URL protocols and accepts valid URLs", async () => {
+  let updateAttempted = false;
+  let updateParams = null;
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        if (sql.includes("system_config WHERE config_key")) {
+          return null;
+        }
+        if (sql.includes("SELECT id FROM bookmarks WHERE id = ?")) {
+          return { id: Number(params[0]) };
+        }
+        if (
+          sql.includes("FROM bookmarks b") &&
+          sql.includes("WHERE b.id = ?")
+        ) {
+          return {
+            id: Number(params[0]),
+            title: updateParams[0],
+            url: updateParams[1],
+            description: updateParams[2],
+            favicon_url: updateParams[4],
+          };
+        }
+        return null;
+      },
+      runResult({ sql, params }) {
+        if (sql.includes("UPDATE bookmarks")) {
+          updateAttempted = true;
+          updateParams = params;
+        }
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const blockedResponse = await bookmarkUpdateHandler({
+    request: new Request("https://example.com/api/bookmarks/12", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({
+        title: "Unsafe",
+        url: "data:text/html,hello",
+      }),
+    }),
+    params: { id: "12" },
+    env,
+  });
+
+  assert.equal(blockedResponse.status, 400);
+  assert.equal(updateAttempted, false);
+
+  const response = await bookmarkUpdateHandler({
+    request: new Request("https://example.com/api/bookmarks/12", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({
+        title: "Updated",
+        url: "https://example.com/updated",
+      }),
+    }),
+    params: { id: "12" },
+    env,
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.success, true);
+  assert.equal(updateParams[1], "https://example.com/updated");
 });
 
 test("authenticated admin can create categories through the shared envelope", async () => {
@@ -774,6 +1016,179 @@ test("authenticated admin can create categories through the shared envelope", as
   assert.equal(body.data.id, 12);
   assert.equal(body.data.name, "Research");
   assert.deepEqual(insertParams, ["Research", "#10B981", "Reading queue"]);
+});
+
+test("category creation rejects invalid colors and uses the default color", async () => {
+  let insertAttempted = false;
+  let insertParams = null;
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        if (sql.includes("system_config WHERE config_key")) {
+          return null;
+        }
+        if (sql.includes("SELECT id FROM categories WHERE name = ?")) {
+          return null;
+        }
+        if (
+          sql.includes("FROM categories c") &&
+          sql.includes("WHERE c.id = ?")
+        ) {
+          return {
+            id: Number(params[0]),
+            name: insertParams[0],
+            color: insertParams[1],
+            description: insertParams[2],
+            bookmark_count: 0,
+          };
+        }
+        return null;
+      },
+      runResult({ sql, params }) {
+        if (sql.includes("INSERT INTO categories")) {
+          insertAttempted = true;
+          insertParams = params;
+          return { success: true, meta: { last_row_id: 44 } };
+        }
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const blockedResponse = await categoryCreateHandler({
+    request: new Request("https://example.com/api/bookmarks/categories", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({
+        name: "Bad color",
+        color: "not-a-color",
+      }),
+    }),
+    env,
+  });
+
+  assert.equal(blockedResponse.status, 400);
+  assert.equal(insertAttempted, false);
+
+  const response = await categoryCreateHandler({
+    request: new Request("https://example.com/api/bookmarks/categories", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({
+        name: " Defaulted ",
+        description: " Uses default color ",
+      }),
+    }),
+    env,
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 201);
+  assert.equal(body.success, true);
+  assert.deepEqual(insertParams, [
+    "Defaulted",
+    "#3B82F6",
+    "Uses default color",
+  ]);
+});
+
+test("category creation supports a second-level parent", async () => {
+  let relationParams = null;
+  let insertParams = null;
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        if (sql.includes("system_config WHERE config_key")) {
+          return null;
+        }
+        if (sql.includes("SELECT id FROM categories WHERE name = ?")) {
+          return null;
+        }
+        if (
+          sql.includes("FROM categories c") &&
+          sql.includes("LEFT JOIN category_hierarchy h") &&
+          !sql.includes("COUNT(b.id)")
+        ) {
+          return { id: Number(params[0]), parent_id: null };
+        }
+        if (sql.includes("FROM categories c") && sql.includes("COUNT(b.id)")) {
+          return {
+            id: Number(params[0]),
+            name: insertParams[0],
+            color: insertParams[1],
+            description: insertParams[2],
+            parent_id: 5,
+            parent_name: "Frontend",
+            display_name: `Frontend / ${insertParams[0]}`,
+            bookmark_count: 0,
+          };
+        }
+        return null;
+      },
+      runResult({ sql, params }) {
+        if (sql.includes("INSERT INTO categories")) {
+          insertParams = params;
+          return { success: true, meta: { last_row_id: 45 } };
+        }
+        if (sql.includes("INSERT INTO category_hierarchy")) {
+          relationParams = params;
+        }
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await categoryCreateHandler({
+    request: new Request("https://example.com/api/bookmarks/categories", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({
+        name: "React",
+        color: "#3B82F6",
+        parent_id: 5,
+      }),
+    }),
+    env,
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 201);
+  assert.deepEqual(relationParams, [45, 5]);
+  assert.equal(body.data.parent_id, 5);
+  assert.equal(body.data.display_name, "Frontend / React");
 });
 
 test("bookmark visit tracking remains public and returns updated counters", async () => {
@@ -1203,6 +1618,7 @@ test("keep-status update requires login and returns the updated bookmark state",
 });
 
 test("category update rejects duplicate names and updates existing category", async () => {
+  let updateAttempted = false;
   const env = {
     ADMIN_PASSWORD: "StrongPass123",
     JWT_SECRET: "test-secret-with-safe-length-1234567890",
@@ -1219,6 +1635,16 @@ test("category update rejects duplicate names and updates existing category", as
         ) {
           return params[0] === "Duplicate" ? { id: 9 } : null;
         }
+        if (
+          sql.includes("FROM categories c") &&
+          sql.includes("LEFT JOIN category_hierarchy h") &&
+          !sql.includes("COUNT(b.id)")
+        ) {
+          return {
+            id: Number(params[0]),
+            parent_id: Number(params[0]) === 4 ? 1 : null,
+          };
+        }
         if (sql.includes("FROM categories c")) {
           return {
             id: Number(params[0]),
@@ -1229,6 +1655,12 @@ test("category update rejects duplicate names and updates existing category", as
           };
         }
         return null;
+      },
+      runResult({ sql }) {
+        if (sql.includes("UPDATE categories")) {
+          updateAttempted = true;
+        }
+        return { success: true, changes: 1 };
       },
     }),
   };
@@ -1242,6 +1674,36 @@ test("category update rejects duplicate names and updates existing category", as
     env,
   });
   const loginBody = await loginResponse.json();
+
+  const invalidColorResponse = await categoryUpdateHandler({
+    request: new Request("https://example.com/api/bookmarks/categories/2", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ name: "Updated", color: "not-a-color" }),
+    }),
+    params: { id: "2" },
+    env,
+  });
+  assert.equal(invalidColorResponse.status, 400);
+  assert.equal(updateAttempted, false);
+
+  const invalidParentResponse = await categoryUpdateHandler({
+    request: new Request("https://example.com/api/bookmarks/categories/2", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ name: "Updated", parent_id: 4 }),
+    }),
+    params: { id: "2" },
+    env,
+  });
+  assert.equal(invalidParentResponse.status, 400);
+  assert.equal(updateAttempted, false);
 
   const duplicateResponse = await categoryUpdateHandler({
     request: new Request("https://example.com/api/bookmarks/categories/2", {

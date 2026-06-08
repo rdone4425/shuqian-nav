@@ -23,8 +23,9 @@
 │  └─ wrangler.toml
 ├─ public/
 ├─ scripts/
-│  ├─ reset.cjs
-│  └─ setup-config.cjs
+│  ├─ audit-buttons.mjs
+│  ├─ audit-loading-matrix.mjs
+│  └─ screenshot-admin.mjs
 ├─ package.json
 └─ README.md
 ```
@@ -40,27 +41,22 @@ npm install
 npm --prefix pages install
 ```
 
-2. 生成本地配置
+2. 检查本地配置
 
-```bash
-npm run config
+`.dev.vars`（已加入 `.gitignore`）至少需要包含：
+
+```env
+ADMIN_PASSWORD=change-me-now
+JWT_SECRET=your-random-secret
+ENVIRONMENT=development
 ```
 
-这个命令会生成：
+`pages/wrangler.toml` 已提交到仓库，通常不需要本地生成。
 
-- `pages/wrangler.toml`
-- `.dev.vars`
-
-3. 初始化本地 D1
+3. 初始化或更新本地 D1
 
 ```bash
 npm run db:init:local
-```
-
-或者：
-
-```bash
-npm run reset
 ```
 
 4. 启动本地开发
@@ -120,17 +116,15 @@ GitHub Actions 会自动完成这些步骤：
 
 ## 常用命令
 
-| 命令                    | 作用                                          |
-| ----------------------- | --------------------------------------------- |
-| `npm run config`        | 生成本地 `pages/wrangler.toml` 和 `.dev.vars` |
-| `npm run reset`         | 将 `db/schema.sql` 应用到本地 D1              |
-| `npm run db:init:local` | 初始化本地 D1                                 |
-| `npm run dev`           | 启动 Pages 本地开发                           |
-| `npm run dev:local`     | 使用 `--local` 启动 Pages                     |
-| `npm run deploy`        | 手动部署到 Pages                              |
-| `npm run lint`          | 检查前后端 JS                                 |
-| `npm run format:check`  | 检查格式                                      |
-| `npm test`              | 运行回归测试、lint、格式检查                  |
+| 命令                    | 作用                         |
+| ----------------------- | ---------------------------- |
+| `npm run db:init:local` | 初始化本地 D1                |
+| `npm run dev`           | 启动 Pages 本地开发          |
+| `npm run dev:local`     | 使用 `--local` 启动 Pages    |
+| `npm run deploy`        | 手动部署到 Pages             |
+| `npm run lint`          | 检查前后端 JS                |
+| `npm run format:check`  | 检查格式                     |
+| `npm test`              | 运行回归测试、lint、格式检查 |
 
 ## 本地配置示例
 

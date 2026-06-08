@@ -332,7 +332,10 @@ const BookmarkManager = {
   },
 
   getCategoryDisplay(bookmark) {
-    const directName = bookmark.category_name || bookmark.category;
+    const directName =
+      bookmark.category_display_name ||
+      bookmark.category_name ||
+      bookmark.category;
     if (directName) {
       return {
         name: String(directName),
@@ -347,7 +350,7 @@ const BookmarkManager = {
       );
       if (matchedCategory) {
         return {
-          name: matchedCategory.name,
+          name: matchedCategory.display_name || matchedCategory.name,
           color: bookmark.category_color || matchedCategory.color,
         };
       }
@@ -407,7 +410,7 @@ const BookmarkManager = {
     const optionsHTML = this.categories
       .map(
         (category) =>
-          `<option value="${category.id}">${this.escapeHtml(category.name)}</option>`,
+          `<option value="${category.id}">${this.escapeHtml(category.display_name || category.name)}</option>`,
       )
       .join("");
 
@@ -438,7 +441,7 @@ const BookmarkManager = {
             : "";
         const color = this.escapeHtml(category.color || "var(--wr-blue)");
         const id = this.escapeHtml(String(category.id));
-        const name = this.escapeHtml(category.name);
+        const name = this.escapeHtml(category.display_name || category.name);
         return `
           <button class="category-chip${active}" type="button" data-category-id="${id}" style="--chip-color: ${color}">
             <span class="category-chip-dot"></span>

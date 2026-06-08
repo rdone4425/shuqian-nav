@@ -19,6 +19,7 @@ const CategoryManagerPage = {
       id: document.getElementById("categoryId"),
       name: document.getElementById("categoryName"),
       color: document.getElementById("categoryColor"),
+      parent: document.getElementById("categoryParent"),
       description: document.getElementById("categoryDescription"),
       save: document.getElementById("saveCategoryBtn"),
       reset: document.getElementById("resetCategoryBtn"),
@@ -80,7 +81,7 @@ const CategoryManagerPage = {
 
   async loadCategories() {
     this.elements.tableBody.innerHTML =
-      '<tr><td colspan="5" class="management-empty">正在加载分类...</td></tr>';
+      '<tr><td colspan="6" class="management-empty">正在加载分类...</td></tr>';
 
     try {
       const response = await BookmarkAPI.getCategories();
@@ -89,16 +90,17 @@ const CategoryManagerPage = {
       }
       this.categories = response.data || [];
       this.updateSummary(this.categories.length);
+      this.renderParentOptions();
       this.renderCategories();
     } catch (error) {
-      this.elements.tableBody.innerHTML = `<tr><td colspan="5" class="management-empty danger-text">${AdminUI.escapeHtml(error.message)}</td></tr>`;
+      this.elements.tableBody.innerHTML = `<tr><td colspan="6" class="management-empty danger-text">${AdminUI.escapeHtml(error.message)}</td></tr>`;
     }
   },
 
   renderCategories() {
     if (!this.categories.length) {
       this.elements.tableBody.innerHTML =
-        '<tr><td colspan="5" class="management-empty">还没有分类</td></tr>';
+        '<tr><td colspan="6" class="management-empty">还没有分类</td></tr>';
       this.updateSummary(0);
       return;
     }
@@ -108,7 +110,7 @@ const CategoryManagerPage = {
 
     if (!visibleCategories.length) {
       this.elements.tableBody.innerHTML =
-        '<tr><td colspan="5" class="management-empty">没有匹配的分类</td></tr>';
+        '<tr><td colspan="6" class="management-empty">没有匹配的分类</td></tr>';
       return;
     }
 
@@ -116,14 +118,18 @@ const CategoryManagerPage = {
       .map((category) => {
         const color = AdminUI.escapeHtml(category.color || "#3B82F6");
         const count = Number(category.bookmark_count || 0);
+        const isChild = Boolean(category.parent_id);
+        const parentName = category.parent_name || "一级分类";
+        const displayName = category.display_name || category.name;
         return `
           <tr>
             <td>
               <span class="category-pill">
                 <span class="color-swatch" style="background:${color}"></span>
-                ${AdminUI.escapeHtml(category.name)}
+                ${isChild ? "└ " : ""}${AdminUI.escapeHtml(displayName)}
               </span>
             </td>
+            <td class="muted-text">${AdminUI.escapeHtml(parentName)}</td>
             <td class="muted-text">${AdminUI.escapeHtml(category.description || "-")}</td>
             <td>${count}</td>
             <td>${AdminUI.escapeHtml(AdminUI.formatDate(category.updated_at || category.created_at))}</td>
@@ -144,9 +150,35 @@ const CategoryManagerPage = {
     if (!query) return this.categories;
 
     return this.categories.filter((category) => {
-      const text = `${category.name || ""} ${category.description || ""}`;
+      const text = `${category.name || ""} ${category.display_name || ""} ${category.parent_name || ""} ${category.description || ""}`;
       return text.toLowerCase().includes(query);
     });
+  },
+
+  renderParentOptions(currentId = this.elements.id?.value || "") {
+    if (!this.elements.parent) return;
+
+    const childParentIds = new Set(
+      this.categories
+        .filter((category) => category.parent_id)
+        .map((category) => String(category.parent_id)),
+    );
+    const currentHasChildren =
+      currentId && childParentIds.has(String(currentId));
+    const rootCategories = this.categories.filter(
+      (category) =>
+        !category.parent_id &&
+        String(category.id) !== String(currentId) &&
+        !currentHasChildren,
+    );
+    const options = rootCategories
+      .map(
+        (category) =>
+          `<option value="${AdminUI.escapeHtml(String(category.id))}">${AdminUI.escapeHtml(category.name)}</option>`,
+      )
+      .join("");
+
+    this.elements.parent.innerHTML = `<option value="">一级分类</option>${options}`;
   },
 
   updateSummary(visibleCount = this.getVisibleCategories().length) {
@@ -176,6 +208,10 @@ const CategoryManagerPage = {
     this.elements.id.value = category.id;
     this.elements.name.value = category.name || "";
     this.elements.color.value = category.color || "#3B82F6";
+    this.renderParentOptions(category.id);
+    if (this.elements.parent) {
+      this.elements.parent.value = category.parent_id || "";
+    }
     this.elements.description.value = category.description || "";
     if (this.elements.save) {
       this.elements.save.textContent = "保存修改";
@@ -187,6 +223,10 @@ const CategoryManagerPage = {
     this.elements.form.reset();
     this.elements.id.value = "";
     this.elements.color.value = "#3B82F6";
+    this.renderParentOptions();
+    if (this.elements.parent) {
+      this.elements.parent.value = "";
+    }
     if (this.elements.save) {
       this.elements.save.textContent = "创建分类";
     }
@@ -202,6 +242,7 @@ const CategoryManagerPage = {
     return {
       name: this.elements.name.value.trim(),
       color: this.elements.color.value || "#3B82F6",
+      parent_id: this.elements.parent?.value || null,
       description: this.elements.description.value.trim(),
     };
   },

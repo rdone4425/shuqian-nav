@@ -9,17 +9,13 @@
     "start": "npm run dev",
     "build": "echo \"Static Pages app does not require a build step\"",
     "deploy": "npm --prefix pages run deploy",
-    "config": "node scripts/setup-config.cjs",
-    "reset": "node scripts/reset.cjs",
-    "reset:clean": "node scripts/reset.cjs --clean",
-    "reset:custom": "node scripts/reset.cjs",
     "lint": "eslint \"public/js/**/*.js\" \"pages/functions/**/*.js\" \"scripts/**/*.{js,cjs,mjs}\" \"tests/**/*.js\" --ext .js,.cjs,.mjs",
     "lint:fix": "eslint \"public/js/**/*.js\" \"pages/functions/**/*.js\" \"scripts/**/*.{js,cjs,mjs}\" \"tests/**/*.js\" --ext .js,.cjs,.mjs --fix",
     "format": "prettier --write \"README.md\" \"package.json\" \"package-lock.json\" \".eslintrc.json\" \".github/**/*.{yml,yaml}\" \"pages/functions/**/*.js\" \"pages/package.json\" \"public/js/**/*.js\" \"public/login.html\" \"scripts/**/*.{js,cjs,mjs}\" \"tests/**/*.js\"",
     "format:check": "prettier --check \"README.md\" \"package.json\" \"package-lock.json\" \".eslintrc.json\" \".github/**/*.{yml,yaml}\" \"pages/functions/**/*.js\" \"pages/package.json\" \"public/js/**/*.js\" \"public/login.html\" \"scripts/**/*.{js,cjs,mjs}\" \"tests/**/*.js\"",
     "test": "node scripts/audit-loading-matrix.mjs && node --test tests/**/*.test.js && npm run lint && npm run format:check && echo \"All checks passed\"",
-    "db:init:local": "node scripts/reset.cjs",
-    "postinstall": "echo \"Deployment entrypoint moved to /pages. Run npm run config, then npm run dev or npm run deploy.\""
+    "db:init:local": "npm --prefix pages exec -- wrangler d1 execute BOOKMARKS_DB --local --config pages/wrangler.toml --persist-to .wrangler/state --file db/schema.sql",
+    "postinstall": "echo \"Deployment entrypoint moved to /pages. Run npm run db:init:local, then npm run dev or npm run deploy.\""
   },
   "keywords": [
     "bookmark",
