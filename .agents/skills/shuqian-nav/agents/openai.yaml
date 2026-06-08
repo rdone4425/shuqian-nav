@@ -1,0 +1,6 @@
+interface:
+  display_name: "Shuqian Nav"
+  short_description: "Repo-specific patterns and workflows for shuqian-nav"
+  default_prompt: "Use the shuqian-nav repo skill to follow existing architecture, testing, and workflow conventions."
+policy:
+  allow_implicit_invocation: true
