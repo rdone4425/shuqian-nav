@@ -711,6 +711,94 @@ test("bookmark list category filter includes child categories", async () => {
   assert.deepEqual(bookmarkQueryParams.slice(0, 2), ["5", "5"]);
 });
 
+test("bookmark list falls back when category hierarchy is missing", async () => {
+  let fallbackQuery = null;
+  let fallbackParams = null;
+  const env = {
+    BOOKMARKS_DB: createDbMock({
+      allResult({ sql, params }) {
+        if (sql.includes("category_hierarchy")) {
+          throw new Error("no such table: category_hierarchy");
+        }
+        if (sql.includes("FROM bookmarks b")) {
+          fallbackQuery = sql;
+          fallbackParams = params;
+          return {
+            results: [
+              {
+                id: 1,
+                title: "Example",
+                url: "https://example.com",
+                category_id: 5,
+                category_name: "Docs",
+                category_display_name: "Docs",
+              },
+            ],
+          };
+        }
+        return { results: [] };
+      },
+      firstResult({ sql }) {
+        if (sql.includes("category_hierarchy")) {
+          throw new Error("no such table: category_hierarchy");
+        }
+        if (sql.includes("COUNT(*) as total")) {
+          return { total: 1 };
+        }
+        return null;
+      },
+    }),
+  };
+
+  const response = await bookmarkListHandler({
+    request: new Request("https://example.com/api/bookmarks?category=5"),
+    env,
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.doesNotMatch(fallbackQuery, /category_hierarchy/);
+  assert.deepEqual(fallbackParams, ["5", 20, 0]);
+  assert.equal(body.data.bookmarks.length, 1);
+});
+
+test("category list falls back when category hierarchy is missing", async () => {
+  const env = {
+    BOOKMARKS_DB: createDbMock({
+      allResult({ sql }) {
+        if (sql.includes("category_hierarchy")) {
+          throw new Error("no such table: category_hierarchy");
+        }
+        if (sql.includes("FROM categories c")) {
+          return {
+            results: [
+              {
+                id: 2,
+                name: "Docs",
+                parent_id: null,
+                display_name: "Docs",
+                bookmark_count: 3,
+              },
+            ],
+          };
+        }
+        return { results: [] };
+      },
+    }),
+  };
+
+  const response = await categoryListHandler({
+    request: new Request("https://example.com/api/bookmarks/categories"),
+    env,
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.data.length, 1);
+  assert.equal(body.data[0].parent_id, null);
+  assert.equal(body.data[0].display_name, "Docs");
+});
+
 test("bookmark and category writes still require login", async () => {
   const env = {
     ENVIRONMENT: "production",
@@ -1189,6 +1277,129 @@ test("category creation supports a second-level parent", async () => {
   assert.deepEqual(relationParams, [45, 5]);
   assert.equal(body.data.parent_id, 5);
   assert.equal(body.data.display_name, "Frontend / React");
+});
+
+test("top-level category creation works when category hierarchy is missing", async () => {
+  let insertParams = null;
+  let hierarchyWriteAttempted = false;
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        if (sql.includes("system_config WHERE config_key")) {
+          return null;
+        }
+        if (sql.includes("SELECT id FROM categories WHERE name = ?")) {
+          return null;
+        }
+        if (sql.includes("category_hierarchy")) {
+          throw new Error("no such table: category_hierarchy");
+        }
+        if (sql.includes("FROM categories c")) {
+          return {
+            id: Number(params[0]),
+            name: insertParams[0],
+            color: insertParams[1],
+            description: insertParams[2],
+            parent_id: null,
+            display_name: insertParams[0],
+            bookmark_count: 0,
+          };
+        }
+        return null;
+      },
+      runResult({ sql, params }) {
+        if (sql.includes("category_hierarchy")) {
+          hierarchyWriteAttempted = true;
+          throw new Error("no such table: category_hierarchy");
+        }
+        if (sql.includes("INSERT INTO categories")) {
+          insertParams = params;
+          return { success: true, meta: { last_row_id: 46 } };
+        }
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await categoryCreateHandler({
+    request: new Request("https://example.com/api/bookmarks/categories", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ name: "Legacy", color: "#3B82F6" }),
+    }),
+    env,
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 201);
+  assert.equal(body.success, true);
+  assert.equal(body.data.display_name, "Legacy");
+  assert.equal(hierarchyWriteAttempted, false);
+});
+
+test("second-level category creation returns validation when hierarchy is missing", async () => {
+  let insertAttempted = false;
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql }) {
+        if (sql.includes("system_config WHERE config_key")) {
+          return null;
+        }
+        if (sql.includes("category_hierarchy")) {
+          throw new Error("no such table: category_hierarchy");
+        }
+        return null;
+      },
+      runResult({ sql }) {
+        if (sql.includes("INSERT INTO categories")) {
+          insertAttempted = true;
+        }
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await categoryCreateHandler({
+    request: new Request("https://example.com/api/bookmarks/categories", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ name: "Child", parent_id: 5 }),
+    }),
+    env,
+  });
+
+  assert.equal(response.status, 400);
+  assert.equal(insertAttempted, false);
 });
 
 test("bookmark visit tracking remains public and returns updated counters", async () => {
@@ -1744,6 +1955,143 @@ test("category update rejects duplicate names and updates existing category", as
   assert.equal(body.data.name, "Updated");
 });
 
+test("top-level category update works when category hierarchy is missing", async () => {
+  let updateAttempted = false;
+  let hierarchyWriteAttempted = false;
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        if (sql.includes("SELECT id FROM categories WHERE id = ?")) {
+          return { id: Number(params[0]) };
+        }
+        if (
+          sql.includes("SELECT id FROM categories WHERE name = ? AND id != ?")
+        ) {
+          return null;
+        }
+        if (sql.includes("category_hierarchy")) {
+          throw new Error("no such table: category_hierarchy");
+        }
+        if (sql.includes("FROM categories c")) {
+          return {
+            id: Number(params[0]),
+            name: "Updated",
+            color: "#111111",
+            parent_id: null,
+            display_name: "Updated",
+            bookmark_count: 0,
+          };
+        }
+        return null;
+      },
+      runResult({ sql }) {
+        if (sql.includes("category_hierarchy")) {
+          hierarchyWriteAttempted = true;
+          throw new Error("no such table: category_hierarchy");
+        }
+        if (sql.includes("UPDATE categories")) {
+          updateAttempted = true;
+        }
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await categoryUpdateHandler({
+    request: new Request("https://example.com/api/bookmarks/categories/2", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ name: "Updated", color: "#111111" }),
+    }),
+    params: { id: "2" },
+    env,
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.success, true);
+  assert.equal(body.data.display_name, "Updated");
+  assert.equal(updateAttempted, true);
+  assert.equal(hierarchyWriteAttempted, true);
+});
+
+test("category update with parent returns validation when hierarchy is missing", async () => {
+  let updateAttempted = false;
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        if (sql.includes("SELECT id FROM categories WHERE id = ?")) {
+          return { id: Number(params[0]) };
+        }
+        if (
+          sql.includes("SELECT id FROM categories WHERE name = ? AND id != ?")
+        ) {
+          return null;
+        }
+        if (sql.includes("category_hierarchy")) {
+          throw new Error("no such table: category_hierarchy");
+        }
+        return null;
+      },
+      runResult({ sql }) {
+        if (sql.includes("UPDATE categories")) {
+          updateAttempted = true;
+        }
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await categoryUpdateHandler({
+    request: new Request("https://example.com/api/bookmarks/categories/2", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ name: "Updated", parent_id: 5 }),
+    }),
+    params: { id: "2" },
+    env,
+  });
+
+  assert.equal(response.status, 400);
+  assert.equal(updateAttempted, false);
+});
+
 test("category delete migrates bookmarks before removing the category", async () => {
   let movedTo = undefined;
   let deletedCategory = false;
@@ -1804,6 +2152,78 @@ test("category delete migrates bookmarks before removing the category", async ()
   assert.equal(body.success, true);
   assert.equal(movedTo, 4);
   assert.equal(deletedCategory, true);
+  assert.equal(body.data.movedCount, 3);
+});
+
+test("category delete works when category hierarchy is missing", async () => {
+  let movedTo = undefined;
+  let deletedCategory = false;
+  let hierarchyDeleteAttempted = false;
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        if (sql.includes("category_hierarchy")) {
+          throw new Error("no such table: category_hierarchy");
+        }
+        if (sql.includes("FROM categories c")) {
+          return { id: Number(params[0]), name: "Old", bookmark_count: 3 };
+        }
+        if (sql.includes("SELECT id FROM categories WHERE id = ?")) {
+          return { id: Number(params[0]) };
+        }
+        return null;
+      },
+      runResult({ sql, params }) {
+        if (sql.includes("category_hierarchy")) {
+          hierarchyDeleteAttempted = true;
+          throw new Error("no such table: category_hierarchy");
+        }
+        if (sql.includes("UPDATE bookmarks SET category_id")) {
+          movedTo = params[0];
+          return { success: true, meta: { changes: 3 } };
+        }
+        if (sql.includes("DELETE FROM categories")) {
+          deletedCategory = true;
+        }
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await categoryDeleteHandler({
+    request: new Request("https://example.com/api/bookmarks/categories/2", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ moveToCategoryId: 4 }),
+    }),
+    params: { id: "2" },
+    env,
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.success, true);
+  assert.equal(movedTo, 4);
+  assert.equal(deletedCategory, true);
+  assert.equal(hierarchyDeleteAttempted, true);
   assert.equal(body.data.movedCount, 3);
 });
 

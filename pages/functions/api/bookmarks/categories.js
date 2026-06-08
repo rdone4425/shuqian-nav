@@ -11,19 +11,37 @@ function normalizeCategoryId(value) {
   return Number.isInteger(id) && id > 0 ? id : null;
 }
 
+function isMissingCategoryHierarchy(error) {
+  const message = String(error?.message || "");
+  return (
+    message.includes("no such table") && message.includes("category_hierarchy")
+  );
+}
+
 async function validateParentCategory(env, parentId) {
   if (!parentId) return { valid: true, parentId: null };
 
-  const parent = await env.BOOKMARKS_DB.prepare(
-    `
-      SELECT c.id, h.parent_id
-      FROM categories c
-      LEFT JOIN category_hierarchy h ON h.category_id = c.id
-      WHERE c.id = ?
-    `,
-  )
-    .bind(parentId)
-    .first();
+  let parent;
+  try {
+    parent = await env.BOOKMARKS_DB.prepare(
+      `
+        SELECT c.id, h.parent_id
+        FROM categories c
+        LEFT JOIN category_hierarchy h ON h.category_id = c.id
+        WHERE c.id = ?
+      `,
+    )
+      .bind(parentId)
+      .first();
+  } catch (error) {
+    if (isMissingCategoryHierarchy(error)) {
+      return {
+        valid: false,
+        error: "分类层级表尚未初始化",
+      };
+    }
+    throw error;
+  }
 
   if (!parent) {
     return { valid: false, error: "父分类不存在" };
@@ -63,6 +81,42 @@ async function getCategory(env, id) {
     .first();
 }
 
+async function getFlatCategory(env, id) {
+  return await env.BOOKMARKS_DB.prepare(
+    `
+      SELECT
+        c.id,
+        c.name,
+        c.color,
+        c.description,
+        NULL as parent_id,
+        NULL as parent_name,
+        NULL as parent_color,
+        c.name as display_name,
+        c.created_at,
+        c.updated_at,
+        COUNT(b.id) as bookmark_count
+      FROM categories c
+      LEFT JOIN bookmarks b ON c.id = b.category_id
+      WHERE c.id = ?
+      GROUP BY c.id, c.name, c.color, c.description, c.created_at, c.updated_at
+    `,
+  )
+    .bind(id)
+    .first();
+}
+
+async function getCategoryWithFallback(env, id) {
+  try {
+    return await getCategory(env, id);
+  } catch (error) {
+    if (!isMissingCategoryHierarchy(error)) {
+      throw error;
+    }
+    return await getFlatCategory(env, id);
+  }
+}
+
 export async function onRequestGet(context) {
   const { env } = context;
 
@@ -92,6 +146,30 @@ export async function onRequestGet(context) {
 
     return ResponseHelper.success(categories.results || []);
   } catch (error) {
+    if (isMissingCategoryHierarchy(error)) {
+      const categories = await env.BOOKMARKS_DB.prepare(
+        `
+        SELECT
+          c.id,
+          c.name,
+          c.color,
+          c.description,
+          NULL as parent_id,
+          NULL as parent_name,
+          NULL as parent_color,
+          c.name as display_name,
+          c.created_at,
+          c.updated_at,
+          COUNT(b.id) as bookmark_count
+        FROM categories c
+        LEFT JOIN bookmarks b ON c.id = b.category_id
+        GROUP BY c.id, c.name, c.color, c.description, c.created_at, c.updated_at
+        ORDER BY c.name ASC
+      `,
+      ).all();
+
+      return ResponseHelper.success(categories.results || []);
+    }
     if (String(error.message || "").includes("no such table")) {
       return ResponseHelper.success([]);
     }
@@ -176,7 +254,7 @@ export async function onRequestPost(context) {
         .run();
     }
 
-    const newCategory = await getCategory(env, categoryId);
+    const newCategory = await getCategoryWithFallback(env, categoryId);
 
     return ResponseHelper.success(newCategory, "Category created", 201);
   } catch (error) {

@@ -11,6 +11,13 @@ function normalizeCategoryId(value) {
   return Number.isInteger(id) && id > 0 ? id : null;
 }
 
+function isMissingCategoryHierarchy(error) {
+  const message = String(error?.message || "");
+  return (
+    message.includes("no such table") && message.includes("category_hierarchy")
+  );
+}
+
 async function getCategory(env, id) {
   return await env.BOOKMARKS_DB.prepare(
     `
@@ -38,6 +45,42 @@ async function getCategory(env, id) {
     .first();
 }
 
+async function getFlatCategory(env, id) {
+  return await env.BOOKMARKS_DB.prepare(
+    `
+      SELECT
+        c.id,
+        c.name,
+        c.color,
+        c.description,
+        NULL as parent_id,
+        NULL as parent_name,
+        NULL as parent_color,
+        c.name as display_name,
+        c.created_at,
+        c.updated_at,
+        COUNT(b.id) as bookmark_count
+      FROM categories c
+      LEFT JOIN bookmarks b ON c.id = b.category_id
+      WHERE c.id = ?
+      GROUP BY c.id, c.name, c.color, c.description, c.created_at, c.updated_at
+    `,
+  )
+    .bind(id)
+    .first();
+}
+
+async function getCategoryWithFallback(env, id) {
+  try {
+    return await getCategory(env, id);
+  } catch (error) {
+    if (!isMissingCategoryHierarchy(error)) {
+      throw error;
+    }
+    return await getFlatCategory(env, id);
+  }
+}
+
 async function validateParentCategory(env, categoryId, parentId) {
   if (!parentId) return { valid: true, parentId: null };
 
@@ -45,26 +88,48 @@ async function validateParentCategory(env, categoryId, parentId) {
     return { valid: false, error: "父分类不能是当前分类" };
   }
 
-  const child = await env.BOOKMARKS_DB.prepare(
-    "SELECT category_id FROM category_hierarchy WHERE parent_id = ? LIMIT 1",
-  )
-    .bind(categoryId)
-    .first();
+  let child;
+  try {
+    child = await env.BOOKMARKS_DB.prepare(
+      "SELECT category_id FROM category_hierarchy WHERE parent_id = ? LIMIT 1",
+    )
+      .bind(categoryId)
+      .first();
+  } catch (error) {
+    if (isMissingCategoryHierarchy(error)) {
+      return {
+        valid: false,
+        error: "分类层级表尚未初始化",
+      };
+    }
+    throw error;
+  }
 
   if (child) {
     return { valid: false, error: "已有子分类的分类不能设为二级分类" };
   }
 
-  const parent = await env.BOOKMARKS_DB.prepare(
-    `
-      SELECT c.id, h.parent_id
-      FROM categories c
-      LEFT JOIN category_hierarchy h ON h.category_id = c.id
-      WHERE c.id = ?
-    `,
-  )
-    .bind(parentId)
-    .first();
+  let parent;
+  try {
+    parent = await env.BOOKMARKS_DB.prepare(
+      `
+        SELECT c.id, h.parent_id
+        FROM categories c
+        LEFT JOIN category_hierarchy h ON h.category_id = c.id
+        WHERE c.id = ?
+      `,
+    )
+      .bind(parentId)
+      .first();
+  } catch (error) {
+    if (isMissingCategoryHierarchy(error)) {
+      return {
+        valid: false,
+        error: "分类层级表尚未初始化",
+      };
+    }
+    throw error;
+  }
 
   if (!parent) {
     return { valid: false, error: "父分类不存在" };
@@ -161,11 +226,20 @@ export async function onRequestPut(context) {
       )
       .run();
 
-    await env.BOOKMARKS_DB.prepare(
-      "DELETE FROM category_hierarchy WHERE category_id = ?",
-    )
-      .bind(categoryId)
-      .run();
+    try {
+      await env.BOOKMARKS_DB.prepare(
+        "DELETE FROM category_hierarchy WHERE category_id = ?",
+      )
+        .bind(categoryId)
+        .run();
+    } catch (error) {
+      if (!isMissingCategoryHierarchy(error)) {
+        throw error;
+      }
+      if (parentValidation.parentId) {
+        return ResponseHelper.validationError("分类层级表尚未初始化");
+      }
+    }
 
     if (parentValidation.parentId) {
       await env.BOOKMARKS_DB.prepare(
@@ -178,7 +252,7 @@ export async function onRequestPut(context) {
         .run();
     }
 
-    const updatedCategory = await getCategory(env, categoryId);
+    const updatedCategory = await getCategoryWithFallback(env, categoryId);
     return ResponseHelper.success(updatedCategory, "分类已更新");
   } catch (error) {
     console.error("Update category failed:", error);
@@ -198,7 +272,7 @@ export async function onRequestDelete(context) {
       return ResponseHelper.validationError("分类 ID 无效");
     }
 
-    const category = await getCategory(env, categoryId);
+    const category = await getCategoryWithFallback(env, categoryId);
     if (!category) {
       return ResponseHelper.notFound("分类不存在");
     }
@@ -236,11 +310,17 @@ export async function onRequestDelete(context) {
       .bind(moveToCategoryId, categoryId)
       .run();
 
-    await env.BOOKMARKS_DB.prepare(
-      "DELETE FROM category_hierarchy WHERE category_id = ? OR parent_id = ?",
-    )
-      .bind(categoryId, categoryId)
-      .run();
+    try {
+      await env.BOOKMARKS_DB.prepare(
+        "DELETE FROM category_hierarchy WHERE category_id = ? OR parent_id = ?",
+      )
+        .bind(categoryId, categoryId)
+        .run();
+    } catch (error) {
+      if (!isMissingCategoryHierarchy(error)) {
+        throw error;
+      }
+    }
 
     await env.BOOKMARKS_DB.prepare("DELETE FROM categories WHERE id = ?")
       .bind(categoryId)
