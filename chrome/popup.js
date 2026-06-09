@@ -371,18 +371,22 @@ async function getChromeBookmarks() {
     chrome.bookmarks.getTree((bookmarkTreeNodes) => {
       const bookmarks = [];
 
-      function extractBookmarks(nodes, folder = "") {
+      function extractBookmarks(nodes, folderPath = []) {
         for (const node of nodes) {
           if (node.children) {
             // 这是一个文件夹
             const folderName = node.title || "书签栏";
-            extractBookmarks(node.children, folderName);
+            const nextPath = folderName
+              ? [...folderPath, folderName]
+              : folderPath;
+            extractBookmarks(node.children, nextPath);
           } else if (node.url) {
             // 这是一个书签
             bookmarks.push({
               title: node.title,
               url: node.url,
-              category: folder,
+              category: folderPath[folderPath.length - 1] || "",
+              category_path: folderPath,
               dateAdded: node.dateAdded,
             });
           }

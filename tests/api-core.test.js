@@ -4245,6 +4245,111 @@ test("sync import keeps extension CORS and Chinese default category behavior", a
   assert.equal(insertedBookmarks[0][3], 1);
 });
 
+test("sync import creates second-level categories from Chrome folder paths", async () => {
+  let activeTokenId = null;
+  const createdCategories = [];
+  const hierarchyRows = [];
+  const insertedBookmarks = [];
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return params[0] === activeTokenId
+            ? { config_key: activeTokenId }
+            : null;
+        }
+        if (sql.includes("SELECT id FROM categories WHERE name = ?")) {
+          if (params[0] === "Chrome同步") {
+            return { id: 1 };
+          }
+          return null;
+        }
+        if (sql.includes("SELECT id FROM bookmarks WHERE url = ?")) {
+          return null;
+        }
+        return null;
+      },
+      runResult({ sql, params }) {
+        if (String(params[0] || "").startsWith("api_token_")) {
+          activeTokenId = params[0];
+          return { success: true, changes: 1 };
+        }
+        if (sql.includes("INSERT INTO categories")) {
+          createdCategories.push(params);
+          return {
+            success: true,
+            meta: { last_row_id: createdCategories.length + 1 },
+          };
+        }
+        if (sql.includes("INSERT OR IGNORE INTO category_hierarchy")) {
+          hierarchyRows.push(params);
+          return { success: true, changes: 1 };
+        }
+        if (sql.includes("INSERT INTO bookmarks")) {
+          insertedBookmarks.push(params);
+          return { success: true, meta: { last_row_id: 88 } };
+        }
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+  const createResponse = await tokenCreateHandler({
+    request: new Request("https://example.com/api/auth/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ name: "Chrome Sync" }),
+    }),
+    env,
+  });
+  const createBody = await createResponse.json();
+
+  const response = await syncPostHandler({
+    request: new Request("https://example.com/api/bookmarks/sync", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Token": createBody.data.token,
+      },
+      body: JSON.stringify({
+        bookmarks: [
+          {
+            title: "React",
+            url: "https://react.dev",
+            category: "前端",
+            category_path: ["书签栏", "开发", "前端"],
+          },
+        ],
+      }),
+    }),
+    env,
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.success, true);
+  assert.deepEqual(
+    createdCategories.map((params) => params[0]),
+    ["前端", "开发"],
+  );
+  assert.deepEqual(hierarchyRows[0], [2, 3]);
+  assert.equal(insertedBookmarks[0][3], 2);
+});
+
 test("token verification uses generated jwt secret instead of a fixed fallback", async () => {
   const env = {
     ADMIN_PASSWORD: "StrongPass123",

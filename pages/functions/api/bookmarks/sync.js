@@ -1,6 +1,17 @@
 import { verifyApiToken } from "../auth/token.js";
 import { ResponseHelper } from "../../utils/response-helper.js";
 
+const ROOT_CATEGORY_NAMES = new Set([
+  "",
+  "Bookmarks Bar",
+  "Bookmarks Menu",
+  "Other Bookmarks",
+  "Mobile Bookmarks",
+  "\u4e66\u7b7e\u680f",
+  "\u5176\u4ed6\u4e66\u7b7e",
+  "\u79fb\u52a8\u8bbe\u5907\u4e66\u7b7e",
+]);
+
 async function authenticateApiRequest(request, env) {
   const apiToken = request.headers.get("X-API-Token");
 
@@ -148,10 +159,11 @@ export async function onRequestPost(context) {
           continue;
         }
 
-        let categoryId = defaultCategoryId;
-        if (bookmark.category && bookmark.category !== "书签栏") {
-          categoryId = await getOrCreateCategory(env, bookmark.category);
-        }
+        const categoryId = await getOrCreateSyncCategory(
+          env,
+          bookmark,
+          defaultCategoryId,
+        );
 
         await env.BOOKMARKS_DB.prepare(
           `INSERT INTO bookmarks (title, url, description, category_id, favicon_url)
@@ -223,29 +235,116 @@ async function getOrCreateDefaultCategory(env) {
   }
 }
 
-async function getOrCreateCategory(env, categoryName) {
+function normalizeCategoryName(categoryName) {
+  return String(categoryName || "").trim();
+}
+
+function normalizeCategoryPath(bookmark) {
+  let path = [];
+
+  if (Array.isArray(bookmark.category_path)) {
+    path = bookmark.category_path;
+  } else if (Array.isArray(bookmark.categoryPath)) {
+    path = bookmark.categoryPath;
+  } else if (typeof bookmark.category_path === "string") {
+    path = bookmark.category_path.split("/");
+  } else if (bookmark.category) {
+    path = [bookmark.category];
+  }
+
+  const normalized = path
+    .map((name) => normalizeCategoryName(name))
+    .filter(Boolean);
+
+  while (normalized.length > 0 && ROOT_CATEGORY_NAMES.has(normalized[0])) {
+    normalized.shift();
+  }
+
+  return normalized;
+}
+
+function getSyncCategoryParts(bookmark) {
+  const path = normalizeCategoryPath(bookmark);
+  if (path.length === 0) {
+    return { name: null, parentName: null };
+  }
+
+  const name = path[path.length - 1];
+  const parentName = path.length > 1 ? path[path.length - 2] : null;
+
+  if (!parentName || parentName === name) {
+    return { name, parentName: null };
+  }
+
+  return { name, parentName };
+}
+
+function isMissingCategoryHierarchy(error) {
+  const message = String(error?.message || "");
+  return (
+    message.includes("no such table") && message.includes("category_hierarchy")
+  );
+}
+
+async function getOrCreateCategory(env, categoryName, parentName = null) {
+  const normalizedName = normalizeCategoryName(categoryName);
+  if (!normalizedName || ROOT_CATEGORY_NAMES.has(normalizedName)) {
+    return await getOrCreateDefaultCategory(env);
+  }
+
   try {
     const category = await env.BOOKMARKS_DB.prepare(
       "SELECT id FROM categories WHERE name = ?",
     )
-      .bind(categoryName)
+      .bind(normalizedName)
       .first();
+
+    let categoryId = category?.id;
 
     if (!category) {
       const result = await env.BOOKMARKS_DB.prepare(
         "INSERT INTO categories (name, color, description) VALUES (?, ?, ?)",
       )
-        .bind(categoryName, "#6B7280", `从Chrome同步: ${categoryName}`)
+        .bind(normalizedName, "#6B7280", `从Chrome同步: ${normalizedName}`)
         .run();
 
-      return result.meta.last_row_id;
+      categoryId = result.meta.last_row_id;
     }
 
-    return category.id;
+    const normalizedParentName = normalizeCategoryName(parentName);
+    if (
+      normalizedParentName &&
+      normalizedParentName !== normalizedName &&
+      !ROOT_CATEGORY_NAMES.has(normalizedParentName)
+    ) {
+      try {
+        const parentId = await getOrCreateCategory(env, normalizedParentName);
+        await env.BOOKMARKS_DB.prepare(
+          "INSERT OR IGNORE INTO category_hierarchy (category_id, parent_id) VALUES (?, ?)",
+        )
+          .bind(categoryId, parentId)
+          .run();
+      } catch (error) {
+        if (!isMissingCategoryHierarchy(error)) {
+          throw error;
+        }
+      }
+    }
+
+    return categoryId;
   } catch (error) {
     console.error("Failed to get sync category:", error);
     return await getOrCreateDefaultCategory(env);
   }
+}
+
+async function getOrCreateSyncCategory(env, bookmark, defaultCategoryId) {
+  const { name, parentName } = getSyncCategoryParts(bookmark);
+  if (!name) {
+    return defaultCategoryId;
+  }
+
+  return await getOrCreateCategory(env, name, parentName);
 }
 
 function generateFaviconUrl(url) {
