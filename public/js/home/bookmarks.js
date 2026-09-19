@@ -296,6 +296,7 @@ const BookmarkManager = {
     }
 
     const catColor = this.escapeHtml(category?.color || "var(--accent)");
+    const cardAccent = this.escapeHtml(this.getBookmarkAccent(bookmark));
     const categoryBadge = categoryName
       ? `<div class="bookmark-category" style="background-color: ${catColor}25; color: ${catColor}; border: 1px solid ${catColor}40;"><span class="category-dot" style="background-color: ${catColor};"></span><span>${categoryName}</span></div>`
       : `<span class="bookmark-id">${this.t("bookmarkCard.uncategorized")}</span>`;
@@ -306,7 +307,7 @@ const BookmarkManager = {
         : "";
 
     return `
-      <article class="bookmark-card" data-id="${bookmark.id}" style="--card-accent: ${catColor}">
+      <article class="bookmark-card" data-id="${bookmark.id}" style="--card-accent: ${cardAccent}; --category-accent: ${catColor}">
         <div class="bookmark-card-top">
           <div class="bookmark-favicon-wrap">
             <span class="bookmark-favicon bookmark-favicon-initial" aria-hidden="true">${faviconInitial}</span>
@@ -604,6 +605,31 @@ const BookmarkManager = {
   },
 
   initClickSorting() {},
+
+  getBookmarkAccent(bookmark = {}) {
+    const palette = [
+      "#2563eb",
+      "#0f9f78",
+      "#d97706",
+      "#7c3aed",
+      "#dc2626",
+      "#0891b2",
+      "#65a30d",
+      "#db2777",
+      "#4f46e5",
+      "#ea580c",
+      "#059669",
+      "#9333ea",
+    ];
+    const seed = String(bookmark.url || bookmark.title || bookmark.id || "");
+    let hash = 0;
+
+    for (let index = 0; index < seed.length; index += 1) {
+      hash = (hash * 31 + seed.charCodeAt(index)) >>> 0;
+    }
+
+    return palette[hash % palette.length];
+  },
 
   getFaviconInitial(bookmark = {}) {
     const title = String(bookmark.title || "").trim();

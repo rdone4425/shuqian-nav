@@ -2337,3 +2337,57 @@ body.nav-site {
     display: none !important;
   }
 }
+
+/* Vivid per-bookmark cards */
+.nav-site .bookmark-card,
+.nav-site .bookmark-item {
+  border-color: color-mix(in srgb, var(--card-accent, var(--home-blue)) 36%, white) !important;
+  border-left-width: 5px !important;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--card-accent, var(--home-blue)) 16%, white) 0%,
+      #fff 42%,
+      #fff 100%
+    ) !important;
+  box-shadow:
+    inset 0 4px 0 color-mix(in srgb, var(--card-accent, var(--home-blue)) 52%, white),
+    0 10px 24px color-mix(in srgb, var(--card-accent, var(--home-blue)) 12%, transparent) !important;
+}
+
+.nav-site .bookmark-card::before {
+  opacity: 0.42 !important;
+}
+
+.nav-site .bookmark-card::after {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--card-accent, var(--home-blue)) 20%, white),
+    transparent 62%
+  ) !important;
+}
+
+.nav-site .bookmark-card:hover,
+.nav-site .bookmark-item:hover {
+  border-color: color-mix(in srgb, var(--card-accent, var(--home-blue)) 62%, white) !important;
+  box-shadow:
+    inset 0 4px 0 color-mix(in srgb, var(--card-accent, var(--home-blue)) 68%, white),
+    0 18px 36px color-mix(in srgb, var(--card-accent, var(--home-blue)) 18%, transparent) !important;
+}
+
+.nav-site .bookmark-favicon-wrap {
+  border-color: color-mix(in srgb, var(--card-accent, var(--home-blue)) 46%, white) !important;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.18) 45%, transparent 46%),
+    color-mix(in srgb, var(--card-accent, var(--home-blue)) 24%, white) !important;
+}
+
+.nav-site .bookmark-favicon-initial {
+  color: color-mix(in srgb, var(--card-accent, var(--home-blue)) 76%, #111827) !important;
+}
+
+.nav-site .bookmark-category {
+  background-color: color-mix(in srgb, var(--category-accent, var(--card-accent)) 16%, white) !important;
+  color: color-mix(in srgb, var(--category-accent, var(--card-accent)) 78%, #111827) !important;
+  border-color: color-mix(in srgb, var(--category-accent, var(--card-accent)) 36%, white) !important;
+}
