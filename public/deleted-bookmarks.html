@@ -19,7 +19,7 @@
     />
     <link
       rel="stylesheet"
-      href="/css/deleted-bookmarks-enhanced.css?v=nav-20260602-admin-confirm"
+      href="/css/deleted-bookmarks-enhanced.css?v=nav-20260919-trash-cleanup"
     />
     <link rel="stylesheet" href="/css/admin.css?v=nav-20260603-admin-layout" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -40,6 +40,52 @@
         <p class="section-copy">
           这个页面就是清理工作的安全网。误删、失效链接删除或批量处理后的记录，都可以在这里回看。
         </p>
+      </section>
+
+      
+      <section class="trash-cleanup-section" id="trashCleanupSection" hidden>
+        <div class="trash-cleanup-card">
+          <div class="trash-cleanup-heading">
+            <div>
+              <span class="section-kicker">自动清理</span>
+              <h3>回收站保留策略</h3>
+              <p>超过保留天数的删除记录会被永久清理；周检任务启用后会按策略自动执行。</p>
+            </div>
+            <div class="trash-cleanup-meta">
+              <span id="trashCleanupEligible" class="trash-cleanup-count">待清理 0 条</span>
+              <span id="trashCleanupLastRun" class="muted-text">加载中</span>
+            </div>
+          </div>
+          <div class="trash-cleanup-controls">
+            <label class="trash-cleanup-toggle">
+              <input id="trashCleanupEnabled" type="checkbox" />
+              <span>启用自动清理</span>
+            </label>
+            <label class="trash-cleanup-field">
+              <span>保留天数</span>
+              <select id="trashRetentionDays">
+                <option value="7">7 天</option>
+                <option value="14">14 天</option>
+                <option value="30">30 天</option>
+                <option value="90">90 天</option>
+                <option value="180">180 天</option>
+                <option value="365">365 天</option>
+              </select>
+            </label>
+            <div class="trash-cleanup-actions">
+              <button id="trashCleanupSaveBtn" class="btn btn-primary btn-sm" type="button">
+                保存策略
+              </button>
+              <button id="trashCleanupPreviewBtn" class="btn btn-outline btn-sm" type="button">
+                预览
+              </button>
+              <button id="trashCleanupRunBtn" class="btn btn-danger btn-sm" type="button">
+                按策略清理
+              </button>
+            </div>
+          </div>
+          <div id="trashCleanupStatus" class="trash-cleanup-status" hidden></div>
+        </div>
       </section>
 
       <main class="main-content">
@@ -182,6 +228,6 @@
     <script src="/js/shared/site-menu.js?v=nav-20260605-admin-menu"></script>
     <script src="/js/shared/admin-common.js?v=nav-20260602-shared-runtime"></script>
     <script src="/js/shared/admin-shell.js?v=nav-20260603-admin-shell"></script>
-    <script src="/js/admin/deleted-bookmarks.js?v=nav-20260919-select-all"></script>
+    <script src="/js/admin/deleted-bookmarks.js?v=nav-20260919-trash-cleanup"></script>
   </body>
 </html>

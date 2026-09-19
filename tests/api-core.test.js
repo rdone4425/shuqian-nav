@@ -34,6 +34,10 @@ import {
   onRequestPost as checkLinksPostHandler,
 } from "../pages/functions/api/system/check-links.js";
 import {
+  onRequestGet as trashCleanupGetHandler,
+  onRequestPost as trashCleanupPostHandler,
+} from "../pages/functions/api/system/trash-cleanup.js";
+import {
   onRequestGet as weeklyCheckGetHandler,
   onRequestPost as weeklyCheckPostHandler,
 } from "../pages/functions/api/cron/weekly-check.js";
@@ -4543,4 +4547,122 @@ test("token verification uses generated jwt secret instead of a fixed fallback",
     BOOKMARKS_DB: createDbMock(),
   });
   assert.equal(forgedCheck.valid, false);
+});
+
+test("trash cleanup API saves policy, previews, and deletes expired records", async () => {
+  const capturedRuns = [];
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        if (
+          sql.includes(
+            "SELECT COUNT(*) AS total FROM deleted_bookmarks WHERE deleted_at < ?",
+          )
+        ) {
+          return { total: 4 };
+        }
+        if (sql.includes("SELECT COUNT(*) AS total FROM deleted_bookmarks")) {
+          return { total: 12 };
+        }
+        return null;
+      },
+      allResult({ sql }) {
+        if (sql.includes("FROM system_config WHERE config_key IN")) {
+          return {
+            results: [
+              {
+                config_key: "trash_auto_cleanup_enabled",
+                config_value: "true",
+              },
+              { config_key: "trash_retention_days", config_value: "30" },
+            ],
+          };
+        }
+        return { results: [] };
+      },
+      runResult({ sql, params }) {
+        capturedRuns.push({ sql, params });
+        if (
+          sql.includes("DELETE FROM deleted_bookmarks WHERE deleted_at < ?")
+        ) {
+          return { success: true, meta: { changes: 4 } };
+        }
+        return { success: true, meta: { changes: 1 } };
+      },
+    }),
+  };
+
+  const rejected = await trashCleanupGetHandler({
+    request: new Request("https://example.com/api/system/trash-cleanup"),
+    env,
+  });
+  const rejectedBody = await rejected.json();
+  assert.equal(rejected.status, 401);
+  assert.equal(rejectedBody.success, false);
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${loginBody.token}`,
+  };
+
+  const saveResponse = await trashCleanupPostHandler({
+    request: new Request("https://example.com/api/system/trash-cleanup", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        action: "save",
+        enabled: true,
+        retentionDays: 30,
+      }),
+    }),
+    env,
+  });
+  const saveBody = await saveResponse.json();
+  assert.equal(saveResponse.status, 200);
+  assert.equal(saveBody.success, true);
+  assert.equal(saveBody.data.enabled, true);
+  assert.equal(saveBody.data.retentionDays, 30);
+
+  const previewResponse = await trashCleanupPostHandler({
+    request: new Request("https://example.com/api/system/trash-cleanup", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ action: "preview" }),
+    }),
+    env,
+  });
+  const previewBody = await previewResponse.json();
+  assert.equal(previewResponse.status, 200);
+  assert.equal(previewBody.data.wouldDelete, 4);
+
+  const cleanupResponse = await trashCleanupPostHandler({
+    request: new Request("https://example.com/api/system/trash-cleanup", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ action: "cleanup" }),
+    }),
+    env,
+  });
+  const cleanupBody = await cleanupResponse.json();
+  const cleanupRun = capturedRuns.find((entry) =>
+    entry.sql.includes("DELETE FROM deleted_bookmarks WHERE deleted_at < ?"),
+  );
+
+  assert.equal(cleanupResponse.status, 200);
+  assert.equal(cleanupBody.data.deleted, 4);
+  assert.match(cleanupRun.params[0], /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
 });

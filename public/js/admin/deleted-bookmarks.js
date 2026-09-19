@@ -11,11 +11,14 @@ class DeletedBookmarksManager {
     this.selectedRecordIds = new Set();
     this.selectingAll = false;
     this.totalRecords = 0;
+    this.cleanupBusy = false;
   }
 
   async init() {
     this.bindEvents();
+    this.bindCleanupEvents();
     await this.loadDeletedRecords();
+    await this.loadTrashCleanupPolicy();
   }
 
   bindEvents() {
@@ -654,6 +657,193 @@ class DeletedBookmarksManager {
       await this.loadDeletedRecords();
     } catch (error) {
       AdminUI.showToast(`删除失败：${error.message}`, "error");
+    }
+  }
+
+  bindCleanupEvents() {
+    document
+      .getElementById("trashCleanupSaveBtn")
+      ?.addEventListener("click", () => {
+        this.saveTrashCleanupPolicy();
+      });
+    document
+      .getElementById("trashCleanupPreviewBtn")
+      ?.addEventListener("click", () => {
+        this.previewTrashCleanup();
+      });
+    document
+      .getElementById("trashCleanupRunBtn")
+      ?.addEventListener("click", () => {
+        this.runTrashCleanup();
+      });
+  }
+
+  setCleanupBusy(busy) {
+    this.cleanupBusy = busy;
+    const saveBtn = document.getElementById("trashCleanupSaveBtn");
+    const previewBtn = document.getElementById("trashCleanupPreviewBtn");
+    const runBtn = document.getElementById("trashCleanupRunBtn");
+    if (saveBtn) saveBtn.disabled = busy;
+    if (previewBtn) previewBtn.disabled = busy;
+    if (runBtn) runBtn.disabled = busy;
+  }
+
+  setCleanupStatus(message, type = "info") {
+    const status = document.getElementById("trashCleanupStatus");
+    if (!status) return;
+    status.textContent = message;
+    status.dataset.type = type;
+    status.hidden = !message;
+  }
+
+  async loadTrashCleanupPolicy() {
+    const section = document.getElementById("trashCleanupSection");
+    try {
+      const response = await API.get("/api/system/trash-cleanup");
+      if (!response.success) {
+        throw new Error(response.error || "加载回收站清理策略失败");
+      }
+
+      const data = response.data || {};
+      const enabled = document.getElementById("trashCleanupEnabled");
+      const retentionDays = document.getElementById("trashRetentionDays");
+      const eligible = document.getElementById("trashCleanupEligible");
+      const lastRun = document.getElementById("trashCleanupLastRun");
+
+      if (enabled) enabled.checked = Boolean(data.enabled);
+      if (retentionDays) retentionDays.value = String(data.retentionDays || 30);
+      if (eligible) {
+        eligible.textContent = `待清理 ${data.eligibleDeleted || 0} 条`;
+      }
+      if (lastRun) {
+        lastRun.textContent = data.lastRunAt
+          ? `上次清理：${AdminUI.formatDate(data.lastRunAt)}，删除 ${data.lastDeleted || 0} 条`
+          : "尚未执行自动清理";
+      }
+      if (section) section.hidden = false;
+      this.setCleanupStatus("", "info");
+    } catch (error) {
+      if (section) section.hidden = true;
+      this.setCleanupStatus(
+        `回收站清理策略加载失败：${error.message}`,
+        "error",
+      );
+    }
+  }
+
+  async saveTrashCleanupPolicy() {
+    if (this.cleanupBusy) return;
+    this.setCleanupBusy(true);
+    this.setCleanupStatus("正在保存回收站清理策略...", "info");
+
+    try {
+      const enabled = document.getElementById("trashCleanupEnabled")?.checked;
+      const retentionDays = Number(
+        document.getElementById("trashRetentionDays")?.value || 30,
+      );
+
+      const response = await API.post("/api/system/trash-cleanup", {
+        action: "save",
+        enabled,
+        retentionDays,
+      });
+
+      if (!response.success) {
+        throw new Error(response.error || "保存回收站清理策略失败");
+      }
+
+      AdminUI.showToast("回收站清理策略已保存", "success");
+      this.setCleanupStatus("策略已保存。", "success");
+      await Promise.all([
+        this.loadTrashCleanupPolicy(),
+        this.loadDeletedRecords(),
+      ]);
+    } catch (error) {
+      AdminUI.showToast(`保存策略失败：${error.message}`, "error");
+      this.setCleanupStatus(`保存策略失败：${error.message}`, "error");
+    } finally {
+      this.setCleanupBusy(false);
+    }
+  }
+
+  async previewTrashCleanup() {
+    if (this.cleanupBusy) return;
+    this.setCleanupBusy(true);
+    this.setCleanupStatus("正在计算符合清理条件的记录...", "info");
+
+    try {
+      const response = await API.post("/api/system/trash-cleanup", {
+        action: "preview",
+      });
+
+      if (!response.success) {
+        throw new Error(response.error || "回收站清理预览失败");
+      }
+
+      const wouldDelete = response.data?.wouldDelete || 0;
+      this.setCleanupStatus(
+        `预览完成：当前保留策略会永久删除 ${wouldDelete} 条记录。`,
+        wouldDelete > 0 ? "warning" : "info",
+      );
+      await this.loadTrashCleanupPolicy();
+    } catch (error) {
+      this.setCleanupStatus(`预览失败：${error.message}`, "error");
+    } finally {
+      this.setCleanupBusy(false);
+    }
+  }
+
+  async runTrashCleanup() {
+    if (this.cleanupBusy) return;
+
+    try {
+      const preview = await API.post("/api/system/trash-cleanup", {
+        action: "preview",
+      });
+      if (!preview.success) {
+        throw new Error(preview.error || "回收站清理预览失败");
+      }
+
+      const wouldDelete = preview.data?.wouldDelete || 0;
+      const retentionDays = preview.data?.retentionDays || 30;
+
+      if (wouldDelete === 0) {
+        this.setCleanupStatus("当前没有符合清理策略的记录。", "info");
+        return;
+      }
+
+      const confirmed = await AdminUI.confirm({
+        title: "按策略清理回收站",
+        message: `确定永久删除 ${wouldDelete} 条超过 ${retentionDays} 天的回收站记录吗？`,
+        hint: "这个操作会直接清理过期删除记录，不会恢复它们。",
+        confirmText: "永久清理",
+        variant: "danger",
+      });
+      if (!confirmed) return;
+
+      this.setCleanupBusy(true);
+      this.setCleanupStatus("正在清理过期回收站记录...", "info");
+
+      const response = await API.post("/api/system/trash-cleanup", {
+        action: "cleanup",
+      });
+
+      if (!response.success) {
+        throw new Error(response.error || "回收站清理失败");
+      }
+
+      const deleted = response.data?.deleted || 0;
+      AdminUI.showToast(`回收站清理完成：删除 ${deleted} 条`, "success");
+      this.setCleanupStatus(`清理完成：删除 ${deleted} 条。`, "success");
+      await Promise.all([
+        this.loadTrashCleanupPolicy(),
+        this.loadDeletedRecords(),
+      ]);
+    } catch (error) {
+      AdminUI.showToast(`清理失败：${error.message}`, "error");
+      this.setCleanupStatus(`清理失败：${error.message}`, "error");
+    } finally {
+      this.setCleanupBusy(false);
     }
   }
 }

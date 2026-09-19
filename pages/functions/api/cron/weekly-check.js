@@ -2,6 +2,8 @@ import { authenticateRequest } from "../auth/verify.js";
 import { getKnownProtectedSiteResult } from "../../utils/link-checker-protection.js";
 import { ResponseHelper } from "../../utils/response-helper.js";
 
+import { runTrashCleanup } from "../system/trash-cleanup.js";
+
 async function requireAdminAccess(request, env) {
   const auth = await authenticateRequest(request, env);
   return auth.authenticated ? null : ResponseHelper.unauthorized(auth.error);
@@ -167,6 +169,16 @@ export async function onRequestPost(context) {
       await sendNotification(env, inaccessibleBookmarks);
     }
 
+    let trashCleanup = null;
+    try {
+      trashCleanup = await runTrashCleanup(env, { source: "weekly_check" });
+    } catch (cleanupError) {
+      console.error(
+        "Trash auto-cleanup failed during weekly check:",
+        cleanupError,
+      );
+    }
+
     return ResponseHelper.success(
       {
         total: bookmarkRows.length,
@@ -175,6 +187,7 @@ export async function onRequestPost(context) {
         inaccessible: inaccessibleCount,
         inaccessibleBookmarks: inaccessibleBookmarks.slice(0, 10),
         checkTime: new Date().toISOString(),
+        trashCleanup: trashCleanup ? { deleted: trashCleanup.deleted } : null,
       },
       `Weekly check complete: ${accessibleCount} accessible, ${inaccessibleCount} inaccessible.`,
     );

@@ -859,3 +859,99 @@ body.nav-site .header {
     font-size: var(--font-sm);
     line-height: 1.5;
 }
+
+/* Trash auto-cleanup policy */
+.trash-cleanup-section {
+    margin-bottom: var(--spacing-lg, 24px);
+}
+
+.trash-cleanup-card {
+    background: #fff;
+    border: 1px solid var(--border-light, #e2e8f0);
+    border-radius: var(--radius-md, 12px);
+    padding: var(--spacing-lg, 24px);
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.08));
+}
+
+.trash-cleanup-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--spacing-md, 16px);
+    align-items: flex-start;
+    margin-bottom: var(--spacing-md, 16px);
+}
+
+.trash-cleanup-heading h3 {
+    margin: 6px 0;
+}
+
+.trash-cleanup-heading p {
+    margin: 0;
+    color: var(--text-secondary, #4a5568);
+}
+
+.trash-cleanup-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    min-width: 180px;
+}
+
+.trash-cleanup-count {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--error-color, #f56565);
+}
+
+.trash-cleanup-controls {
+    display: grid;
+    grid-template-columns: auto minmax(150px, auto) 1fr;
+    gap: 16px;
+    align-items: center;
+}
+
+.trash-cleanup-toggle,
+.trash-cleanup-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--text-primary, #1a202c);
+}
+
+.trash-cleanup-field select {
+    min-width: 130px;
+}
+
+.trash-cleanup-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.trash-cleanup-status {
+    margin-top: 12px;
+    font-size: 14px;
+}
+
+.trash-cleanup-status[data-type="success"] { color: var(--success-color, #48bb78); }
+.trash-cleanup-status[data-type="error"] { color: var(--error-color, #f56565); }
+.trash-cleanup-status[data-type="warning"] { color: var(--warning-color, #ed8936); }
+
+@media (max-width: 768px) {
+    .trash-cleanup-heading,
+    .trash-cleanup-controls {
+        grid-template-columns: 1fr;
+    }
+
+    .trash-cleanup-meta {
+        align-items: flex-start;
+        min-width: 0;
+    }
+
+    .trash-cleanup-actions {
+        justify-content: flex-start;
+    }
+}
