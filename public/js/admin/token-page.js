@@ -3,6 +3,16 @@ const tokenState = {
   busy: false,
 };
 
+function getExpiryWarning(expires) {
+  if (!expires) return "";
+  const days = Math.ceil((new Date(expires).getTime() - Date.now()) / 86400000);
+  if (Number.isNaN(days)) return "";
+  if (days < 0) return ' <strong style="color:#dc3545;">已过期</strong>';
+  if (days <= 30)
+    return ` <strong style="color:#e67700;">${days}天内过期</strong>`;
+  return "";
+}
+
 function setTokenStatus(message) {
   document.getElementById("tokenGuardStatus").textContent = message;
 }
@@ -34,7 +44,7 @@ function renderTokenList() {
           <strong>${AdminUI.escapeHtml(token.name || "未命名令牌")}</strong>
           <span>${AdminUI.escapeHtml(token.description || "无说明")}</span>
           <span>创建：${AdminUI.formatDate(token.created || token.createdAt)}</span>
-          <span>过期：${AdminUI.formatDate(token.expires)}</span>
+          <span>过期：${AdminUI.formatDate(token.expires)}${getExpiryWarning(token.expires)}</span>
           <button class="btn btn-soft delete-token-btn" type="button" data-token-id="${AdminUI.escapeHtml(token.id)}" data-token-name="${AdminUI.escapeHtml(token.name || "未命名令牌")}">
             删除
           </button>

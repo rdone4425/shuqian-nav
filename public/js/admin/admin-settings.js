@@ -7,6 +7,7 @@ const AdminSettingsPage = {
 
     this.bindElements();
     this.bindEvents();
+    this.initBackupRecords();
   },
 
   bindElements() {
@@ -22,6 +23,11 @@ const AdminSettingsPage = {
       confirmPassword: document.getElementById("confirmPassword"),
       changePassword: document.getElementById("changePasswordBtn"),
       passwordStatus: document.getElementById("passwordStatus"),
+      refreshBackups: document.getElementById("refreshBackupsBtn"),
+      backupStatus: document.getElementById("backupStatusText"),
+      backupList: document.getElementById("backupList"),
+      copyRss: document.getElementById("copyRssBtn"),
+      copyJsonFeed: document.getElementById("copyJsonFeedBtn"),
     };
   },
 
@@ -42,6 +48,79 @@ const AdminSettingsPage = {
       event.preventDefault();
       this.changePassword();
     });
+    this.elements.refreshBackups?.addEventListener("click", () =>
+      this.loadBackupRecords(),
+    );
+    this.elements.copyRss?.addEventListener("click", () =>
+      this.copyFeedUrl("rss"),
+    );
+    this.elements.copyJsonFeed?.addEventListener("click", () =>
+      this.copyFeedUrl("json"),
+    );
+  },
+
+  async copyFeedUrl(format) {
+    const feedUrl = `${window.location.origin}/api/bookmarks/feed?format=${format}`;
+    try {
+      await navigator.clipboard.writeText(feedUrl);
+      this.setDataStatus(`已复制 ${format.toUpperCase()} Feed 地址`, "success");
+    } catch (error) {
+      this.setDataStatus(`复制失败，请手动使用：${feedUrl}`, "error");
+    }
+  },
+
+  async initBackupRecords() {
+    await this.loadBackupRecords();
+  },
+
+  async loadBackupRecords() {
+    try {
+      const [statusResponse, listResponse] = await Promise.all([
+        API.get("/api/system/backup-auto?action=status"),
+        API.get("/api/system/backup-auto?action=list"),
+      ]);
+
+      if (!statusResponse.success || !listResponse.success) {
+        throw new Error(
+          statusResponse.error || listResponse.error || "加载备份记录失败",
+        );
+      }
+
+      const status = statusResponse.data || {};
+      const list = listResponse.data || {};
+      const backups = Array.isArray(list.backups) ? list.backups : [];
+
+      this.setDataStatus(
+        `备份状态：${status.r2Configured ? "R2 已配置" : "本地模式"}；保留上限 ${status.maxBackupFiles ?? "-"} 份。`,
+        "info",
+      );
+      if (this.elements.backupStatus) {
+        this.elements.backupStatus.textContent =
+          this.elements.backupStatus.textContent;
+      }
+      if (this.elements.backupList) {
+        if (!backups.length) {
+          this.elements.backupList.innerHTML =
+            '<div class="backup-list-item">暂无自动备份记录。</div>';
+        } else {
+          this.elements.backupList.innerHTML = backups
+            .slice(0, 5)
+            .map(
+              (backup) => `
+                <div class="backup-list-item">
+                  <span>${AdminUI.escapeHtml(backup.name || backup.filename || "backup")}</span>
+                  <code>${AdminUI.escapeHtml(AdminUI.formatDate(backup.modified || backup.timestamp))}</code>
+                </div>
+              `,
+            )
+            .join("");
+        }
+      }
+    } catch (error) {
+      if (this.elements.backupStatus) {
+        this.elements.backupStatus.textContent = `备份记录加载失败：${error.message}`;
+      }
+    }
   },
 
   setDataStatus(message, type = "info") {

@@ -1,5 +1,6 @@
 import { authenticateRequest } from "../auth/verify.js";
 import { ResponseHelper } from "../../utils/response-helper.js";
+import { recordAuditLog } from "./audit-logs.js";
 
 export const TRASH_CLEANUP_CONFIG_KEYS = Object.freeze({
   enabled: "trash_auto_cleanup_enabled",
@@ -160,6 +161,13 @@ export async function runTrashCleanup(
     ],
     [TRASH_CLEANUP_CONFIG_KEYS.lastError, "", "Trash auto-cleanup last error"],
   ]);
+
+  await recordAuditLog(env, "trash_cleanup", {
+    source,
+    deleted,
+    retentionDays,
+    cutoff,
+  });
 
   return {
     action: "cleanup",

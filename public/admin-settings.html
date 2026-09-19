@@ -79,6 +79,20 @@
                 >
                   完整备份 HTML
                 </button>
+                <button
+                  id="copyRssBtn"
+                  class="btn btn-outline"
+                  type="button"
+                >
+                  复制 RSS 地址
+                </button>
+                <button
+                  id="copyJsonFeedBtn"
+                  class="btn btn-outline"
+                  type="button"
+                >
+                  复制 JSON Feed
+                </button>
               </div>
             </div>
             <p id="dataActionStatus" class="muted-text">等待操作。</p>
@@ -136,6 +150,26 @@
             </div>
             <p id="passwordStatus" class="muted-text">请填写完整密码信息。</p>
           </form>
+          <section class="management-panel">
+            <div class="management-form-heading">
+              <div>
+                <span class="section-kicker">备份</span>
+                <h3>自动备份记录</h3>
+                <p>查看备份运行状态和最近的自动备份文件，方便迁移或回滚。</p>
+              </div>
+              <div class="management-actions">
+                <button
+                  id="refreshBackupsBtn"
+                  class="btn btn-outline"
+                  type="button"
+                >
+                  刷新备份
+                </button>
+              </div>
+            </div>
+            <p id="backupStatusText" class="muted-text">等待加载备份状态。</p>
+            <div id="backupList" class="backup-list"></div>
+          </section>
         </section>
       </main>
     </div>
@@ -146,6 +180,6 @@
     <script src="/js/shared/site-menu.js?v=nav-20260605-admin-menu"></script>
     <script src="/js/shared/admin-common.js?v=nav-20260602-shared-runtime"></script>
     <script src="/js/shared/admin-shell.js?v=nav-20260603-admin-shell"></script>
-    <script src="/js/admin/admin-settings.js?v=nav-20260602-admin-runtime"></script>
+    <script src="/js/admin/admin-settings.js?v=nav-20260919-feed"></script>
   </body>
 </html>

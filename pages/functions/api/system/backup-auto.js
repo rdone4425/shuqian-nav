@@ -1,6 +1,7 @@
 import { authenticateRequest } from "../auth/verify.js";
 import { backupManager } from "../../utils/backup-manager.js";
 import { ResponseHelper } from "../../utils/response-helper.js";
+import { recordAuditLog } from "./audit-logs.js";
 
 async function requireAdminAccess(request, env) {
   const auth = await authenticateRequest(request, env);
@@ -69,6 +70,12 @@ export async function onRequestPost(context) {
     if (!uploadToR2 || !result.r2) {
       result.backupData = backup;
     }
+
+    await recordAuditLog(env, "backup_create", {
+      type,
+      uploadToR2,
+      filename,
+    });
 
     const response = ResponseHelper.success(
       result,

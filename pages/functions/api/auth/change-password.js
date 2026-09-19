@@ -4,6 +4,7 @@ import {
   updateAdminPassword,
 } from "../../utils/admin-password.js";
 import { ResponseHelper } from "../../utils/response-helper.js";
+import { recordAuditLog } from "../system/audit-logs.js";
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -28,6 +29,7 @@ export async function onRequestPost(context) {
   }
 
   await updateAdminPassword(env, newPassword);
+  await recordAuditLog(env, "password_change", {});
 
   return ResponseHelper.success(null, "密码已更新。");
 }

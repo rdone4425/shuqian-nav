@@ -473,3 +473,5 @@ body.nav-site.admin-site > .container:not(.nav-shell) {
     min-height: auto;
   }
 }
+
+.backup-list { display:grid; gap:8px; margin-top:12px; } .backup-list-item { display:flex; justify-content:space-between; gap:12px; padding:10px 12px; border:1px solid var(--border-light, #e2e8f0); border-radius:10px; background:#fff; font-size:14px; } .backup-list-item code { font-size:13px; }

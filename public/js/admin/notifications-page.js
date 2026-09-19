@@ -18,7 +18,73 @@ const NotificationsPage = {
         this.state.filter = event.target.value;
         this.renderNotifications();
       });
-    await this.loadNotifications();
+    document
+      .getElementById("refreshAuditBtn")
+      ?.addEventListener("click", () => this.loadAuditLogs());
+    await Promise.all([this.loadNotifications(), this.loadAuditLogs()]);
+  },
+
+  getAuditLabel(action) {
+    const labels = {
+      trash_cleanup: "回收站自动清理",
+      trash_batch_delete: "批量删除回收站",
+      import_bookmarks: "导入书签",
+      password_change: "修改管理员密码",
+      backup_create: "创建备份",
+    };
+    return labels[action] || action;
+  },
+
+  getAuditSummary(details = {}) {
+    const parts = [];
+    if (typeof details.deleted === "number")
+      parts.push(`删除 ${details.deleted} 条`);
+    if (typeof details.imported === "number")
+      parts.push(`新增 ${details.imported} 条`);
+    if (typeof details.updated === "number")
+      parts.push(`覆盖 ${details.updated} 条`);
+    if (typeof details.skipped === "number")
+      parts.push(`跳过 ${details.skipped} 条`);
+    if (typeof details.errors === "number")
+      parts.push(`失败 ${details.errors} 条`);
+    if (details.source) parts.push(`来源 ${details.source}`);
+    if (details.type) parts.push(`类型 ${details.type}`);
+    return parts.join("，") || "无详情";
+  },
+
+  async loadAuditLogs() {
+    const listEl = document.getElementById("auditList");
+    if (!listEl) return;
+
+    try {
+      const response = await API.get("/api/system/audit-logs?limit=20");
+      if (!response.success) {
+        throw new Error(response.error || "加载操作日志失败");
+      }
+
+      const logs = response.data || [];
+      if (!logs.length) {
+        listEl.innerHTML =
+          '<div class="notification-description">暂无操作日志。</div>';
+        return;
+      }
+
+      listEl.innerHTML = logs
+        .map(
+          (log) => `
+            <div class="audit-item">
+              <div>
+                <strong>${AdminUI.escapeHtml(this.getAuditLabel(log.action))}</strong>
+                <div>${AdminUI.escapeHtml(this.getAuditSummary(log.details))}</div>
+              </div>
+              <span>${AdminUI.formatDate(log.loggedAt || log.createdAt)}</span>
+            </div>
+          `,
+        )
+        .join("");
+    } catch (error) {
+      listEl.innerHTML = `<div class="notification-description">操作日志加载失败：${AdminUI.escapeHtml(error.message)}</div>`;
+    }
   },
 
   getNotificationLabel(type) {
@@ -105,6 +171,10 @@ const NotificationsPage = {
                 .join("")}</ul></div></div>`
             : ""
         }
+        <div class="notification-actions">
+          <a class="btn btn-secondary btn-sm" href="/link-checker.html">去检查链接</a>
+          <a class="btn btn-outline btn-sm" href="/deleted-bookmarks.html">去回收站</a>
+        </div>
       </article>
     `;
   },

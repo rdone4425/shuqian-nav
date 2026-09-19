@@ -97,6 +97,18 @@
             <div class="notification-description">正在加载通知记录...</div>
           </div>
         </section>
+
+        <section class="notification-card">
+          <div class="notification-card-header">
+            <h2 class="notification-card-title">操作日志</h2>
+            <button id="refreshAuditBtn" class="btn btn-secondary" type="button">
+              刷新日志
+            </button>
+          </div>
+          <div id="auditList" class="audit-list">
+            <div class="notification-description">正在加载操作日志...</div>
+          </div>
+        </section>
       </main>
     </div>
 
@@ -106,6 +118,6 @@
     <script src="/js/shared/site-menu.js?v=nav-20260605-admin-menu"></script>
     <script src="/js/shared/admin-common.js?v=nav-20260602-shared-runtime"></script>
     <script src="/js/shared/admin-shell.js?v=nav-20260603-admin-shell"></script>
-    <script src="/js/admin/notifications-page.js?v=nav-20260602-admin-runtime"></script>
+    <script src="/js/admin/notifications-page.js?v=nav-20260919-audit-logs"></script>
   </body>
 </html>

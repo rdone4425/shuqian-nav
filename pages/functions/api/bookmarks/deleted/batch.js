@@ -1,5 +1,6 @@
 import { authenticateRequest } from "../../auth/verify.js";
 import { ResponseHelper } from "../../../utils/response-helper.js";
+import { recordAuditLog } from "../../system/audit-logs.js";
 
 const MAX_IDS = 500;
 
@@ -87,6 +88,11 @@ export async function onRequestPost(context) {
     if (!result.success) {
       throw new Error("批量删除失败");
     }
+
+    await recordAuditLog(env, "trash_batch_delete", {
+      deleted: result.meta?.changes ?? 0,
+      all: selectAll,
+    });
 
     return ResponseHelper.success(
       { deleted: result.meta?.changes ?? 0 },

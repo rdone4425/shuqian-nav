@@ -1,5 +1,6 @@
 import { authenticateRequest } from "../auth/verify.js";
 import { ResponseHelper } from "../../utils/response-helper.js";
+import { recordAuditLog } from "../system/audit-logs.js";
 
 const CLEAR_EXISTING_CONFIRMATION = "CONFIRM_REPLACE_BOOKMARKS";
 const UNASSIGNED_CATEGORY_NAMES = new Set([
@@ -269,6 +270,16 @@ export async function onRequestPost(context) {
     }
 
     await markSystemHasUserData(env);
+
+    await recordAuditLog(env, "import_bookmarks", {
+      imported: importedCount,
+      updated: updatedCount,
+      skipped: skippedCount,
+      errors: errorCount,
+      total: bookmarks.length,
+      clearExisting,
+      skipDuplicates,
+    });
 
     return ResponseHelper.success(
       {
