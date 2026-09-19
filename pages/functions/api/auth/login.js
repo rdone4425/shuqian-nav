@@ -1,36 +1,12 @@
 import { SignJWT } from "jose";
+import { readAdminPassword } from "../../utils/admin-password.js";
 import { JWTKeyManager } from "../../utils/jwt-manager.js";
+import {
+  checkLoginRateLimit,
+  recordLoginFailure,
+  recordLoginSuccess,
+} from "../../utils/login-rate-limiter.js";
 import { ResponseHelper } from "../../utils/response-helper.js";
-
-async function readAdminPassword(env = {}) {
-  let storedPassword = null;
-
-  if (typeof env.BOOKMARKS_DB?.prepare === "function") {
-    try {
-      const row = await env.BOOKMARKS_DB.prepare(
-        "SELECT config_value FROM system_config WHERE config_key = ?",
-      )
-        .bind("admin_password")
-        .first();
-
-      if (row?.config_value) {
-        storedPassword = row.config_value;
-      }
-    } catch (error) {
-      console.warn("Falling back to default admin password:", error.message);
-    }
-  }
-
-  if (storedPassword && storedPassword !== "admin123") {
-    return storedPassword;
-  }
-
-  if (env.ADMIN_PASSWORD) {
-    return env.ADMIN_PASSWORD;
-  }
-
-  return storedPassword || "admin123";
-}
 
 function loginSuccess(token) {
   const user = { role: "admin" };
@@ -57,12 +33,24 @@ export async function onRequestPost(context) {
   const { request, env } = context;
 
   try {
+    const rateLimit = checkLoginRateLimit(request);
+    if (!rateLimit.allowed) {
+      return ResponseHelper.error(
+        "Too many failed login attempts. Try again later.",
+        429,
+        { retryAfterSeconds: rateLimit.retryAfterSeconds },
+      );
+    }
+
     const { password } = await request.json();
     const adminPassword = await readAdminPassword(env);
 
     if (!password || password !== adminPassword) {
+      recordLoginFailure(request);
       return ResponseHelper.unauthorized("Incorrect password.");
     }
+
+    recordLoginSuccess(request);
 
     const secret = await JWTKeyManager.getJWTSecret(env);
     const key = new TextEncoder().encode(secret);

@@ -1,34 +1,9 @@
 import { authenticateRequest } from "./verify.js";
+import {
+  readAdminPassword,
+  updateAdminPassword,
+} from "../../utils/admin-password.js";
 import { ResponseHelper } from "../../utils/response-helper.js";
-
-async function readAdminPassword(env = {}) {
-  let storedPassword = null;
-
-  if (typeof env.BOOKMARKS_DB?.prepare === "function") {
-    try {
-      const row = await env.BOOKMARKS_DB.prepare(
-        "SELECT config_value FROM system_config WHERE config_key = ?",
-      )
-        .bind("admin_password")
-        .first();
-      if (row?.config_value) {
-        storedPassword = row.config_value;
-      }
-    } catch (error) {
-      console.warn("Falling back to default admin password:", error.message);
-    }
-  }
-
-  if (storedPassword && storedPassword !== "admin123") {
-    return storedPassword;
-  }
-
-  if (env.ADMIN_PASSWORD) {
-    return env.ADMIN_PASSWORD;
-  }
-
-  return storedPassword || "admin123";
-}
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -52,11 +27,7 @@ export async function onRequestPost(context) {
     return ResponseHelper.error("数据库不可用，无法修改密码。", 500);
   }
 
-  await env.BOOKMARKS_DB.prepare(
-    "INSERT OR REPLACE INTO system_config (config_key, config_value, description, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)",
-  )
-    .bind("admin_password", newPassword, "Administrator password")
-    .run();
+  await updateAdminPassword(env, newPassword);
 
   return ResponseHelper.success(null, "密码已更新。");
 }

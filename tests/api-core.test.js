@@ -86,6 +86,7 @@ import {
 import { onRequestPost as bookmarkClearHandler } from "../pages/functions/api/bookmarks/clear.js";
 import { onRequestPost as bookmarkImportHandler } from "../pages/functions/api/bookmarks/import.js";
 import { JWTKeyManager } from "../pages/functions/utils/jwt-manager.js";
+import { resetLoginRateLimiterForTests } from "../pages/functions/utils/login-rate-limiter.js";
 import {
   getKnownProtectedSiteResult,
   isKnownProtectedSite,
@@ -365,6 +366,8 @@ test("login endpoint issues a web session token for the admin password", async (
 });
 
 test("login endpoint rejects bad passwords with the shared envelope", async () => {
+  resetLoginRateLimiterForTests();
+
   const response = await loginHandler({
     request: new Request("https://example.com/api/auth/login", {
       method: "POST",
@@ -384,6 +387,56 @@ test("login endpoint rejects bad passwords with the shared envelope", async () =
   assert.equal(body.error, "Incorrect password.");
   assert.equal(typeof body.timestamp, "string");
   assert.equal(body.token, undefined);
+});
+
+test("login endpoint temporarily locks repeated password failures", async () => {
+  resetLoginRateLimiterForTests();
+
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock(),
+  };
+
+  const makeRequest = (password) =>
+    new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "CF-Connecting-IP": "203.0.113.10",
+      },
+      body: JSON.stringify({ password }),
+    });
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const response = await loginHandler({
+      request: makeRequest("wrong-password"),
+      env,
+    });
+    assert.equal(response.status, 401);
+  }
+
+  const lockedResponse = await loginHandler({
+    request: makeRequest("StrongPass123"),
+    env,
+  });
+  assert.equal(lockedResponse.status, 429);
+
+  const lockedBody = await lockedResponse.json();
+  assert.equal(lockedBody.success, false);
+  assert.equal(
+    lockedBody.error,
+    "Too many failed login attempts. Try again later.",
+  );
+  assert.equal(lockedBody.details.retryAfterSeconds, 900);
+
+  resetLoginRateLimiterForTests();
+
+  const recoveredResponse = await loginHandler({
+    request: makeRequest("StrongPass123"),
+    env,
+  });
+  assert.equal(recoveredResponse.status, 200);
 });
 
 test("change-password requires an authenticated session", async () => {

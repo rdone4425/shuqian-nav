@@ -49,6 +49,8 @@ jobs:
           node <<'EOF'
           const configuredAccountId = process.env.CLOUDFLARE_ACCOUNT_ID;
           const token = process.env.CLOUDFLARE_API_TOKEN;
+          const adminPassword = process.env.PAGES_ADMIN_PASSWORD;
+          const jwtSecret = process.env.PAGES_JWT_SECRET;
           const projectName = process.env.PAGES_PROJECT_NAME;
           const databaseName = process.env.D1_DATABASE_NAME;
           const bindingName = process.env.D1_BINDING_NAME;
@@ -58,6 +60,12 @@ jobs:
 
           if (!token) {
             throw new Error('Missing CLOUDFLARE_ACCOUNT_ID or CLOUDFLARE_API_TOKEN.');
+          }
+
+          if (!adminPassword || !jwtSecret) {
+            throw new Error(
+              'Missing PAGES_ADMIN_PASSWORD or PAGES_JWT_SECRET. These secrets are required for production deployments.'
+            );
           }
 
           if (configuredAccountId && !/^[a-f0-9]{32}$/i.test(configuredAccountId)) {

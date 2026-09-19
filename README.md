@@ -108,6 +108,8 @@ GitHub Actions 会自动完成这些步骤：
 
 - `CLOUDFLARE_ACCOUNT_ID`
 - `CLOUDFLARE_API_TOKEN`
+- `PAGES_ADMIN_PASSWORD`
+- `PAGES_JWT_SECRET`
 
 `CLOUDFLARE_API_TOKEN` 最小建议权限：
 
@@ -177,3 +179,7 @@ npm --prefix pages install
 - `CLOUDFLARE_API_TOKEN` 是否为 API Token，而不是 Global API Key
 - Token 是否同时包含 Pages 和 D1 的编辑权限
 - Token 是否能访问目标 Cloudflare Account
+
+### GitHub Actions 报缺少生产密钥
+
+部署会明确要求配置 `PAGES_ADMIN_PASSWORD` 和 `PAGES_JWT_SECRET`。缺少任意一个都会停止部署，避免线上回落到公开的默认管理员密码。

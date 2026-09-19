@@ -9,7 +9,7 @@
     "activeTab"
   ],
   "host_permissions": [
-    "https://new-nav.pages.dev/*",
+    "https://bookmark-navigator-pages.pages.dev/*",
     "http://localhost:*/*",
     "http://127.0.0.1:*/*"
   ],

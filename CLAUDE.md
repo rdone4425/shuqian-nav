@@ -79,7 +79,7 @@ The admin area is **mid-migration from multi-page to a single hash-routed SPA**,
 
 - **Schema is one file: `db/schema.sql`** — keep it idempotent (`CREATE TABLE IF NOT EXISTS`, `INSERT OR IGNORE` seeds). CI re-applies it on every deploy, so all schema changes go here, not into migration code.
 - **Deploy** (`.github/workflows/frontend_pagefunction_deploy.yml`, on push to `main`): npm ci → `npm test` gate → ensure-D1-and-Pages-project (idempotent Cloudflare API script that also patches env vars from secrets) → apply `db/schema.sql` to remote D1 → `wrangler pages deploy ../public`. The `database_id` in `pages/wrangler.toml` is a placeholder (`0000…0`) that CI patches with the resolved D1 id at deploy time.
-- Required secrets: `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` (Pages: Edit + D1: Edit). Optional: `PAGES_ADMIN_PASSWORD`, `PAGES_JWT_SECRET`, `PAGES_CRON_SECRET`, and the `PUBLIC_API_TOKEN_MANAGEMENT` repo var.
+- Required secrets: `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` (Pages: Edit + D1: Edit), `PAGES_ADMIN_PASSWORD`, and `PAGES_JWT_SECRET`. Optional: `PAGES_CRON_SECRET` and the `PUBLIC_API_TOKEN_MANAGEMENT` repo var.
 - Several legacy entry points (`/setup-password`, `/diagnose`, `/api/system/reset-database`, …) were removed and now 301 to live routes via `public/_redirects`; don't reintroduce them.
 
 ## Companion: `chrome/`
