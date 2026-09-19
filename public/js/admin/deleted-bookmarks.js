@@ -9,6 +9,8 @@ class DeletedBookmarksManager {
     this.deletedRecords = [];
     this.pendingRestoreId = null;
     this.selectedRecordIds = new Set();
+    this.selectingAll = false;
+    this.totalRecords = 0;
   }
 
   async init() {
@@ -32,7 +34,21 @@ class DeletedBookmarksManager {
     document
       .getElementById("selectAllRecords")
       .addEventListener("change", (event) => {
+        this.selectingAll = false;
         this.selectAllVisible(event.target.checked);
+      });
+
+    document
+      .getElementById("selectAllMatching")
+      .addEventListener("change", (event) => {
+        this.selectingAll = event.target.checked;
+        if (this.selectingAll) {
+          this.selectedRecordIds.clear();
+          document.querySelectorAll(".record-select").forEach((checkbox) => {
+            checkbox.checked = false;
+          });
+        }
+        this.updateBulkControls();
       });
 
     document
@@ -166,6 +182,8 @@ class DeletedBookmarksManager {
 
       this.deletedRecords = response.data?.bookmarks || [];
       this.totalPages = response.data?.pagination?.totalPages || 1;
+      this.totalRecords = response.data?.pagination?.total || 0;
+      this.selectingAll = false;
       this.selectedRecordIds.clear();
 
       this.displayRecords();
@@ -174,6 +192,8 @@ class DeletedBookmarksManager {
       this.updateBulkControls();
     } catch (error) {
       this.deletedRecords = [];
+      this.totalRecords = 0;
+      this.selectingAll = false;
       this.selectedRecordIds.clear();
       recordsList.innerHTML = `<div class="empty-state">加载失败：${AdminUI.escapeHtml(error.message)}</div>`;
       this.updatePagination();
@@ -358,18 +378,40 @@ class DeletedBookmarksManager {
     const selectedRecords = this.getSelectedRecords();
     const selectedCount = selectedRecords.length;
     const totalVisible = this.deletedRecords.length;
+    const totalAll = this.totalRecords;
     const selectAll = document.getElementById("selectAllRecords");
+    const selectAllMatching = document.getElementById("selectAllMatching");
     const selectedCountEl = document.getElementById("selectedCount");
     const batchRestoreBtn = document.getElementById("batchRestoreBtn");
     const batchDeleteBtn = document.getElementById("batchDeleteBtn");
 
-    selectedCountEl.textContent = `已选择 ${selectedCount} 条`;
-    batchRestoreBtn.disabled = selectedCount === 0;
-    batchDeleteBtn.disabled = selectedCount === 0;
+    if (selectAllMatching) {
+      const matchingLabel = document.getElementById("selectAllMatchingLabel");
+      if (matchingLabel) {
+        matchingLabel.textContent =
+          totalAll > 0 ? `全部 ${totalAll} 条` : "全部记录";
+      }
+      selectAllMatching.checked = this.selectingAll;
+      selectAllMatching.disabled = totalAll === 0;
+    }
 
-    selectAll.checked = totalVisible > 0 && selectedCount === totalVisible;
-    selectAll.indeterminate = selectedCount > 0 && selectedCount < totalVisible;
-    selectAll.disabled = totalVisible === 0;
+    if (this.selectingAll) {
+      selectedCountEl.textContent = `已选择全部 ${totalAll} 条`;
+      selectAll.checked = false;
+      selectAll.indeterminate = false;
+      selectAll.disabled = true;
+    } else {
+      selectedCountEl.textContent = `已选择 ${selectedCount} 条`;
+      selectAll.checked = totalVisible > 0 && selectedCount === totalVisible;
+      selectAll.indeterminate =
+        selectedCount > 0 && selectedCount < totalVisible;
+      selectAll.disabled = totalVisible === 0;
+    }
+
+    batchRestoreBtn.disabled = this.selectingAll || selectedCount === 0;
+    batchDeleteBtn.disabled = this.selectingAll
+      ? totalAll === 0
+      : selectedCount === 0;
   }
 
   async batchRestoreSelected() {
@@ -401,19 +443,28 @@ class DeletedBookmarksManager {
   }
 
   async batchPermanentDeleteSelected() {
-    const targets = this.getSelectedRecords();
-    if (!targets.length) {
+    const useAll = this.selectingAll;
+    const targets = useAll ? [] : this.getSelectedRecords();
+    if (!useAll && !targets.length) {
       return;
     }
 
+    const total = useAll ? this.totalRecords : targets.length;
     const confirmed = await AdminUI.confirm({
       title: "批量永久删除",
-      message: `确定永久删除选中的 ${targets.length} 条记录吗？`,
+      message: useAll
+        ? `确定永久删除当前筛选下的全部 ${total} 条记录吗？`
+        : `确定永久删除选中的 ${total} 条记录吗？`,
       hint: "永久删除后无法从回收站恢复，请确认这些记录已经不再需要。",
-      confirmText: "永久删除选中记录",
+      confirmText: "永久删除记录",
       variant: "danger",
     });
     if (!confirmed) {
+      return;
+    }
+
+    if (useAll) {
+      await this.runBatchAllDelete();
       return;
     }
 
@@ -424,6 +475,41 @@ class DeletedBookmarksManager {
       action: async (record) =>
         API.delete(`/api/bookmarks/deleted?id=${record.id}`),
     });
+  }
+
+  async runBatchAllDelete() {
+    const batchRestoreBtn = document.getElementById("batchRestoreBtn");
+    const batchDeleteBtn = document.getElementById("batchDeleteBtn");
+    const originalDeleteText = batchDeleteBtn.textContent;
+
+    batchRestoreBtn.disabled = true;
+    batchDeleteBtn.disabled = true;
+    batchDeleteBtn.textContent = "正在删除...";
+
+    try {
+      const response = await API.post("/api/bookmarks/deleted/batch", {
+        all: true,
+        filter: this.currentFilter,
+        range: this.currentRange,
+        search: this.searchQuery,
+      });
+
+      if (!response.success) {
+        throw new Error(response.error || "批量删除失败");
+      }
+
+      const deleted = response.data?.deleted ?? 0;
+      this.selectingAll = false;
+      this.selectedRecordIds.clear();
+      AdminUI.showToast(`批量删除完成：成功 ${deleted} 条`, "success");
+      await this.loadDeletedRecords();
+    } catch (error) {
+      this.selectingAll = false;
+      AdminUI.showToast(`批量删除失败：${error.message}`, "error");
+      this.updateBulkControls();
+    } finally {
+      batchDeleteBtn.textContent = originalDeleteText;
+    }
   }
 
   async runBatchAction({ targets, busyText, successText, action }) {

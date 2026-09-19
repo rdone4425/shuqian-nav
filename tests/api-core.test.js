@@ -75,6 +75,7 @@ import {
   onRequestGet as deletedListHandler,
   onRequestPost as deletedRestoreHandler,
 } from "../pages/functions/api/bookmarks/deleted.js";
+import { onRequestPost as deletedBatchDeleteHandler } from "../pages/functions/api/bookmarks/deleted/batch.js";
 import {
   onRequestGet as categoryListHandler,
   onRequestPost as categoryCreateHandler,
@@ -2552,6 +2553,95 @@ test("deleted bookmarks list supports reason, time range, and search filters", a
   assert.equal(listQuery.params[3], "%linux%");
   assert.equal(listQuery.params[4], 10);
   assert.equal(listQuery.params[5], 10);
+});
+
+test("deleted bookmarks batch delete supports ids and select-all criteria", async () => {
+  const captured = [];
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        return null;
+      },
+      runResult({ sql, params }) {
+        captured.push({ sql, params });
+        return { success: true, meta: { changes: 3 } };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const allResponse = await deletedBatchDeleteHandler({
+    request: new Request("https://example.com/api/bookmarks/deleted/batch", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ all: true, filter: "manual_delete", range: "7d" }),
+    }),
+    env,
+  });
+  const allBody = await allResponse.json();
+  const allQuery = captured.find((entry) =>
+    entry.sql.includes("DELETE FROM deleted_bookmarks"),
+  );
+
+  assert.equal(allResponse.status, 200);
+  assert.equal(allBody.success, true);
+  assert.equal(allBody.data.deleted, 3);
+  assert.match(allQuery.sql, /deleted_reason = \?/);
+  assert.match(allQuery.sql, /deleted_at >= \?/);
+  assert.equal(allQuery.params[0], "manual_delete");
+  assert.match(allQuery.params[1], /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+
+  captured.length = 0;
+  const idsResponse = await deletedBatchDeleteHandler({
+    request: new Request("https://example.com/api/bookmarks/deleted/batch", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({ ids: [3, 1, 3] }),
+    }),
+    env,
+  });
+  const idsBody = await idsResponse.json();
+  const idsQuery = captured.find((entry) =>
+    entry.sql.includes("DELETE FROM deleted_bookmarks"),
+  );
+
+  assert.equal(idsResponse.status, 200);
+  assert.equal(idsBody.data.deleted, 3);
+  assert.match(idsQuery.sql, /id IN \(\?, \?\)/);
+  assert.deepEqual(idsQuery.params, [3, 1]);
+
+  const missingResponse = await deletedBatchDeleteHandler({
+    request: new Request("https://example.com/api/bookmarks/deleted/batch", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({}),
+    }),
+    env,
+  });
+  assert.equal(missingResponse.status, 400);
 });
 
 test("deleted bookmark restore recreates the bookmark and removes the trash record", async () => {
