@@ -19,18 +19,14 @@
     />
     <link
       rel="stylesheet"
-      href="/css/link-checker-enhanced.css?v=nav-20260602-admin-confirm"
+      href="/css/link-checker-enhanced.css?v=nav-20260919-review-bulk-delete"
     />
     <link rel="stylesheet" href="/css/admin.css?v=nav-20260603-admin-layout" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
   <body class="nav-site admin-site">
     <div class="container">
-      <div
-        data-site-header
-        data-page-key="link-checker"
-        class="header"
-      ></div>
+      <div data-site-header data-page-key="link-checker" class="header"></div>
 
       <section class="workspace-section-heading">
         <div>
@@ -167,7 +163,17 @@
         <section id="bookmarksCard" class="bookmarks-section">
           <div class="bookmarks-header">
             <h2>书签列表</h2>
-            <span id="filterStatus" class="bookmarks-stats">等待加载</span>
+            <div class="bookmarks-header-actions">
+              <span id="filterStatus" class="bookmarks-stats">等待加载</span>
+              <button
+                id="deleteReviewBtn"
+                class="btn btn-danger delete-review-btn hidden"
+                type="button"
+                disabled
+              >
+                批量删除待确认
+              </button>
+            </div>
           </div>
           <div id="bookmarksList">
             <div class="bookmarks-stats">正在加载书签...</div>
@@ -189,6 +195,6 @@
     <script src="/js/shared/site-menu.js?v=nav-20260605-admin-menu"></script>
     <script src="/js/shared/admin-common.js?v=nav-20260602-shared-runtime"></script>
     <script src="/js/shared/admin-shell.js?v=nav-20260603-admin-shell"></script>
-    <script src="/js/admin/link-checker-page.js?v=nav-20260602-admin-runtime"></script>
+    <script src="/js/admin/link-checker-page.js?v=nav-20260919-review-bulk-delete"></script>
   </body>
 </html>

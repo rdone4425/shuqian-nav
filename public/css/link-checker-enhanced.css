@@ -1109,3 +1109,43 @@ body {
         justify-content: flex-start !important;
     }
 }
+
+
+/* 待确认批量操作 */
+.bookmarks-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+.delete-review-btn {
+    min-height: 36px;
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-size: var(--font-sm);
+}
+
+.delete-review-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    transform: none;
+}
+
+@media (max-width: 640px) {
+    .bookmarks-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .bookmarks-header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .delete-review-btn {
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+}

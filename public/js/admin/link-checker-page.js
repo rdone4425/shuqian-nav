@@ -2,6 +2,7 @@ const state = {
   bookmarks: [],
   checking: false,
   stopRequested: false,
+  deletingReview: false,
   activeFilter: "all",
 };
 
@@ -47,6 +48,15 @@ function matchesActiveFilter(bookmark) {
 
 function getFilteredBookmarks() {
   return state.bookmarks.filter(matchesActiveFilter);
+}
+
+function getReviewDeleteTargets() {
+  return state.bookmarks.filter(
+    (bookmark) =>
+      bookmark.status === "review" &&
+      bookmark.keepStatus !== "keep" &&
+      !bookmark.deleted,
+  );
 }
 
 function updateFilterControls() {
@@ -156,6 +166,28 @@ function renderBookmarks() {
   updateStats();
 }
 
+function updateReviewBulkAction() {
+  const button = document.getElementById("deleteReviewBtn");
+  if (!button) return;
+
+  const targets = getReviewDeleteTargets();
+  const shouldShow = state.activeFilter === "review";
+
+  button.classList.toggle("hidden", !shouldShow);
+  if (!shouldShow) return;
+
+  if (state.deletingReview) {
+    button.disabled = true;
+    button.textContent = "正在删除...";
+    return;
+  }
+
+  button.disabled = state.checking || targets.length === 0;
+  button.textContent = targets.length
+    ? `批量删除待确认（${targets.length}）`
+    : "批量删除待确认";
+}
+
 function updateStats() {
   const total = state.bookmarks.length;
   const checked = state.bookmarks.filter(isCheckedBookmark).length;
@@ -184,6 +216,7 @@ function updateStats() {
   document.getElementById("progressPercent").textContent = `${percent}%`;
   document.getElementById("progressFill").style.width = `${percent}%`;
   updateFilterControls();
+  updateReviewBulkAction();
 }
 
 async function loadBookmarks() {
@@ -277,6 +310,7 @@ async function startBatchCheck() {
   document.getElementById("startCheckBtn").classList.remove("hidden");
   document.getElementById("stopCheckBtn").classList.add("hidden");
   document.getElementById("progressText").textContent = "本轮检查已完成";
+  updateReviewBulkAction();
 }
 
 function stopBatchCheck() {
@@ -347,6 +381,66 @@ async function deleteBookmark(bookmarkId) {
   } catch (error) {
     AdminUI.showToast(`删除失败：${error.message}`, "error");
   }
+}
+
+async function deleteReviewBookmarks() {
+  const targets = getReviewDeleteTargets();
+
+  if (!targets.length) {
+    AdminUI.showToast("当前没有可批量删除的待确认书签。", "error");
+    return;
+  }
+
+  const confirmed = await AdminUI.confirm({
+    title: "批量删除待确认书签",
+    message: "确定删除 " + targets.length + " 个待确认书签吗？",
+    hint: "已标记保留的书签会自动跳过。删除后的书签会进入回收站，可以在回收站页面恢复。",
+    confirmText: "删除待确认书签",
+    variant: "danger",
+  });
+  if (!confirmed) return;
+
+  state.deletingReview = true;
+  updateReviewBulkAction();
+
+  let successCount = 0;
+  let failedCount = 0;
+
+  for (const bookmark of targets) {
+    try {
+      const response = await BookmarkAPI.deleteBookmark(bookmark.id, {
+        reason: "manual_delete",
+        checkStatus: bookmark.status,
+        statusCode: bookmark.statusCode,
+        errorMessage: bookmark.error,
+        keepStatus: bookmark.keepStatus,
+      });
+
+      if (!response.success) {
+        throw new Error(response.error || "删除书签失败");
+      }
+
+      bookmark.deleted = true;
+      bookmark.status = "deleted";
+      successCount += 1;
+    } catch (error) {
+      failedCount += 1;
+      bookmark.error = error.message;
+    }
+
+    renderBookmarks();
+  }
+
+  state.deletingReview = false;
+  updateReviewBulkAction();
+
+  AdminUI.showToast(
+    "删除完成：成功 " +
+      successCount +
+      " 个" +
+      (failedCount ? "，失败 " + failedCount + " 个" : ""),
+    failedCount ? "error" : "success",
+  );
 }
 
 async function deleteInaccessibleBookmarks() {
@@ -463,6 +557,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   document
     .getElementById("deleteInaccessibleBtn")
     .addEventListener("click", deleteInaccessibleBookmarks);
+  document
+    .getElementById("deleteReviewBtn")
+    .addEventListener("click", deleteReviewBookmarks);
   document.getElementById("statsGrid").addEventListener("click", (event) => {
     const filterButton = event.target.closest("[data-filter]");
     if (!filterButton) return;
