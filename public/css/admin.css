@@ -521,3 +521,50 @@ body.nav-site.admin-site > .container:not(.nav-shell) {
   color: var(--text-primary);
   border-color: var(--border-default);
 }
+
+/* Home mode options */
+.home-mode-options {
+  display: flex;
+  gap: 12px;
+  margin: 16px 0;
+  flex-wrap: wrap;
+}
+.home-mode-option {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.home-mode-option:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+.home-mode-option input {
+  margin-top: 4px;
+}
+.home-mode-label strong {
+  display: block;
+  font-size: 14px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.home-mode-label small {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.management-status {
+  font-size: 13px;
+  margin-left: 12px;
+}
+.management-status.success {
+  color: var(--success);
+}
+.management-status.error {
+  color: var(--error);
+}

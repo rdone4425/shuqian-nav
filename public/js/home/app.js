@@ -92,10 +92,26 @@ const App = {
       this.elements.messageContainer?.classList.add("hidden");
     }, timeout);
   },
+
+  async applyHomeMode() {
+    try {
+      const res = await fetch("/api/system/home-mode", {
+        headers: { Accept: "application/json" },
+      });
+      const data = await res.json();
+      const mode = data.data?.mode || "bookmarks";
+      if (mode === "nav") {
+        document.body.classList.add("home-mode-nav");
+        // Hide category rail, stats, and filter controls in nav mode
+        const rail = document.getElementById("categoryRail");
+        if (rail) rail.closest(".nav-category-panel")?.classList.add("hidden");
+        const stats = document.querySelector(".nav-stats");
+        if (stats) stats.classList.add("hidden");
+        const filterRow = document.querySelector(".nav-filter-row");
+        if (filterRow) filterRow.classList.add("hidden");
+      }
+    } catch (error) {
+      console.warn("读取首页模式失败:", error);
+    }
+  },
 };
-
-document.addEventListener("DOMContentLoaded", async () => {
-  await App.init();
-});
-
-window.App = App;

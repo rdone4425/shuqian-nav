@@ -204,13 +204,14 @@ const BookmarkManager = {
     try {
       this.showLoading();
 
+      const isNavMode = document.body.classList.contains("home-mode-nav");
       const params = {
         page: this.currentPage,
-        limit: 20,
+        limit: isNavMode ? 30 : 20,
         search: this.currentFilters.search,
         category: this.currentFilters.category,
-        sortBy: this.currentFilters.sortBy,
-        sortOrder: this.currentFilters.sortOrder,
+        sortBy: isNavMode ? "popularity" : this.currentFilters.sortBy,
+        sortOrder: isNavMode ? "desc" : this.currentFilters.sortOrder,
       };
 
       const response = await this.fetchJsonOnce("/api/bookmarks", params);

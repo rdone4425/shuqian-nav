@@ -2607,3 +2607,44 @@ body.nav-site {
 .bookmark-card {
   position: relative;
 }
+
+/* Nav mode: compact curated navigation layout */
+.home-mode-nav .bookmarks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+}
+.home-mode-nav .bookmark-card {
+  padding: 12px;
+  border-radius: var(--radius-lg);
+}
+.home-mode-nav .bookmark-card-top {
+  gap: 8px;
+}
+.home-mode-nav .bookmark-favicon {
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+}
+.home-mode-nav .bookmark-title {
+  font-size: 13px;
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.home-mode-nav .bookmark-url {
+  font-size: 11px;
+}
+.home-mode-nav .bookmark-description {
+  display: none;
+}
+.home-mode-nav .bookmark-stats {
+  display: none;
+}
+.home-mode-nav .bookmark-footer {
+  margin-top: 6px;
+}
+.home-mode-nav .hot-badge {
+  display: none;
+}
