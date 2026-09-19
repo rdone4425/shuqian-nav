@@ -126,6 +126,7 @@ export async function onRequestPost(context) {
       categories,
       clearExisting = false,
       clearExistingConfirmation = "",
+      skipDuplicates = true,
     } = await request.json();
 
     if (!Array.isArray(bookmarks)) {
@@ -168,6 +169,7 @@ export async function onRequestPost(context) {
 
     let importedCount = 0;
     let skippedCount = 0;
+    let updatedCount = 0;
     let errorCount = 0;
     const errors = [];
 
@@ -183,6 +185,14 @@ export async function onRequestPost(context) {
         const bookmarkUrl = bookmark.url.trim();
         const bookmarkTitle = bookmark.title.trim();
 
+        let categoryId = null;
+        const categoryName = bookmark.category_name || bookmark.category;
+        if (categoryName) {
+          categoryId =
+            categoryMapping[categoryName] ||
+            (await getOrCreateCategory(env, categoryName));
+        }
+
         if (!clearExisting) {
           const existing = await env.BOOKMARKS_DB.prepare(
             "SELECT id FROM bookmarks WHERE url = ?",
@@ -191,17 +201,40 @@ export async function onRequestPost(context) {
             .first();
 
           if (existing) {
-            skippedCount++;
+            if (skipDuplicates) {
+              skippedCount++;
+              continue;
+            }
+
+            const updateResult = await env.BOOKMARKS_DB.prepare(
+              `
+              UPDATE bookmarks
+              SET
+                title = ?,
+                description = ?,
+                category_id = ?,
+                favicon_url = ?,
+                updated_at = CURRENT_TIMESTAMP
+              WHERE id = ?
+            `,
+            )
+              .bind(
+                bookmarkTitle,
+                bookmark.description || null,
+                categoryId,
+                buildFaviconUrl(bookmarkUrl, bookmark.favicon_url),
+                existing.id,
+              )
+              .run();
+
+            if (updateResult.success) {
+              updatedCount++;
+            } else {
+              errorCount++;
+              errors.push(`Failed to update bookmark: ${bookmarkTitle}`);
+            }
             continue;
           }
-        }
-
-        let categoryId = null;
-        const categoryName = bookmark.category_name || bookmark.category;
-        if (categoryName) {
-          categoryId =
-            categoryMapping[categoryName] ||
-            (await getOrCreateCategory(env, categoryName));
         }
 
         const result = await env.BOOKMARKS_DB.prepare(
@@ -241,11 +274,12 @@ export async function onRequestPost(context) {
       {
         imported: importedCount,
         skipped: skippedCount,
+        updated: updatedCount,
         errors: errorCount,
         total: bookmarks.length,
         errorDetails: errors.slice(0, 10),
       },
-      `Import completed: ${importedCount} imported${skippedCount > 0 ? `, ${skippedCount} skipped` : ""}${errorCount > 0 ? `, ${errorCount} failed` : ""}`,
+      `Import completed: ${importedCount} imported${updatedCount > 0 ? `, ${updatedCount} updated` : ""}${skippedCount > 0 ? `, ${skippedCount} skipped` : ""}${errorCount > 0 ? `, ${errorCount} failed` : ""}`,
     );
   } catch (error) {
     console.error("Bookmark import failed:", error);

@@ -90,6 +90,7 @@ import {
 } from "../pages/functions/api/bookmarks/categories/[id].js";
 import { onRequestPost as bookmarkClearHandler } from "../pages/functions/api/bookmarks/clear.js";
 import { onRequestPost as bookmarkImportHandler } from "../pages/functions/api/bookmarks/import.js";
+import { onRequestPost as importPreviewHandler } from "../pages/functions/api/bookmarks/import-preview.js";
 import { JWTKeyManager } from "../pages/functions/utils/jwt-manager.js";
 import { resetLoginRateLimiterForTests } from "../pages/functions/utils/login-rate-limiter.js";
 import {
@@ -4665,4 +4666,135 @@ test("trash cleanup API saves policy, previews, and deletes expired records", as
   assert.equal(cleanupResponse.status, 200);
   assert.equal(cleanupBody.data.deleted, 4);
   assert.match(cleanupRun.params[0], /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+});
+
+test("import preview reports duplicates and invalid entries", async () => {
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        return null;
+      },
+      allResult({ sql, params }) {
+        if (sql.includes("SELECT url FROM bookmarks WHERE url IN")) {
+          return {
+            results: params
+              .filter((url) => url === "https://existing.example")
+              .map((url) => ({ url })),
+          };
+        }
+        return { results: [] };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await importPreviewHandler({
+    request: new Request("https://example.com/api/bookmarks/import-preview", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({
+        bookmarks: [
+          { title: "Existing", url: "https://existing.example" },
+          { title: "New", url: "https://new.example" },
+          { title: "Bad", url: "not-a-url" },
+        ],
+      }),
+    }),
+    env,
+  });
+
+  const body = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(body.data.total, 3);
+  assert.equal(body.data.invalid, 1);
+  assert.equal(body.data.duplicates, 1);
+  assert.equal(body.data.expectedNew, 1);
+  assert.equal(body.data.duplicateSamples[0].url, "https://existing.example");
+});
+
+test("import updates existing bookmarks when skipDuplicates is false", async () => {
+  const capturedRuns = [];
+  const env = {
+    ADMIN_PASSWORD: "StrongPass123",
+    JWT_SECRET: "test-secret-with-safe-length-1234567890",
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql, params }) {
+        if (sql.includes("FROM system_config WHERE config_key = ?")) {
+          return null;
+        }
+        if (sql.includes("SELECT id FROM bookmarks WHERE url = ?")) {
+          assert.deepEqual(params, ["https://existing.example"]);
+          return { id: 5 };
+        }
+        return null;
+      },
+      runResult({ sql, params }) {
+        capturedRuns.push({ sql, params });
+        if (sql.includes("UPDATE bookmarks")) {
+          return { success: true, meta: { changes: 1 } };
+        }
+        return { success: true, meta: { changes: 1 } };
+      },
+    }),
+  };
+
+  const loginResponse = await loginHandler({
+    request: new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: "StrongPass123" }),
+    }),
+    env,
+  });
+  const loginBody = await loginResponse.json();
+
+  const response = await bookmarkImportHandler({
+    request: new Request("https://example.com/api/bookmarks/import", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${loginBody.token}`,
+      },
+      body: JSON.stringify({
+        bookmarks: [
+          {
+            title: "Updated Title",
+            url: "https://existing.example",
+            description: "Updated",
+          },
+        ],
+        skipDuplicates: false,
+      }),
+    }),
+    env,
+  });
+
+  const body = await response.json();
+  const updateRun = capturedRuns.find((entry) =>
+    entry.sql.includes("UPDATE bookmarks"),
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(body.data.imported, 0);
+  assert.equal(body.data.updated, 1);
+  assert.equal(body.data.skipped, 0);
+  assert.equal(updateRun.params[0], "Updated Title");
+  assert.equal(updateRun.params[4], 5);
 });

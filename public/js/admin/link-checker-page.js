@@ -166,26 +166,63 @@ function renderBookmarks() {
   updateStats();
 }
 
-function updateReviewBulkAction() {
-  const button = document.getElementById("deleteReviewBtn");
-  if (!button) return;
-
-  const targets = getReviewDeleteTargets();
-  const shouldShow = state.activeFilter === "review";
-
-  button.classList.toggle("hidden", !shouldShow);
-  if (!shouldShow) return;
-
-  if (state.deletingReview) {
-    button.disabled = true;
-    button.textContent = "正在删除...";
-    return;
+function getBulkLinkTargets() {
+  if (!["review", "inaccessible"].includes(state.activeFilter)) {
+    return [];
   }
 
-  button.disabled = state.checking || targets.length === 0;
-  button.textContent = targets.length
-    ? `批量删除待确认（${targets.length}）`
-    : "批量删除待确认";
+  return state.bookmarks.filter(
+    (bookmark) =>
+      ["review", "inaccessible"].includes(bookmark.status) &&
+      bookmark.keepStatus !== "keep" &&
+      !bookmark.deleted,
+  );
+}
+
+function updateLinkBulkActions() {
+  const deleteButton = document.getElementById("deleteReviewBtn");
+  const keepButton = document.getElementById("keepReviewBtn");
+  const ignoreButton = document.getElementById("ignoreReviewBtn");
+  const targets = getBulkLinkTargets();
+  const showDelete = state.activeFilter === "review";
+  const showBulk =
+    targets.length > 0 ||
+    ["review", "inaccessible"].includes(state.activeFilter);
+
+  if (deleteButton) {
+    deleteButton.classList.toggle("hidden", !showDelete);
+    if (showDelete) {
+      if (state.deletingReview) {
+        deleteButton.disabled = true;
+        deleteButton.textContent = "正在删除...";
+      } else {
+        deleteButton.disabled = state.checking || targets.length === 0;
+        deleteButton.textContent = targets.length
+          ? `批量删除待确认（${targets.length}）`
+          : "批量删除待确认";
+      }
+    }
+  }
+
+  if (keepButton) {
+    keepButton.classList.toggle("hidden", !showBulk);
+    if (showBulk) {
+      keepButton.disabled = state.checking || targets.length === 0;
+      keepButton.textContent = targets.length
+        ? `批量保留（${targets.length}）`
+        : "批量保留";
+    }
+  }
+
+  if (ignoreButton) {
+    ignoreButton.classList.toggle("hidden", !showBulk);
+    if (showBulk) {
+      ignoreButton.disabled = state.checking || targets.length === 0;
+      ignoreButton.textContent = targets.length
+        ? `批量忽略（${targets.length}）`
+        : "批量忽略";
+    }
+  }
 }
 
 function updateStats() {
@@ -216,7 +253,7 @@ function updateStats() {
   document.getElementById("progressPercent").textContent = `${percent}%`;
   document.getElementById("progressFill").style.width = `${percent}%`;
   updateFilterControls();
-  updateReviewBulkAction();
+  updateLinkBulkActions();
 }
 
 async function loadBookmarks() {
@@ -253,6 +290,14 @@ async function checkBookmark(bookmarkId) {
     (item) => String(item.id) === String(bookmarkId),
   );
   if (!bookmark || bookmark.deleted) return;
+
+  if (bookmark.keepStatus === "ignore") {
+    bookmark.checked = true;
+    bookmark.status = "review";
+    bookmark.error = "已忽略，批量检查时跳过";
+    renderBookmarks();
+    return;
+  }
 
   bookmark.status = "checking";
   bookmark.error = "";
@@ -310,7 +355,7 @@ async function startBatchCheck() {
   document.getElementById("startCheckBtn").classList.remove("hidden");
   document.getElementById("stopCheckBtn").classList.add("hidden");
   document.getElementById("progressText").textContent = "本轮检查已完成";
-  updateReviewBulkAction();
+  updateLinkBulkActions();
 }
 
 function stopBatchCheck() {
@@ -335,9 +380,13 @@ async function updateKeepStatus(bookmarkId, keepStatus) {
     if (bookmark) bookmark.keepStatus = keepStatus;
 
     renderBookmarks();
-    AdminUI.showToast(
-      keepStatus === "keep" ? "书签已标记为保留" : "已取消保留标记",
-    );
+    const statusMessage =
+      keepStatus === "keep"
+        ? "书签已标记为保留"
+        : keepStatus === "ignore"
+          ? "书签已标记为忽略"
+          : "已取消保留标记";
+    AdminUI.showToast(statusMessage);
   } catch (error) {
     AdminUI.showToast(`更新失败：${error.message}`, "error");
   }
@@ -401,7 +450,7 @@ async function deleteReviewBookmarks() {
   if (!confirmed) return;
 
   state.deletingReview = true;
-  updateReviewBulkAction();
+  updateLinkBulkActions();
 
   let successCount = 0;
   let failedCount = 0;
@@ -432,7 +481,7 @@ async function deleteReviewBookmarks() {
   }
 
   state.deletingReview = false;
-  updateReviewBulkAction();
+  updateLinkBulkActions();
 
   AdminUI.showToast(
     "删除完成：成功 " +
@@ -441,6 +490,96 @@ async function deleteReviewBookmarks() {
       (failedCount ? "，失败 " + failedCount + " 个" : ""),
     failedCount ? "error" : "success",
   );
+}
+
+async function bulkUpdateKeepStatus(keepStatus) {
+  const targets = getBulkLinkTargets();
+
+  if (!targets.length) {
+    AdminUI.showToast("当前筛选下没有可批量处理的结果。", "error");
+    return;
+  }
+
+  const label = keepStatus === "keep" ? "保留" : "忽略";
+  const confirmed = await AdminUI.confirm({
+    title: `批量${label}链接检查`,
+    message: `确定将 ${targets.length} 条检查标记为「${label}」吗？`,
+    hint: "这个操作会更新书签保留状态，不会删除书签。",
+    confirmText: `批量${label}`,
+    variant: keepStatus === "keep" ? "primary" : "secondary",
+  });
+  if (!confirmed) return;
+
+  let successCount = 0;
+  let failedCount = 0;
+
+  for (const bookmark of targets) {
+    try {
+      const response = await API.post("/api/bookmarks/keep-status", {
+        bookmarkId: bookmark.id,
+        keepStatus,
+      });
+
+      if (!response.success) {
+        throw new Error(response.error || "更新保留状态失败");
+      }
+
+      bookmark.keepStatus = keepStatus;
+      successCount += 1;
+    } catch {
+      failedCount += 1;
+    }
+
+    renderBookmarks();
+  }
+
+  updateLinkBulkActions();
+  AdminUI.showToast(
+    `批量${label}完成：成功 ${successCount} 条${failedCount ? `，失败 ${failedCount} 条` : ""}`,
+    failedCount ? "error" : "success",
+  );
+}
+
+function exportReportCSV() {
+  const rows = getFilteredBookmarks();
+
+  if (!rows.length) {
+    AdminUI.showToast("当前筛选下没有可导出的记录。", "error");
+    return;
+  }
+
+  const headers = [
+    "id",
+    "title",
+    "url",
+    "category",
+    "status",
+    "statusCode",
+    "keepStatus",
+    "deleted",
+    "error",
+    "createdAt",
+  ];
+  const csvEscape = (value) => {
+    const text = String(value ?? "");
+    return `"${text.replace(/"/g, '""')}"`;
+  };
+  const csv = [
+    headers.join(","),
+    ...rows.map((bookmark) =>
+      headers.map((header) => csvEscape(bookmark[header] ?? "")).join(","),
+    ),
+  ].join("\n");
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `link-checker-${new Date().toISOString().split("T")[0]}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
+  AdminUI.showToast(`已导出 ${rows.length} 条检查结果`, "success");
 }
 
 async function deleteInaccessibleBookmarks() {
@@ -560,6 +699,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   document
     .getElementById("deleteReviewBtn")
     .addEventListener("click", deleteReviewBookmarks);
+  document
+    .getElementById("keepReviewBtn")
+    .addEventListener("click", () => bulkUpdateKeepStatus("keep"));
+  document
+    .getElementById("ignoreReviewBtn")
+    .addEventListener("click", () => bulkUpdateKeepStatus("ignore"));
+  document
+    .getElementById("exportReportBtn")
+    .addEventListener("click", exportReportCSV);
   document.getElementById("statsGrid").addEventListener("click", (event) => {
     const filterButton = event.target.closest("[data-filter]");
     if (!filterButton) return;

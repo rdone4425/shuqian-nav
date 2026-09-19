@@ -1399,3 +1399,5 @@ body {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+.analysis-stats { display:flex; gap:12px; margin-bottom:12px; flex-wrap:wrap; } .analysis-item { padding:6px 10px; border-radius:8px; background:#edf2f7; font-size:14px; font-weight:600; } .preview-list { margin-top:8px; }

@@ -103,6 +103,7 @@ const ImportManager = {
       this.fileData = file;
       this.importData = data;
       this.updatePreview();
+      this.loadImportPreview();
       document.getElementById("nextBtn").disabled = false;
       this.showMessage(
         `成功读取文件，发现 ${data.bookmarks.length} 个书签`,
@@ -242,6 +243,83 @@ const ImportManager = {
         : "");
   },
 
+  async loadImportPreview() {
+    const analysisSection = document.getElementById("importAnalysisSection");
+    if (!analysisSection || !this.importData?.bookmarks?.length) {
+      return;
+    }
+
+    const sampleBookmarks = this.importData.bookmarks.slice(0, 2000);
+    analysisSection.hidden = false;
+    const duplicateCount = document.getElementById("importDuplicateCount");
+    const invalidCount = document.getElementById("importInvalidCount");
+    const expectedNewCount = document.getElementById("importExpectedNewCount");
+    if (duplicateCount) duplicateCount.textContent = "重复检测中...";
+    if (invalidCount) invalidCount.textContent = "检测中...";
+    if (expectedNewCount) expectedNewCount.textContent = "检测中...";
+
+    try {
+      const response = await API.post(
+        "/api/bookmarks/import-preview",
+        { bookmarks: sampleBookmarks },
+        { timeout: 60000 },
+      );
+
+      if (!response.success) {
+        throw new Error(response.error || "导入预览失败");
+      }
+
+      const data = response.data || {};
+      if (duplicateCount) {
+        duplicateCount.textContent = `重复 ${data.duplicates || 0}`;
+      }
+      if (invalidCount) {
+        invalidCount.textContent = `无效 ${data.invalid || 0}`;
+      }
+      if (expectedNewCount) {
+        expectedNewCount.textContent = `预计新增 ${data.expectedNew || 0}`;
+      }
+
+      const duplicateList = document.getElementById("importDuplicateList");
+      const invalidList = document.getElementById("importInvalidList");
+      if (duplicateList) {
+        duplicateList.innerHTML = (data.duplicateSamples || [])
+          .map(
+            (item) => `
+              <div class="preview-item">
+                <div class="item-icon">DUP</div>
+                <div class="item-content">
+                  <div class="item-title">${this.escapeHtml(item.title || "未命名书签")}</div>
+                  <div class="item-url">${this.escapeHtml(item.url || "")}</div>
+                </div>
+              </div>
+            `,
+          )
+          .join("");
+      }
+      if (invalidList) {
+        invalidList.innerHTML = (data.invalidSamples || [])
+          .slice(0, 5)
+          .map(
+            (item) => `
+              <div class="preview-item">
+                <div class="item-icon">ERR</div>
+                <div class="item-content">
+                  <div class="item-title">${this.escapeHtml(item)}</div>
+                </div>
+              </div>
+            `,
+          )
+          .join("");
+      }
+    } catch (error) {
+      if (duplicateCount) duplicateCount.textContent = "重复检测失败";
+      if (invalidCount) invalidCount.textContent = "检测失败";
+      if (expectedNewCount) expectedNewCount.textContent = "检测失败";
+      this.showMessage(`导入预览失败：${error.message}`, "error");
+    }
+  },
+
   previousStep() {
     if (this.currentStep > 1) {
       this.currentStep -= 1;
@@ -333,6 +411,8 @@ const ImportManager = {
       progressText.textContent = "正在导入书签...";
       progressFill.style.width = "20%";
 
+      const skipDuplicates =
+        document.getElementById("skipDuplicates")?.checked !== false;
       const response = await API.post(
         "/api/bookmarks/import",
         {
@@ -340,6 +420,7 @@ const ImportManager = {
           categories: this.importData.categories || [],
           clearExisting,
           clearExistingConfirmation,
+          skipDuplicates,
         },
         { timeout: 180000 },
       );
@@ -368,7 +449,14 @@ const ImportManager = {
   },
 
   showImportResult(data) {
-    const { imported, skipped, errors, total, errorDetails } = data;
+    const {
+      imported,
+      skipped,
+      updated = 0,
+      errors,
+      total,
+      errorDetails,
+    } = data;
     const resultDiv = document.getElementById("importResult");
 
     if (!resultDiv) {
@@ -383,6 +471,7 @@ const ImportManager = {
         <div class="result-stats">
           <div class="stat-item"><div class="stat-number">${total}</div><div class="stat-label">总计</div></div>
           <div class="stat-item success"><div class="stat-number">${imported}</div><div class="stat-label">成功</div></div>
+          ${updated > 0 ? `<div class="stat-item success"><div class="stat-number">${updated}</div><div class="stat-label">覆盖</div></div>` : ""}
           ${skipped > 0 ? `<div class="stat-item warning"><div class="stat-number">${skipped}</div><div class="stat-label">跳过</div></div>` : ""}
           ${errors > 0 ? `<div class="stat-item error"><div class="stat-number">${errors}</div><div class="stat-label">失败</div></div>` : ""}
         </div>

@@ -19,7 +19,7 @@
     />
     <link
       rel="stylesheet"
-      href="/css/link-checker-enhanced.css?v=nav-20260919-review-bulk-delete"
+      href="/css/link-checker-enhanced.css?v=nav-20260919-link-actions"
     />
     <link rel="stylesheet" href="/css/admin.css?v=nav-20260603-admin-layout" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -173,6 +173,29 @@
               >
                 批量删除待确认
               </button>
+              <button
+                id="keepReviewBtn"
+                class="btn btn-primary keep-review-btn hidden"
+                type="button"
+                disabled
+              >
+                批量保留
+              </button>
+              <button
+                id="ignoreReviewBtn"
+                class="btn btn-secondary ignore-review-btn hidden"
+                type="button"
+                disabled
+              >
+                批量忽略
+              </button>
+              <button
+                id="exportReportBtn"
+                class="btn btn-outline export-report-btn"
+                type="button"
+              >
+                导出报告 CSV
+              </button>
             </div>
           </div>
           <div id="bookmarksList">
@@ -195,6 +218,6 @@
     <script src="/js/shared/site-menu.js?v=nav-20260605-admin-menu"></script>
     <script src="/js/shared/admin-common.js?v=nav-20260602-shared-runtime"></script>
     <script src="/js/shared/admin-shell.js?v=nav-20260603-admin-shell"></script>
-    <script src="/js/admin/link-checker-page.js?v=nav-20260919-review-bulk-delete"></script>
+    <script src="/js/admin/link-checker-page.js?v=nav-20260919-link-actions"></script>
   </body>
 </html>

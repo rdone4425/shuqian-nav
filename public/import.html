@@ -19,18 +19,14 @@
     />
     <link
       rel="stylesheet"
-      href="/css/import-enhanced.css?v=nav-20260602-typed-confirm"
+      href="/css/import-enhanced.css?v=nav-20260919-import-preview"
     />
     <link rel="stylesheet" href="/css/admin.css?v=nav-20260603-admin-layout" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
   <body class="nav-site admin-site import-page">
     <div class="container">
-      <div
-        data-site-header
-        data-page-key="import"
-        class="header"
-      ></div>
+      <div data-site-header data-page-key="import" class="header"></div>
 
       <section class="workspace-section-heading">
         <div>
@@ -150,6 +146,23 @@
               </div>
             </div>
 
+            <div class="preview-details" id="importAnalysisSection" hidden>
+              <h3>重复与有效性分析</h3>
+              <div class="analysis-stats">
+                <span class="analysis-item" id="importDuplicateCount"
+                  >重复 0</span
+                >
+                <span class="analysis-item" id="importInvalidCount"
+                  >无效 0</span
+                >
+                <span class="analysis-item" id="importExpectedNewCount"
+                  >预计新增 0</span
+                >
+              </div>
+              <div class="preview-list" id="importDuplicateList"></div>
+              <div class="preview-list" id="importInvalidList"></div>
+            </div>
+
             <div class="preview-details">
               <h3>示例条目</h3>
               <div class="preview-list" id="previewList"></div>
@@ -205,7 +218,8 @@
                     <div class="option-content">
                       <div class="option-title">跳过重复书签</div>
                       <div class="option-desc">
-                        当 URL 重复时，优先保留现有条目。
+                        勾选时跳过重复
+                        URL；取消勾选则覆盖现有条目的标题、描述和分类。
                       </div>
                     </div>
                   </label>
@@ -283,6 +297,6 @@
     <script src="/js/shared/site-menu.js?v=nav-20260605-admin-menu"></script>
     <script src="/js/shared/admin-common.js?v=nav-20260602-shared-runtime"></script>
     <script src="/js/shared/admin-shell.js?v=nav-20260603-admin-shell"></script>
-    <script src="/js/admin/import.js?v=nav-20260602-admin-runtime"></script>
+    <script src="/js/admin/import.js?v=nav-20260919-import-preview"></script>
   </body>
 </html>
