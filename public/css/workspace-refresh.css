@@ -2226,3 +2226,114 @@ body.nav-site {
   font-weight: 800 !important;
   line-height: 1 !important;
 }
+
+/* Compact homepage header -- keep search as the first working surface */
+.nav-site .nav-home {
+  padding-top: 22px !important;
+}
+
+.nav-site .nav-hero {
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 18px !important;
+  min-height: 0 !important;
+  margin-bottom: 14px !important;
+  padding: 16px 20px !important;
+  overflow: visible !important;
+  border-radius: 14px !important;
+  background: rgba(255, 255, 255, 0.62) !important;
+  box-shadow: none !important;
+}
+
+.nav-site .nav-hero::after {
+  display: none !important;
+}
+
+.nav-site .nav-hero-copy {
+  max-width: none !important;
+}
+
+.nav-site .nav-hero-kicker {
+  display: none !important;
+}
+
+.nav-site .nav-hero h1 {
+  max-width: none !important;
+  margin: 0 !important;
+  font-size: 1.35rem !important;
+  letter-spacing: 0 !important;
+  line-height: 1.3 !important;
+}
+
+.nav-site .nav-hero-description {
+  max-width: none !important;
+  margin-top: 4px !important;
+  font-size: 0.86rem !important;
+  line-height: 1.5 !important;
+}
+
+.nav-site .nav-hero-note {
+  display: inline-flex !important;
+  min-width: 0 !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 8px 10px !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  white-space: nowrap !important;
+}
+
+.nav-site .nav-hero-note-label {
+  margin: 0 4px 0 0 !important;
+}
+
+.nav-site .nav-hero-note-hint {
+  display: none !important;
+}
+
+.nav-site .nav-hero-note-key {
+  min-width: 28px !important;
+  padding: 5px 7px !important;
+  font-size: 0.68rem !important;
+}
+
+.nav-site .nav-toolbar {
+  margin-bottom: 16px !important;
+}
+
+@media (max-width: 840px) {
+  .nav-site .nav-home {
+    padding-top: 16px !important;
+  }
+
+  .nav-site .nav-hero {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    padding: 14px 16px !important;
+  }
+
+  .nav-site .nav-hero-note {
+    width: fit-content !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .nav-site .nav-hero {
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+    padding: 12px 14px !important;
+    border-radius: 12px !important;
+  }
+
+  .nav-site .nav-hero h1 {
+    font-size: 1.2rem !important;
+  }
+
+  .nav-site .nav-hero-description {
+    font-size: 0.82rem !important;
+  }
+
+  .nav-site .nav-hero-note {
+    display: none !important;
+  }
+}
