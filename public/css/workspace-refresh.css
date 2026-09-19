@@ -2391,3 +2391,219 @@ body.nav-site {
   color: color-mix(in srgb, var(--category-accent, var(--card-accent)) 78%, #111827) !important;
   border-color: color-mix(in srgb, var(--category-accent, var(--card-accent)) 36%, white) !important;
 }
+
+/* Tags on bookmark cards */
+.bookmark-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+.bookmark-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* Dark mode toggle */
+.dark-mode-toggle {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border-light);
+  background: var(--bg-surface);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: background 0.2s, border-color 0.2s;
+  z-index: 100;
+}
+.dark-mode-toggle:hover {
+  background: var(--bg-hover);
+}
+
+/* Dark theme overrides */
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-canvas: #0f1419;
+  --bg-panel: rgba(20, 28, 40, 0.85);
+  --bg-surface: #1a2332;
+  --bg-elevated: #243044;
+  --bg-hover: #1e2a3e;
+  --bg-active: #2a3a52;
+  --bg-primary: var(--bg-surface);
+  --bg-secondary: #151d2b;
+  --bg-soft: #1c2739;
+  --bg-glass: rgba(26, 35, 50, 0.78);
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-faint: #475569;
+  --text-light: #334155;
+  --border-subtle: rgba(148, 163, 184, 0.1);
+  --border-default: rgba(148, 163, 184, 0.2);
+  --border-strong: rgba(148, 163, 184, 0.35);
+  --border-light: #2d3f57;
+  --border-medium: #3b4f68;
+  --accent-subtle: rgba(59, 130, 246, 0.15);
+}
+[data-theme="dark"] .bookmark-card {
+  background: var(--bg-surface);
+  border-color: var(--border-default);
+}
+[data-theme="dark"] .bookmark-card:hover {
+  background: var(--bg-elevated);
+}
+[data-theme="dark"] .nav-hero-copy h1 {
+  color: var(--text-primary);
+}
+[data-theme="dark"] .nav-hero-copy p {
+  color: var(--text-secondary);
+}
+[data-theme="dark"] .search-box {
+  background: var(--bg-surface);
+  border-color: var(--border-default);
+}
+[data-theme="dark"] .search-input {
+  color: var(--text-primary);
+}
+[data-theme="dark"] .filter-select {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+[data-theme="dark"] .view-btn {
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  border-color: var(--border-default);
+}
+[data-theme="dark"] .view-btn.active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+[data-theme="dark"] .category-rail button {
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  border-color: var(--border-default);
+}
+[data-theme="dark"] .category-rail button.active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+/* Share page styles */
+.share-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-canvas);
+  padding: 40px 20px;
+}
+.share-card {
+  max-width: 480px;
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  padding: 32px;
+  text-align: center;
+}
+.share-card .share-favicon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+.share-card h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  word-break: break-all;
+}
+.share-card .share-url {
+  font-size: 14px;
+  color: var(--accent);
+  word-break: break-all;
+  margin-bottom: 16px;
+}
+.share-card .share-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+.share-card .share-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.share-card .share-actions a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.share-card .share-open {
+  background: var(--accent);
+  color: #fff;
+}
+.share-card .share-copy {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+}
+
+/* Trend chart */
+.trend-chart-container {
+  margin-top: 24px;
+  padding: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+}
+.trend-chart-container h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+.trend-chart-container canvas {
+  width: 100%;
+  height: 120px;
+}
+
+/* Share link on card */
+.bookmark-share-link {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.bookmark-card:hover .bookmark-share-link {
+  opacity: 1;
+}
+.bookmark-card {
+  position: relative;
+}

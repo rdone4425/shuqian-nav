@@ -19,10 +19,10 @@ async function queryBookmarks(env, options, includeHierarchy = true) {
 
   if (search) {
     whereConditions.push(
-      "(b.title LIKE ? OR b.description LIKE ? OR b.url LIKE ?)",
+      "(b.title LIKE ? OR b.description LIKE ? OR b.url LIKE ? OR b.tags LIKE ?)",
     );
     const searchPattern = `%${search}%`;
-    params.push(searchPattern, searchPattern, searchPattern);
+    params.push(searchPattern, searchPattern, searchPattern, searchPattern);
   }
 
   if (category) {
@@ -66,6 +66,9 @@ async function queryBookmarks(env, options, includeHierarchy = true) {
         b.last_visited,
         b.created_at,
         b.updated_at,
+        b.tags,
+        b.popularity_score,
+        b.is_favorite,
         c.id as category_id,
         c.name as category_name,
         c.color as category_color,
@@ -251,7 +254,7 @@ export async function onRequestPost(context) {
       return ResponseHelper.unauthorized(auth.error);
     }
 
-    const { title, url, description, category_id } = await request.json();
+    const { title, url, description, category_id, tags } = await request.json();
     const bookmarkData = {
       title: typeof title === "string" ? title.trim() : title,
       url: typeof url === "string" ? url.trim() : url,
@@ -272,8 +275,8 @@ export async function onRequestPost(context) {
     // 插入新书签
     const result = await env.BOOKMARKS_DB.prepare(
       `
-      INSERT INTO bookmarks (title, url, description, category_id, favicon_url)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO bookmarks (title, url, description, category_id, favicon_url, tags)
+      VALUES (?, ?, ?, ?, ?, ?)
     `,
     )
       .bind(
@@ -282,6 +285,7 @@ export async function onRequestPost(context) {
         bookmarkData.description || null,
         bookmarkData.category_id || null,
         favicon_url,
+        typeof tags === "string" ? tags.trim() : null,
       )
       .run();
 

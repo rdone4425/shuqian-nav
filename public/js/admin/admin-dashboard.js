@@ -225,3 +225,77 @@ if (!window.location.pathname.endsWith("/admin.html")) {
 }
 
 window.AdminDashboardPage = AdminDashboardPage;
+
+// 30-day trend chart
+async function loadTrendChart() {
+  const canvas = document.getElementById("trendChart");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  try {
+    const token =
+      localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
+    const res = await fetch("/api/analytics/trend", {
+      headers: { Authorization: "Bearer " + token, Accept: "application/json" },
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    const points = data.data?.data || [];
+    if (points.length === 0) {
+      ctx.fillStyle = "var(--text-muted, #748399)";
+      ctx.font = "12px sans-serif";
+      ctx.fillText("暂无访问数据", canvas.width / 2 - 40, canvas.height / 2);
+      return;
+    }
+    const w = canvas.width;
+    const h = canvas.height;
+    const maxVal = Math.max(...points.map((p) => p.visits), 1);
+    const stepX = w / (points.length + 1);
+
+    // Clear
+    ctx.clearRect(0, 0, w, h);
+
+    // Draw line
+    ctx.beginPath();
+    ctx.strokeStyle = "#2563eb";
+    ctx.lineWidth = 2;
+    points.forEach((p, i) => {
+      const x = stepX * (i + 1);
+      const y = h - (p.visits / maxVal) * (h - 20) - 10;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Draw area
+    ctx.lineTo(stepX * points.length, h);
+    ctx.lineTo(stepX, h);
+    ctx.closePath();
+    ctx.fillStyle = "rgba(37, 99, 235, 0.08)";
+    ctx.fill();
+
+    // Draw dots
+    points.forEach((p, i) => {
+      const x = stepX * (i + 1);
+      const y = h - (p.visits / maxVal) * (h - 20) - 10;
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fillStyle = "#2563eb";
+      ctx.fill();
+    });
+
+    // Labels (first and last date)
+    ctx.fillStyle = "#748399";
+    ctx.font = "10px sans-serif";
+    ctx.fillText(points[0].date, 4, h - 2);
+    const lastLabel = points[points.length - 1].date;
+    ctx.fillText(lastLabel, w - 50, h - 2);
+
+    // Max value label
+    ctx.fillText("max: " + maxVal, w - 60, 12);
+  } catch (e) {
+    console.warn("Trend chart load failed:", e);
+  }
+}
+document.addEventListener("DOMContentLoaded", () => {
+  loadTrendChart();
+});

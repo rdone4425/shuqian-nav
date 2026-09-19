@@ -325,8 +325,22 @@ const BookmarkManager = {
 
         ${statsParts.length ? `<div class="bookmark-stats">${statsParts.join("")}</div>` : ""}
 
+        ${
+          bookmark.tags
+            ? `<div class="bookmark-tags">${bookmark.tags
+                .split(",")
+                .filter((t) => t.trim())
+                .map(
+                  (t) =>
+                    `<span class="bookmark-tag" style="color: var(--accent); background: var(--accent-subtle);">${t.trim().replace(/&/g, "&amp;").replace(/</g, "&lt;")}</span>`,
+                )
+                .join("")}</div>`
+            : ""
+        }
+
         <div class="bookmark-footer">
           <div class="bookmark-meta">${categoryBadge}</div>
+          <a href="/b/${bookmark.id}" target="_blank" class="bookmark-share-link" title="复制分享链接" data-share-link>↗</a>
         </div>
       </article>
     `;

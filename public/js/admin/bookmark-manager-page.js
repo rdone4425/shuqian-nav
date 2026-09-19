@@ -49,6 +49,7 @@ const BookmarkManagePage = {
       createUrl: document.getElementById("createBookmarkUrl"),
       createDescription: document.getElementById("createBookmarkDescription"),
       createCategory: document.getElementById("createBookmarkCategory"),
+      createTags: document.getElementById("createBookmarkTags"),
       saveCreateBtn: document.getElementById("saveCreateBookmarkBtn"),
       resetCreateBtn: document.getElementById("resetCreateBookmarkBtn"),
     };
@@ -151,6 +152,9 @@ const BookmarkManagePage = {
     if (this.elements.createCategory) {
       this.elements.createCategory.value = "";
     }
+    if (this.elements.createTags) {
+      this.elements.createTags.value = "";
+    }
   },
 
   async saveNewBookmark() {
@@ -158,6 +162,7 @@ const BookmarkManagePage = {
     const url = this.elements.createUrl?.value.trim() || "";
     const description = this.elements.createDescription?.value.trim() || "";
     const categoryId = this.elements.createCategory?.value || null;
+    const tags = this.elements.createTags?.value.trim() || "";
 
     if (!title || !url) {
       AdminUI.showToast("标题和 URL 必填", "error");
@@ -178,6 +183,7 @@ const BookmarkManagePage = {
         url,
         description,
         category_id: categoryId,
+        tags,
       });
 
       if (!response.success) {

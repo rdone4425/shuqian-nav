@@ -475,3 +475,49 @@ body.nav-site.admin-site > .container:not(.nav-shell) {
 }
 
 .backup-list { display:grid; gap:8px; margin-top:12px; } .backup-list-item { display:flex; justify-content:space-between; gap:12px; padding:10px 12px; border:1px solid var(--border-light, #e2e8f0); border-radius:10px; background:#fff; font-size:14px; } .backup-list-item code { font-size:13px; }
+
+/* Admin dark mode toggle */
+.admin-sidebar-dark-toggle {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 8px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.2s;
+}
+.admin-sidebar-dark-toggle:hover {
+  background: var(--bg-hover);
+}
+[data-theme="dark"] .admin-sidebar {
+  background: var(--bg-surface);
+}
+[data-theme="dark"] .admin-sidebar-link {
+  color: var(--text-secondary);
+}
+[data-theme="dark"] .admin-sidebar-link:hover,
+[data-theme="dark"] .admin-sidebar-link.active {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+[data-theme="dark"] .admin-sidebar-label {
+  color: var(--text-muted);
+}
+[data-theme="dark"] .admin-sidebar-logo strong {
+  color: var(--text-primary);
+}
+[data-theme="dark"] .admin-dashboard-card {
+  background: var(--bg-surface);
+  border-color: var(--border-default);
+}
+[data-theme="dark"] .management-input,
+[data-theme="dark"] .management-select {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}

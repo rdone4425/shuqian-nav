@@ -30,6 +30,7 @@
         data-logo-subtitle="你的常用站点入口"
         class="header nav-header"
       ></div>
+      <button id="darkModeToggle" class="dark-mode-toggle" title="切换深色/浅色模式" type="button">🌙</button>
 
       <main class="main-content home-content nav-home">
         <section class="nav-hero" aria-labelledby="homeHeroTitle">
@@ -280,6 +281,42 @@
     <script src="/js/home/ui-enhancements.js?v=nav-20260601-home-split"></script>
     <script src="/js/shared/site-menu.js?v=nav-20260605-admin-menu"></script>
     <script src="/js/home/app.js?v=nav-20260919-home-refactor"></script>
+    <script>
+      // Dark mode toggle
+      (function() {
+        const saved = localStorage.getItem('nav-dark-mode');
+        if (saved === 'dark' || (saved === null && matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+          const btn = document.getElementById('darkModeToggle');
+          if (!btn) return;
+          const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+          btn.textContent = isDark ? '☀️' : '🌙';
+          btn.addEventListener('click', () => {
+            const nowDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            if (nowDark) {
+              document.documentElement.removeAttribute('data-theme');
+              localStorage.setItem('nav-dark-mode', 'light');
+              btn.textContent = '🌙';
+            } else {
+              document.documentElement.setAttribute('data-theme', 'dark');
+              localStorage.setItem('nav-dark-mode', 'dark');
+              btn.textContent = '☀️';
+            }
+          });
+        });
+      })();
+    </script>
+    <script>
+      // Slash key focuses search
+      document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && !['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) {
+          e.preventDefault();
+          document.getElementById('searchInput')?.focus();
+        }
+      });
+    </script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         if (window.I18n) {

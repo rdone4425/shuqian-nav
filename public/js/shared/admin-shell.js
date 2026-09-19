@@ -10,6 +10,16 @@ const AdminShell = {
       return;
     }
 
+    // Apply dark mode from localStorage
+    const savedTheme = localStorage.getItem("nav-dark-mode");
+    if (
+      savedTheme === "dark" ||
+      (savedTheme === null &&
+        matchMedia("(prefers-color-scheme: dark)").matches)
+    ) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+
     const host = document.querySelector("[data-site-header]");
     if (!host || host.getAttribute("data-require-auth") === "false") {
       return;
@@ -45,6 +55,9 @@ const AdminShell = {
           <span>首页</span>
           <small>返回公开导航</small>
         </a>
+        <button class="admin-sidebar-dark-toggle" type="button" data-admin-shell-dark>
+          \u6df1\u8272\u6a21\u5f0f
+        </button>
         <button class="admin-sidebar-logout" type="button" data-admin-shell-logout>
           退出登录
         </button>
@@ -116,6 +129,28 @@ const AdminShell = {
       ?.addEventListener("click", () => {
         window.Auth?.logout?.({ redirect: true });
       });
+
+    // Dark mode toggle
+    const darkToggle = document.querySelector("[data-admin-shell-dark]");
+    const isDark =
+      document.documentElement.getAttribute("data-theme") === "dark";
+    darkToggle?.setAttribute(
+      "textContent",
+      isDark ? "\u5207\u6362\u6d45\u8272" : "\u5207\u6362\u6df1\u8272",
+    );
+    darkToggle?.addEventListener("click", () => {
+      const nowDark =
+        document.documentElement.getAttribute("data-theme") === "dark";
+      if (nowDark) {
+        document.documentElement.removeAttribute("data-theme");
+        localStorage.setItem("nav-dark-mode", "light");
+        darkToggle.textContent = "\u5207\u6362\u6df1\u8272";
+      } else {
+        document.documentElement.setAttribute("data-theme", "dark");
+        localStorage.setItem("nav-dark-mode", "dark");
+        darkToggle.textContent = "\u5207\u6362\u6d45\u8272";
+      }
+    });
   },
 
   escapeHtml(value = "") {
