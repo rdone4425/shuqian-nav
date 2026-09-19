@@ -2213,3 +2213,16 @@ body.nav-site {
     gap: 12px !important;
   }
 }
+
+
+/* Local favicon fallback for homepage cards */
+.nav-site .bookmark-favicon-initial {
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 10px !important;
+  background: rgba(255, 255, 255, 0.82) !important;
+  color: color-mix(in srgb, var(--card-accent, var(--wr-blue)) 62%, var(--wr-ink)) !important;
+  font-size: 1rem !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+}
