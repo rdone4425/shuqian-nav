@@ -46,6 +46,12 @@ const I18n = {
       },
       home: {
         logoSubtitle: "你的常用站点入口",
+        heroKicker: "BOOKMARK WORKSPACE",
+        heroTitle: "把常用网站，放在一个清爽的入口",
+        heroCopy: "快速搜索、按分类浏览，找到你下一步要打开的站点。",
+        shortcutLabel: "快捷搜索",
+        shortcutHint: "聚焦搜索框",
+        categoryKicker: "按分类探索",
         bookmarksKicker: "导航目录",
         bookmarksTitle: "常用站点",
         bookmarksCopy: "所有站点按当前筛选条件展示，点击网址直接访问。",
@@ -123,6 +129,13 @@ const I18n = {
       },
       home: {
         logoSubtitle: "Your everyday site entry",
+        heroKicker: "BOOKMARK WORKSPACE",
+        heroTitle: "A calmer home for the sites you use",
+        heroCopy:
+          "Search quickly, browse by category, and find your next destination.",
+        shortcutLabel: "Quick search",
+        shortcutHint: "Focus the search box",
+        categoryKicker: "Explore by category",
         bookmarksKicker: "Directory",
         bookmarksTitle: "Common sites",
         bookmarksCopy:
