@@ -10,11 +10,23 @@
  * migrations run.
  */
 
-const NAV_CSS_VERSION = "nav-20261028-navsite";
-const NAV_JS_VERSION = "nav-20261028-navsite";
+const NAV_CSS_VERSION = "nav-20261028-v2";
+const NAV_JS_VERSION = "nav-20261028-v3";
 // Bump when the rendered markup or nav.css changes so the edge cache is busted.
-export const NAV_RENDER_VERSION = "2026-10-28.1";
+export const NAV_RENDER_VERSION = "2026-10-28.3";
 const FEATURED_LIMIT = 8;
+const CATEGORY_PALETTE = [
+  "#2563eb",
+  "#0f9f6e",
+  "#d97706",
+  "#dc2626",
+  "#7c3aed",
+  "#0891b2",
+  "#db2777",
+  "#65a30d",
+  "#ea580c",
+  "#4f46e5",
+];
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -79,10 +91,10 @@ function normalizeBookmark(bookmark) {
 }
 
 function groupBookmarks(categories, bookmarks) {
-  const groups = categories.map((category) => ({
+  const groups = categories.map((category, index) => ({
     id: Number(category.id),
     name: String(category.name || "未命名分类"),
-    color: String(category.color || "#3B82F6"),
+    color: categoryColor(category.color, index),
     slug: safeSlug(category.slug, `c-${category.id}`),
     items: [],
   }));
@@ -103,6 +115,16 @@ function groupBookmarks(categories, bookmarks) {
   }
 
   return [...groups, uncategorized].filter((group) => group.items.length > 0);
+}
+
+function categoryColor(value, index) {
+  const color = String(value || "").trim();
+
+  if (/^#[0-9a-f]{6}$/i.test(color) && color.toUpperCase() !== "#6B7280") {
+    return color;
+  }
+
+  return CATEGORY_PALETTE[index % CATEGORY_PALETTE.length];
 }
 
 function searchableText(bookmark, group) {
@@ -151,7 +173,7 @@ function renderGroup(group) {
   const cards = group.items.map((bookmark) => renderCard(bookmark, group));
   const count = group.items.length;
 
-  return `<section class="nav-group" id="cat-${escapeHtml(group.slug)}" data-nav-group>
+  return `<section class="nav-group" id="cat-${escapeHtml(group.slug)}" data-nav-group data-nav-section data-nav-target="${escapeHtml(group.slug)}">
       <header class="nav-group-head">
         <h2><span class="nav-group-dot" style="--dot:${safeColor(group.color)}"></span>${name}</h2>
         <span class="nav-group-count">${count} 个站点</span>
@@ -166,9 +188,10 @@ function renderFeatured(bookmarks, groups) {
   if (!bookmarks.length) return "";
   const groupById = new Map(groups.map((group) => [group.id, group]));
 
-  return `<section class="nav-featured" aria-label="推荐站点" data-nav-group>
+  return `<section class="nav-featured" id="nav-featured" aria-label="推荐站点" data-nav-group>
       <header class="nav-group-head">
-        <h2>推荐</h2>
+        <h2><span class="nav-group-star" aria-hidden="true">★</span>推荐</h2>
+        <span class="nav-group-count">${bookmarks.length} 个站点</span>
       </header>
       <div class="nav-grid nav-grid-featured">
         ${bookmarks
@@ -185,7 +208,9 @@ function renderFeatured(bookmarks, groups) {
 
 function renderChips(groups, total) {
   const chips = groups.map(
-    (group) => `<a class="nav-chip" href="#cat-${escapeHtml(group.slug)}">
+    (
+      group,
+    ) => `<a class="nav-chip" href="#cat-${escapeHtml(group.slug)}" data-nav-target="${escapeHtml(group.slug)}">
           <span class="nav-chip-dot" style="--dot:${safeColor(group.color)}"></span>
           <span>${escapeHtml(group.name)}</span>
           <span class="nav-chip-count">${group.items.length}</span>
@@ -193,9 +218,40 @@ function renderChips(groups, total) {
   );
 
   return `<nav class="nav-chips" aria-label="站点分类">
-        <a class="nav-chip nav-chip-all" href="#nav-directory">全部<span class="nav-chip-count">${total}</span></a>
+        <a class="nav-chip nav-chip-all is-active" href="#top" data-nav-target="all">全部<span class="nav-chip-count">${total}</span></a>
         ${chips.join("\n        ")}
       </nav>`;
+}
+
+function renderSidebar(groups, total) {
+  const items = groups.map(
+    (
+      group,
+    ) => `<a class="nav-side-item" href="#cat-${escapeHtml(group.slug)}" data-nav-target="${escapeHtml(group.slug)}">
+          <span class="nav-side-dot" style="--dot:${safeColor(group.color)}"></span>
+          <span class="nav-side-label">${escapeHtml(group.name)}</span>
+          <span class="nav-side-count">${group.items.length}</span>
+        </a>`,
+  );
+
+  return `<aside class="nav-sidebar" aria-label="分类导航">
+      <div class="nav-sidebar-head">
+        <p class="nav-sidebar-title">站点分类</p>
+        <span class="nav-sidebar-total">${groups.length} 个分类</span>
+      </div>
+      <nav class="nav-sidebar-nav">
+        <a class="nav-side-item is-active" href="#top" data-nav-target="all">
+          <span class="nav-side-label">全部站点</span>
+          <span class="nav-side-count">${total}</span>
+        </a>
+        ${items.join("\n        ")}
+      </nav>
+      <div class="nav-sidebar-foot">
+        <a href="/api/bookmarks/feed?format=rss">RSS</a>
+        <a href="/sitemap.xml">站点地图</a>
+        <a href="/login.html">管理后台</a>
+      </div>
+    </aside>`;
 }
 
 function renderJsonLd({ title, description, origin }) {
@@ -372,50 +428,66 @@ export async function renderNavPage({ env, origin }) {
     })();
   </script>
 </head>
-<body class="nav-page">
+<body class="nav-page" id="top">
+  <a class="nav-skip" href="#nav-directory">跳到站点列表</a>
   <header class="nav-header">
-    <a class="nav-brand" href="/">
-      <span class="nav-brand-mark" aria-hidden="true">N</span>
-      <span class="nav-brand-copy">
-        <strong>${escapeHtml(title)}</strong>
-        <small>${escapeHtml(description)}</small>
-      </span>
-    </a>
-    <label class="nav-search">
-      <span class="visually-hidden">搜索站点</span>
-      <input id="navSearch" type="search" placeholder="搜索站点、标签或网址" autocomplete="off" spellcheck="false">
-      <kbd>/</kbd>
-    </label>
-    <button type="button" class="nav-theme" id="navThemeToggle" aria-label="切换深色模式" title="切换深色模式">🌙</button>
+    <div class="nav-header-inner">
+      <a class="nav-brand" href="/">
+        <span class="nav-brand-mark" aria-hidden="true">N</span>
+        <span class="nav-brand-copy">
+          <h1 class="nav-brand-title">${escapeHtml(title)}</h1>
+          <small>${escapeHtml(description)}</small>
+        </span>
+      </a>
+      <label class="nav-search">
+        <span class="visually-hidden">搜索站点</span>
+        <input id="navSearch" type="search" placeholder="搜索站点、标签或网址" autocomplete="off" spellcheck="false">
+        <kbd>/</kbd>
+      </label>
+      <div class="nav-header-meta">
+        <span class="nav-stat" id="navResultCount" data-total="${total}" aria-live="polite">${total} 个站点</span>
+        <button type="button" class="nav-theme" id="navThemeToggle" aria-label="切换深色模式" title="切换深色模式" aria-pressed="false">🌙</button>
+      </div>
+    </div>
   </header>
 
-  <main class="nav-main">
+  <div class="nav-layout${hasSites ? "" : " nav-layout-empty"}">
     ${
       hasSites
-        ? `${renderChips(groups, total)}
-    ${renderFeatured(featured, groups)}
-    <div class="nav-directory" id="nav-directory">
-      ${groups.map((group) => renderGroup(group)).join("\n      ")}
-    </div>
-    <p class="nav-empty" id="navEmpty" hidden>没有找到匹配的站点，换个关键词试试。</p>`
-        : `<section class="nav-empty-state">
-      <h2>还没有收录站点</h2>
-      <p>登录后台添加第一批站点，首页会自动按分类展示。</p>
-      <a class="nav-empty-link" href="/login.html">进入后台</a>
-    </section>`
+        ? `${renderSidebar(groups, total)}
+    <main class="nav-main" id="nav-directory" data-nav-target="all">
+      <div class="nav-mobile-chips">
+        ${renderChips(groups, total)}
+      </div>
+      ${renderFeatured(featured, groups)}
+      <div class="nav-sections">
+        ${groups.map((group) => renderGroup(group)).join("\n        ")}
+      </div>
+      <p class="nav-empty" id="navEmpty" hidden>没有找到匹配的站点，换个关键词试试。</p>
+    </main>`
+        : `<main class="nav-main nav-main-empty" id="nav-directory">
+      <section class="nav-empty-state">
+        <h2>还没有收录站点</h2>
+        <p>登录后台添加第一批站点，首页会自动按分类展示。</p>
+        <a class="nav-empty-link" href="/login.html">进入后台</a>
+      </section>
+    </main>`
     }
-  </main>
+  </div>
 
   <footer class="nav-footer">
-    <p>${escapeHtml(title)} · 收录 ${total} 个站点</p>
-    <p>
-      <a href="/api/bookmarks/feed?format=rss">RSS</a>
-      <span aria-hidden="true">·</span>
-      <a href="/sitemap.xml">站点地图</a>
-      <span aria-hidden="true">·</span>
-      <a href="/login.html">进入后台</a>
-    </p>
-    <p class="nav-copyright">© ${year} ${escapeHtml(title)}</p>
+    <div class="nav-footer-inner">
+      <div class="nav-footer-brand">
+        <strong>${escapeHtml(title)}</strong>
+        <p>${escapeHtml(description)}</p>
+      </div>
+      <div class="nav-footer-links">
+        <a href="/api/bookmarks/feed?format=rss">RSS 订阅</a>
+        <a href="/sitemap.xml">站点地图</a>
+        <a href="/login.html">管理后台</a>
+      </div>
+      <p class="nav-copyright">© ${year} ${escapeHtml(title)} · 收录 ${total} 个站点</p>
+    </div>
   </footer>
 
   <button type="button" class="nav-top" id="navTop" aria-label="回到顶部" title="回到顶部">↑</button>
