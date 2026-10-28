@@ -82,8 +82,16 @@ export async function onRequestPost(context) {
   const { request, env } = context;
 
   try {
+    const cronSecret = String(env.CRON_SECRET || "").trim();
+
+    if (!cronSecret) {
+      return ResponseHelper.error(
+        "Cron endpoint is disabled. Configure CRON_SECRET to enable it.",
+        503,
+      );
+    }
+
     const authHeader = request.headers.get("Authorization");
-    const cronSecret = env.CRON_SECRET || "default-cron-secret";
 
     if (authHeader !== `Bearer ${cronSecret}`) {
       return ResponseHelper.unauthorized("Unauthorized cron request.");

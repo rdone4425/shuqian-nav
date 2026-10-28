@@ -1,6 +1,10 @@
 // 全局中间件 - 处理CORS和基础安全
+import { getNavVersion, renderNavPage } from "./nav/render.js";
+
 function getHostname(value = "") {
-  return value.split(":")[0];
+  return String(value || "")
+    .split(":")[0]
+    .toLowerCase();
 }
 
 function isLocalHostname(hostname = "") {
@@ -31,6 +35,55 @@ function stripAccessControlHeaders(headers) {
       headers.delete(key);
     }
   }
+}
+
+async function renderHome(context) {
+  const { request, env, waitUntil } = context;
+  const url = new URL(request.url);
+  const noCache = url.searchParams.get("nocache") === "1";
+  const version = await getNavVersion(env);
+  const cache =
+    typeof caches !== "undefined" && caches.default ? caches.default : null;
+  const cacheKey =
+    cache && version !== "unavailable" && !noCache
+      ? new Request(
+          `${url.origin}/__nav_cache?version=${encodeURIComponent(version)}`,
+        )
+      : null;
+
+  if (cache && cacheKey) {
+    try {
+      const cached = await cache.match(cacheKey);
+      if (cached) return cached;
+    } catch (error) {
+      console.warn("Nav page cache read failed:", error);
+    }
+  }
+
+  const html = await renderNavPage({ env, origin: url.origin });
+  const response = new Response(html, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": noCache
+        ? "no-store"
+        : "public, max-age=60, s-maxage=300, stale-while-revalidate=86400",
+    },
+  });
+
+  if (cache && cacheKey) {
+    const put = cache
+      .put(cacheKey, response.clone())
+      .catch((error) => console.warn("Nav page cache write failed:", error));
+
+    if (typeof waitUntil === "function") {
+      waitUntil(put);
+    } else {
+      await put;
+    }
+  }
+
+  return response;
 }
 
 export async function onRequest(context) {
@@ -105,6 +158,28 @@ export async function onRequest(context) {
 
   // 处理实际请求
   try {
+    if (request.method === "GET") {
+      const pathname = new URL(request.url).pathname;
+
+      if (pathname === "/") {
+        try {
+          const rendered = await renderHome(context);
+          const renderedHeaders = new Headers(rendered.headers);
+          stripAccessControlHeaders(renderedHeaders);
+          addHeaders(renderedHeaders, corsHeaders);
+
+          return new Response(rendered.body, {
+            status: rendered.status,
+            statusText: rendered.statusText,
+            headers: renderedHeaders,
+          });
+        } catch (error) {
+          // Fall through to the static fallback page on a render failure.
+          console.error("Navigation homepage render failed:", error);
+        }
+      }
+    }
+
     const response = await next();
     const responseHeaders = new Headers(response.headers);
     stripAccessControlHeaders(responseHeaders);

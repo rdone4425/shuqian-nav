@@ -5,7 +5,7 @@
 当前仓库已经收敛到更简单的运行模型：
 
 - 生产部署由 GitHub Actions 自动准备 Pages 项目和 D1 数据库
-- 数据库结构只认一份 [`db/schema.sql`](./db/schema.sql)
+- 数据库结构 = `db/schema.sql`（全新建库快照）+ `db/migrations/`（存量库升级），两者都由 CI 自动执行
 - 线上不再提供首设密码页、系统诊断页、远程重置数据库页
 - 首次登录可使用默认密码 `admin123`，登录后请立即在页面内修改密码
 
@@ -16,7 +16,8 @@
 ├─ .github/workflows/
 │  └─ frontend_pagefunction_deploy.yml
 ├─ db/
-│  └─ schema.sql
+│  ├─ schema.sql
+│  └─ migrations/
 ├─ pages/
 │  ├─ functions/
 │  ├─ package.json
@@ -53,7 +54,7 @@ ENVIRONMENT=development
 
 `pages/wrangler.toml` 已提交到仓库，通常不需要本地生成。
 
-3. 初始化或更新本地 D1
+3. 初始化或升级本地 D1（会依次执行 schema 和 migrations）
 
 ```bash
 npm run db:init:local
@@ -71,6 +72,15 @@ npm run dev
 npm run dev:local
 ```
 
+### 公开首页
+
+- `/` 由 Pages Functions 服务端渲染（`pages/functions/nav/render.js`），站点和分类直接读 D1，首屏和 SEO 不依赖浏览器 JS。
+- 前端只加载 `/js/nav/nav.js`，负责搜索过滤、主题切换和回到顶部。
+- 站点链接统一走 `/go/:id`（302），同时写入 `click_count` 和 `nav_clicks`；`/b/:id` 是分享页（`noindex`）。
+- `public/index.html` 只是渲染失败时的静态兜底页。
+- 本地改了内容后可用 `/?nocache=1` 跳过边缘缓存；生产环境缓存最多约 5 分钟。
+- `/sitemap.xml` 和 `/robots.txt` 由 Functions 根据请求域名生成。
+
 ### 生产部署
 
 GitHub Actions 会自动完成这些步骤：
@@ -81,7 +91,8 @@ GitHub Actions 会自动完成这些步骤：
 4. 创建或复用 Pages 项目
 5. 创建或复用 D1 数据库
 6. 执行 `db/schema.sql`
-7. 部署 `public/` + `pages/functions/`
+7. 执行 `db/migrations/` 中的增量迁移
+8. 部署 `public/` + `pages/functions/`
 
 工作流文件：
 
@@ -118,15 +129,17 @@ GitHub Actions 会自动完成这些步骤：
 
 ## 常用命令
 
-| 命令                    | 作用                         |
-| ----------------------- | ---------------------------- |
-| `npm run db:init:local` | 初始化本地 D1                |
-| `npm run dev`           | 启动 Pages 本地开发          |
-| `npm run dev:local`     | 使用 `--local` 启动 Pages    |
-| `npm run deploy`        | 手动部署到 Pages             |
-| `npm run lint`          | 检查前后端 JS                |
-| `npm run format:check`  | 检查格式                     |
-| `npm test`              | 运行回归测试、lint、格式检查 |
+| 命令                        | 作用                         |
+| --------------------------- | ---------------------------- |
+| `npm run db:init:local`     | 初始化本地 D1 并执行迁移     |
+| `npm run db:migrate:local`  | 只执行本地 D1 增量迁移       |
+| `npm run db:migrate:remote` | 执行远程 D1 增量迁移         |
+| `npm run dev`               | 启动 Pages 本地开发          |
+| `npm run dev:local`         | 使用 `--local` 启动 Pages    |
+| `npm run deploy`            | 手动部署到 Pages             |
+| `npm run lint`              | 检查前后端 JS                |
+| `npm run format:check`      | 检查格式                     |
+| `npm test`                  | 运行回归测试、lint、格式检查 |
 
 ## 本地配置示例
 

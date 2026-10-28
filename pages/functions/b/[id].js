@@ -24,29 +24,37 @@ export async function onRequestGet(context) {
       return new Response("Bookmark not found", { status: 404 });
     }
 
-    const esc = (s) =>
-      String(s || "")
+    const escapeHtml = (value) =>
+      String(value ?? "")
         .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;");
-    const title = esc(bookmark.title);
-    const url = esc(bookmark.url);
-    const desc = esc(bookmark.description);
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+
+    const isHttpUrl = (value) => /^https?:\/\//i.test(String(value || ""));
+    const safeUrl = isHttpUrl(bookmark.url) ? String(bookmark.url) : "";
+    const title = escapeHtml(bookmark.title);
+    const desc = escapeHtml(bookmark.description);
     const tags = bookmark.tags
       ? bookmark.tags
           .split(",")
           .filter((t) => t.trim())
-          .map((t) => t.trim())
-          .join(" \u00b7 ")
+          .map((t) => escapeHtml(t.trim()))
+          .join(" · ")
       : "";
-    const catName = esc(bookmark.category_name);
-    const catColor = bookmark.category_color || "#3B82F6";
+    const catName = escapeHtml(bookmark.category_name);
+    const catColor = /^#[0-9a-f]{3,8}$/i.test(bookmark.category_color || "")
+      ? bookmark.category_color
+      : "#3B82F6";
 
     const html = `<!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>${title} - \u4e66\u7b7e\u5bfc\u822a</title>
+  <meta name="robots" content="noindex"/>
+  <title>${title} - 书签导航</title>
   <link rel="stylesheet" href="/css/styles.css"/>
   <link rel="stylesheet" href="/css/workspace-refresh.css"/>
   <style>
@@ -59,7 +67,7 @@ export async function onRequestGet(context) {
     .share-card .share-cat { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; margin-bottom: 20px; }
     .share-card .share-favicon { font-size: 48px; margin-bottom: 8px; }
     .share-card .share-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-    .share-card .share-actions a { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; text-decoration: none; }
+    .share-card .share-actions a, .share-card .share-actions button { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; text-decoration: none; font-family: inherit; cursor: pointer; }
     .share-card .share-open { background: var(--accent); color: #fff; }
     .share-card .share-copy { background: var(--bg-hover); color: var(--text-primary); border: 1px solid var(--border-default); }
     .share-card .share-home { color: var(--text-muted); font-size: 12px; margin-top: 24px; display: block; }
@@ -68,17 +76,21 @@ export async function onRequestGet(context) {
 <body class="nav-site">
   <div class="share-page">
     <div class="share-card">
-      <div class="share-favicon">${bookmark.title ? esc(bookmark.title[0].toUpperCase()) : "?"}</div>
+      <div class="share-favicon">${bookmark.title ? escapeHtml(bookmark.title[0].toUpperCase()) : "?"}</div>
       <h1>${title}</h1>
-      <div class="share-url">${url}</div>
+      <div class="share-url">${escapeHtml(bookmark.url)}</div>
       ${bookmark.description ? `<div class="share-desc">${desc}</div>` : ""}
       ${tags ? `<div class="share-tags">${tags}</div>` : ""}
       ${catName ? `<span class="share-cat" style="background: ${catColor}25; color: ${catColor};">${catName}</span>` : ""}
       <div class="share-actions">
-        <a href="${bookmark.url}" target="_blank" rel="noopener" class="share-open">\u6253\u5f00\u94fe\u63a5</a>
-        <a href="javascript:void(0)" onclick="navigator.clipboard.writeText(window.location.href);this.textContent='\u2713 \u5df2\u590d\u5236'" class="share-copy">\u590d\u5236\u5206\u4eab</a>
+        ${
+          safeUrl
+            ? `<a href="/go/${bookmark.id}" target="_blank" rel="noopener noreferrer" class="share-open">打开链接</a>`
+            : `<span class="share-open" aria-disabled="true">链接无效</span>`
+        }
+        <button type="button" class="share-copy" onclick="navigator.clipboard.writeText(window.location.href);this.textContent='✓ 已复制'">复制分享</button>
       </div>
-      <a href="/" class="share-home">\u8fd4\u56de\u4e66\u7b7e\u5bfc\u822a\u9996\u9875</a>
+      <a href="/" class="share-home">返回书签导航首页</a>
     </div>
   </div>
 </body>
@@ -86,7 +98,10 @@ export async function onRequestGet(context) {
 
     return new Response(html, {
       status: 200,
-      headers: { "Content-Type": "text/html; charset=utf-8" },
+      headers: {
+        "Content-Type": "text/html; charset=utf-8",
+        "X-Robots-Tag": "noindex",
+      },
     });
   } catch (error) {
     return new Response(

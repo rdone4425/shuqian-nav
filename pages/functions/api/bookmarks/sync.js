@@ -1,5 +1,6 @@
 import { verifyApiToken } from "../auth/token.js";
 import { ResponseHelper } from "../../utils/response-helper.js";
+import { Validator } from "../../utils/validation.js";
 
 const ROOT_CATEGORY_NAMES = new Set([
   "",
@@ -141,10 +142,21 @@ export async function onRequestPost(context) {
 
     for (const bookmark of bookmarks) {
       try {
-        if (!bookmark.title || !bookmark.url) {
+        const bookmarkUrl =
+          typeof bookmark.url === "string" ? bookmark.url.trim() : "";
+
+        if (!bookmark.title || !bookmarkUrl) {
           errorCount++;
           errors.push(
-            `Bookmark missing required fields: ${bookmark.title || bookmark.url}`,
+            `Bookmark missing required fields: ${bookmark.title || bookmarkUrl}`,
+          );
+          continue;
+        }
+
+        if (!Validator.isValidURL(bookmarkUrl)) {
+          errorCount++;
+          errors.push(
+            `Bookmark has an unsupported URL protocol: ${bookmarkUrl}`,
           );
           continue;
         }
@@ -152,7 +164,7 @@ export async function onRequestPost(context) {
         const existing = await env.BOOKMARKS_DB.prepare(
           "SELECT id FROM bookmarks WHERE url = ?",
         )
-          .bind(bookmark.url)
+          .bind(bookmarkUrl)
           .first();
 
         if (existing) {
@@ -171,10 +183,10 @@ export async function onRequestPost(context) {
         )
           .bind(
             bookmark.title,
-            bookmark.url,
+            bookmarkUrl,
             bookmark.description || "",
             categoryId,
-            generateFaviconUrl(bookmark.url),
+            generateFaviconUrl(bookmarkUrl),
           )
           .run();
 

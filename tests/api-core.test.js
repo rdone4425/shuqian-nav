@@ -72,6 +72,10 @@ import {
   onRequestPut as bookmarkUpdateHandler,
 } from "../pages/functions/api/bookmarks/[id].js";
 import { onRequestPost as bookmarkVisitHandler } from "../pages/functions/api/bookmarks/[id]/visit.js";
+import { onRequestGet as goRedirectHandler } from "../pages/functions/go/[id].js";
+import { onRequestGet as sharePageHandler } from "../pages/functions/b/[id].js";
+import { getNavVersion, renderNavPage } from "../pages/functions/nav/render.js";
+import { onRequest as middlewareHandler } from "../pages/functions/_middleware.js";
 import { onRequestPost as batchDeleteHandler } from "../pages/functions/api/bookmarks/batch-delete.js";
 import { onRequestPost as batchMoveHandler } from "../pages/functions/api/bookmarks/batch-move.js";
 import {
@@ -4797,4 +4801,289 @@ test("import updates existing bookmarks when skipDuplicates is false", async () 
   assert.equal(body.data.skipped, 0);
   assert.equal(updateRun.params[0], "Updated Title");
   assert.equal(updateRun.params[4], 5);
+});
+
+test("go redirect records a click and redirects to the bookmark target", async () => {
+  const writes = [];
+  const env = {
+    BOOKMARKS_DB: createDbMock({
+      firstResult({ sql }) {
+        if (sql.includes("FROM bookmarks")) {
+          return { id: 9, url: "https://example.com/path?q=1", is_visible: 1 };
+        }
+        return null;
+      },
+      runResult({ sql, params }) {
+        writes.push({ sql, params });
+        return { success: true, changes: 1 };
+      },
+    }),
+  };
+  const pending = [];
+
+  const response = await goRedirectHandler({
+    request: new Request("https://nav.test/go/9", {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)",
+        Referer: "https://nav.test/",
+      },
+    }),
+    params: { id: "9" },
+    env,
+    waitUntil: (promise) => pending.push(promise),
+  });
+
+  await Promise.all(pending);
+
+  const update = writes.find((entry) => entry.sql.includes("UPDATE bookmarks"));
+  const insert = writes.find((entry) =>
+    entry.sql.includes("INSERT INTO nav_clicks"),
+  );
+
+  assert.equal(response.status, 302);
+  assert.equal(
+    response.headers.get("Location"),
+    "https://example.com/path?q=1",
+  );
+  assert.equal(response.headers.get("X-Robots-Tag"), "noindex");
+  assert.equal(response.headers.get("Cache-Control"), "no-store");
+  assert.deepEqual(update.params, [9]);
+  assert.deepEqual(insert.params, [
+    9,
+    "https://nav.test/",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)",
+    "",
+    "mobile",
+  ]);
+});
+
+test("go redirect rejects hidden bookmarks, unsafe URLs, and invalid ids", async () => {
+  const hiddenEnv = {
+    BOOKMARKS_DB: createDbMock({
+      firstResult: () => ({
+        id: 1,
+        url: "https://example.com",
+        is_visible: 0,
+      }),
+    }),
+  };
+  const hidden = await goRedirectHandler({
+    request: new Request("https://nav.test/go/1"),
+    params: { id: "1" },
+    env: hiddenEnv,
+    waitUntil: () => {},
+  });
+
+  const unsafeEnv = {
+    BOOKMARKS_DB: createDbMock({
+      firstResult: () => ({
+        id: 2,
+        url: "javascript:alert(document.domain)",
+        is_visible: 1,
+      }),
+    }),
+  };
+  const unsafe = await goRedirectHandler({
+    request: new Request("https://nav.test/go/2"),
+    params: { id: "2" },
+    env: unsafeEnv,
+    waitUntil: () => {},
+  });
+
+  const invalid = await goRedirectHandler({
+    request: new Request("https://nav.test/go/abc"),
+    params: { id: "abc" },
+    env: {},
+    waitUntil: () => {},
+  });
+
+  assert.equal(hidden.status, 404);
+  assert.equal(unsafe.status, 404);
+  assert.equal(invalid.status, 404);
+});
+
+test("share page escapes bookmark fields and routes links through /go", async () => {
+  const env = {
+    BOOKMARKS_DB: createDbMock({
+      firstResult: () => ({
+        id: 5,
+        title: 'Injected" onmouseover="alert(1)',
+        url: 'https://example.com/" onmouseover="alert(1)',
+        description: "<script>alert(1)</script>",
+        tags: "<b>,ok",
+        category_name: 'Cat" onmouseover="alert(1)',
+        category_color: 'red" onmouseover="alert(1)',
+      }),
+    }),
+  };
+
+  const response = await sharePageHandler({ env, params: { id: "5" } });
+  const html = await response.text();
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("X-Robots-Tag"), "noindex");
+  assert.ok(!html.includes('https://example.com/" onmouseover='));
+  assert.ok(!html.includes('Cat" onmouseover='));
+  assert.ok(!html.includes("<script>alert(1)</script>"));
+  assert.ok(html.includes('href="/go/5"'));
+  assert.ok(html.includes("&lt;b&gt;"));
+  assert.ok(html.includes("background: #3B82F6"));
+});
+
+test("weekly check fails closed when CRON_SECRET is not configured", async () => {
+  const env = { BOOKMARKS_DB: createDbMock() };
+
+  const response = await weeklyCheckPostHandler({
+    request: new Request("https://example.com/api/cron/weekly-check", {
+      method: "POST",
+      headers: { Authorization: "Bearer default-cron-secret" },
+    }),
+    env,
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 503);
+  assert.equal(body.success, false);
+  assert.equal(typeof body.timestamp, "string");
+});
+
+function createNavEnvFixture() {
+  return {
+    BOOKMARKS_DB: createDbMock({
+      firstResult: () => ({
+        bookmarks_updated: "2026-10-01 10:00:00",
+        categories_updated: "2026-10-01 10:05:00",
+      }),
+      allResult({ sql }) {
+        if (sql.includes("FROM bookmarks")) {
+          return {
+            results: [
+              {
+                id: 10,
+                title: "<img src=x onerror=alert(1)>工具站",
+                url: "https://example.com/",
+                description: 'A "quoted" description',
+                favicon_url:
+                  "https://www.google.com/s2/favicons?domain=example.com&sz=128",
+                tags: "<b>,tool",
+                category_id: 1,
+                category_name: "工具",
+                category_color: "#10B981",
+                is_pinned: 1,
+                is_featured: 1,
+                sort_order: 1,
+              },
+              {
+                id: 11,
+                title: "未分类站点",
+                url: "https://example.org/",
+                description: "",
+                favicon_url: "",
+                tags: "",
+                category_id: null,
+                category_name: null,
+                category_color: null,
+                is_pinned: 0,
+                is_featured: 1,
+                sort_order: 2,
+              },
+            ],
+          };
+        }
+
+        if (sql.includes("FROM categories")) {
+          return {
+            results: [
+              {
+                id: 1,
+                name: "工具",
+                color: "#10B981",
+                slug: "tools",
+                sort_order: 1,
+              },
+              {
+                id: 2,
+                name: "空分类",
+                color: 'red" onload="x',
+                slug: "empty",
+                sort_order: 2,
+              },
+            ],
+          };
+        }
+
+        if (sql.includes("FROM system_config")) {
+          return {
+            results: [
+              { config_key: "site_title", config_value: "测试导航" },
+              {
+                config_key: "site_description",
+                config_value: '常用站点 "直达"',
+              },
+            ],
+          };
+        }
+
+        return { results: [] };
+      },
+    }),
+  };
+}
+
+test("nav renderer emits server-rendered cards, escapes content, and uses /go links", async () => {
+  const env = createNavEnvFixture();
+  const html = await renderNavPage({ env, origin: "https://nav.test" });
+
+  assert.ok(html.includes('data-nav-page="home"'));
+  assert.ok(html.includes("<title>测试导航"));
+  assert.ok(html.includes("测试导航"));
+  assert.ok(html.includes('href="/go/10"'));
+  assert.ok(html.includes('href="/go/11"'));
+  assert.ok(html.includes('id="cat-tools"'));
+  assert.ok(html.includes("推荐"));
+  assert.ok(html.includes("未分类"));
+  assert.ok(html.includes("&lt;img src=x"));
+  assert.ok(
+    html.includes("google.com/s2/favicons?domain=example.com&amp;sz=128"),
+  );
+  assert.ok(!html.includes("<img src=x"));
+  assert.ok(!html.includes('onload="x'));
+  assert.ok(html.includes("置顶"));
+
+  const version = await getNavVersion(env);
+  assert.ok(version.startsWith("2026-10-01 10:00:00|2026-10-01 10:05:00|"));
+});
+
+test("middleware serves the server-rendered nav page at /", async () => {
+  const env = createNavEnvFixture();
+  const response = await middlewareHandler({
+    request: new Request("https://nav.test/"),
+    env,
+    next: async () => new Response("static fallback", { status: 200 }),
+  });
+  const html = await response.text();
+
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("Content-Type"), /text\/html/);
+  assert.equal(response.headers.get("X-Frame-Options"), "DENY");
+  assert.ok(response.headers.get("Cache-Control").includes("max-age=60"));
+  assert.ok(html.includes('data-nav-page="home"'));
+  assert.ok(html.includes('href="/go/10"'));
+  assert.ok(html.includes("测试导航"));
+});
+
+test("middleware leaves non-home routes to the static assets", async () => {
+  let nextCalled = 0;
+  const response = await middlewareHandler({
+    request: new Request("https://nav.test/about"),
+    env: {},
+    next: async () => {
+      nextCalled += 1;
+      return new Response("asset", { status: 200 });
+    },
+  });
+
+  assert.equal(nextCalled, 1);
+  assert.equal(response.status, 200);
+  assert.equal(await response.text(), "asset");
 });

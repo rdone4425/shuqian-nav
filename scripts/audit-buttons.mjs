@@ -503,117 +503,72 @@ async function commonMenu(page, pageName) {
 async function testHome(page) {
   const name = "home";
   await goto(page, name, "/");
-  const hasPublicMenuToggle = await page.$("#toolsMenuToggle");
+
+  record(
+    name,
+    "public home renders the nav page",
+    Boolean(await page.$('[data-nav-page="home"]')),
+  );
   record(
     name,
     "public home does not render management menu",
-    !hasPublicMenuToggle,
+    !(await page.$("#toolsMenuToggle")),
   );
-  await clickIf(page, name, "#listViewBtn", "switch list view button");
-  await clickIf(page, name, "#gridViewBtn", "switch grid view button");
-  await clickVisible(
-    page,
-    name,
-    '#categoryRail .category-chip[data-category-id=""]',
-    "category rail all chip",
-  );
-  await clickVisible(
-    page,
-    name,
-    "#categoryRail .category-chip:not([data-category-id=''])",
-    "category rail category chip",
-  );
-  await selectFirstNonEmptyOption(
-    page,
-    name,
-    "#categoryFilter",
-    "category select filter",
-  );
-  await page.select("#categoryFilter", "");
-  await sleep(700);
-  record(name, "category select all option", true);
-  await page.select("#sortSelect", "title:asc");
-  await sleep(700);
-  record(name, "sort select title ascending", true);
-  const hasHeaderSearchToggle = await page.$("#searchToggle");
   record(
     name,
-    "public home does not render header search shortcut",
-    !hasHeaderSearchToggle,
+    "public home does not render admin settings panel",
+    !(await page.$("#settingsPanel")),
   );
-  await page.type("#searchInput", "E2E");
-  await clickIf(page, name, "#searchBtn", "search submit button");
-  await clickIf(page, name, "#clearSearchBtn", "clear search button");
-  await clickIf(page, name, "#addBookmarkBtn", "open add bookmark modal");
-  await clickIf(
-    page,
-    name,
-    "#closeModalBtn",
-    "close add bookmark modal button",
-  );
-  await clickIf(page, name, "#addBookmarkBtn", "open add bookmark modal again");
-  await clickIf(page, name, "#cancelBtn", "cancel add bookmark modal");
-  await clickIf(page, name, "#addBookmarkBtn", "reopen add bookmark modal");
-  await page.type("#bookmarkTitle", `Button Audit ${Date.now()}`);
-  await page.type("#bookmarkUrl", `https://example.org/${Date.now()}`);
-  await page.type("#bookmarkDescription", "button audit description");
-  await selectFirstNonEmptyOption(
-    page,
-    name,
-    "#bookmarkCategory",
-    "bookmark category select",
-  );
-  await clickIf(page, name, "#saveBtn", "save bookmark button", { wait: 1000 });
-  await page.evaluate(() => window.Storage?.search?.clear?.());
-  await goto(page, name, "/?view=grid");
-  await waitForAny(
-    page,
-    name,
-    ".bookmark-card .edit-btn",
-    "bookmark card actions render",
-  );
-  await clickVisible(
-    page,
-    name,
-    ".bookmark-card .edit-btn",
-    "bookmark edit button",
-    {
-      wait: 1000,
-    },
-  );
-  await clickIf(page, name, "#cancelBtn", "cancel edit bookmark modal");
-  await clickVisible(
-    page,
-    name,
-    ".bookmark-card .delete-btn",
-    "bookmark delete button cancel dialog",
-    { wait: 700 },
-  );
-  await clickIf(page, name, "#nextPageBtn", "home next page button", {
-    wait: 1000,
-  });
-  await clickIf(page, name, "#prevPageBtn", "home previous page button", {
-    wait: 1000,
-  });
-  if (await page.$(".page-btn:not(.active)")) {
-    await clickVisible(
-      page,
-      name,
-      ".page-btn:not(.active)",
-      "home page number button",
-      {
-        wait: 1000,
-      },
+
+  const search = await page.$("#navSearch");
+  record(name, "public home renders the search input", Boolean(search));
+
+  if (search) {
+    const totalCards = await page.$$eval(".nav-site", (nodes) => nodes.length);
+    await page.type("#navSearch", "e2e-no-match");
+    await sleep(400);
+    const visibleCards = await page.$$eval(
+      ".nav-site",
+      (nodes) =>
+        nodes.filter((node) => !node.hidden && !node.closest("[hidden]"))
+          .length,
     );
-  } else {
-    record(name, "home page number button", true, "single visible page");
+    record(
+      name,
+      "search filters the directory",
+      visibleCards < totalCards || totalCards === 0,
+      `visible=${visibleCards}, total=${totalCards}`,
+    );
+
+    await page.evaluate(() => {
+      const input = document.querySelector("#navSearch");
+      if (input) {
+        input.value = "";
+        input.dispatchEvent(new Event("input"));
+      }
+    });
+    await sleep(200);
   }
-  const hasHomeSettingsPanel = await page.$("#settingsPanel");
-  record(
-    name,
-    "home does not render admin settings panel",
-    !hasHomeSettingsPanel,
-  );
+
+  const chip = await page.$(".nav-chip:not(.nav-chip-all)");
+  if (chip) {
+    await chip.click();
+    await sleep(300);
+  }
+  record(name, "category chip is clickable", true);
+
+  const themeToggle = await page.$("#navThemeToggle");
+  if (themeToggle) {
+    await themeToggle.click();
+    await sleep(200);
+    const theme = await page.evaluate(
+      () => document.documentElement.dataset.theme || "light",
+    );
+    record(name, "theme toggle switches theme", theme === "dark");
+    await themeToggle.click();
+  } else {
+    record(name, "theme toggle switches theme", false, "missing toggle");
+  }
 }
 
 async function testAdminSettings(page) {

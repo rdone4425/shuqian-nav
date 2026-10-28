@@ -1,5 +1,7 @@
 # Admin (后台) UI Unification Plan — shuqian-nav
 
+> **历史方案提示（2026-10）**：`subpages.css`、`token-enhanced.css` 和旧 `public/js/home/*` 已删除；公开首页已改为服务端渲染。本文件保留为后台 UI 演进的参考，落地时以当前代码和 `docs/nav-site-refactor-plan.md` 为准。
+
 A concrete, no-build plan to unify the 9 admin pages on the roadmap's target CSS architecture (`tokens.css` / `base.css` / `components.css` / `admin.css`), building on the existing `AdminShell` + `AdminUI` + `SiteMenu` + `components/header.html` runtime. `home.css` is out of scope.
 
 ---

@@ -6,11 +6,11 @@
 
 ### 公开首页
 
-| 页面                      | 认证                                    | 允许加载                                                                         |
-| ------------------------- | --------------------------------------- | -------------------------------------------------------------------------------- |
-| `/` (`public/index.html`) | 不强制登录，`data-require-auth="false"` | `/js/home/i18n.js`、`/js/shared/api.js`、`/js/shared/site-menu.js`、`/js/home/*` |
+| 页面                      | 认证                       | 允许加载                                                                 |
+| ------------------------- | -------------------------- | ------------------------------------------------------------------------ |
+| `/` (`public/index.html`) | 公开，`data-nav-page="home"` | 不加载 JS；只加载 `/css/nav.css`（服务端渲染页由 `nav/render.js` 输出） |
 
-首页只负责浏览、搜索、分类筛选、排序、打开书签和访问统计。新增、编辑、删除、导入、备份、改密码等管理动作只允许出现在后台页面。
+首页由 Pages Function 在 `_middleware.js` 中服务端渲染：分类、站点卡片和搜索数据都直接来自 D1，客户端只加载 `/js/nav/nav.js` 做搜索过滤、主题切换和回到顶部。`public/index.html` 只是渲染失败时的静态兜底页，因此不加载任何脚本。首页只负责浏览、搜索、分类跳转和点击跳转（`/go/:id`），新增、编辑、删除、导入、备份、改密码等管理动作只允许出现在后台页面。
 
 ### 登录页
 
@@ -36,7 +36,7 @@
 
 后台页面必须加载共享后台运行时和自己的 `/js/admin/...` 页面模块：需要 API 客户端的页面按 `/js/shared/api.js`、`/js/shared/auth.js`、`/js/shared/site-menu.js`、`/js/shared/admin-common.js`、`/js/shared/admin-shell.js`、页面模块的顺序加载；`token.html` 不加载 API 客户端，按 `/js/shared/auth.js`、`/js/shared/site-menu.js`、`/js/shared/admin-common.js`、`/js/shared/admin-shell.js`、`/js/admin/token-page.js` 加载。
 
-后台页面不允许加载 `/js/home/*`。后台业务入口应由 `/js/shared/admin-shell.js` 渲染，不在每个页面重复硬编码同一套工具入口。所有后台页面模块必须先调用 `AdminUI.requireAuth()` 再执行受保护工作。
+后台页面不允许加载 `/js/nav/*`。后台业务入口应由 `/js/shared/admin-shell.js` 渲染，不在每个页面重复硬编码同一套工具入口。所有后台页面模块必须先调用 `AdminUI.requireAuth()` 再执行受保护工作。
 
 ## 当前目录约定
 
@@ -49,15 +49,7 @@ public/js/
     site-menu.js
     admin-common.js
     admin-shell.js
-  home/                    # homepage-only scripts
-    i18n.js
-    app.js
-    bookmarks.js
-    storage.js
-    sorting.js
-    dom-helper.js
-    ui-helper.js
-    ui-enhancements.js
+  home/                    # 已删除（旧 CSR 首页）
   admin/                   # protected admin page modules
     admin-dashboard.js
     admin-settings.js
@@ -68,15 +60,17 @@ public/js/
     link-checker-page.js
     notifications-page.js
     token-page.js
+  nav/                     # public homepage enhancement only
+    nav.js
 ```
 
 ## 根目录约束
 
-`public/js/` 根目录只允许保留 `login.js`。首页脚本必须在 `public/js/home/`，后台页面模块必须在 `public/js/admin/`，共享运行时代码必须在 `public/js/shared/`。
+`public/js/` 根目录只允许保留 `login.js`。首页增强脚本放在 `public/js/nav/`，后台页面模块必须在 `public/js/admin/`，共享运行时代码必须在 `public/js/shared/`。旧的 `public/js/home/` 目录已删除，`/js/home/i18n.js` 等路径不再存在。
 
 ## 加载顺序约束
 
-无构建脚本依赖全局对象，HTML 中的 `<script>` 顺序必须稳定。首页先加载 `/js/home/i18n.js`、`/js/home/storage.js`、`/js/shared/api.js`，再加载 home helpers、`/js/shared/site-menu.js` 和 `/js/home/app.js`。后台页先加载 shared 运行时，再加载 `/js/shared/admin-common.js`、`/js/shared/admin-shell.js` 和本页 `/js/admin/*` 模块。登录页只加载 `/js/shared/auth.js` 和 `/js/login.js`。
+无构建脚本依赖全局对象。首页本身不加载脚本；服务端渲染出的 `/` 只加载 `/js/nav/nav.js`，并且不依赖 `Auth`。后台页先加载 shared 运行时，再加载 `/js/shared/admin-common.js`、`/js/shared/admin-shell.js` 和本页 `/js/admin/*` 模块。登录页只加载 `/js/shared/auth.js` 和 `/js/login.js`。旧的 `/js/home/*` 目录已删除。
 
 所有 HTML 中的本地 `/js/...` 引用都必须带 `?v=nav-...` 缓存版本。除 `/css/styles.css` 外，本地 `/css/...` 引用也必须带 `?v=nav-...`。
 
@@ -87,8 +81,7 @@ Use these checks before merging homepage/admin separation work:
 ```powershell
 node --check scripts/audit-loading-matrix.mjs
 node scripts/audit-loading-matrix.mjs
-node --check public/js/home/app.js
-node --check public/js/home/bookmarks.js
+node --check public/js/nav/nav.js
 node --check public/js/shared/site-menu.js
 node --check public/js/shared/admin-shell.js
 npm test
@@ -96,7 +89,8 @@ npm test
 
 Expected result:
 
-- Only `public/index.html` references `/js/home/*`.
+- `public/index.html` 不加载任何脚本，只作为 SSR 失败时的兜底页。
+- 服务端渲染页只加载 `/js/nav/nav.js`，且不能引用 `Auth`。
 - No page references old homepage paths such as `/js/bookmarks.js` or `/js/utils/sorting.js`.
 - No page references old shared paths such as `/js/auth.js`, `/js/site-menu.js`, `/js/admin-common.js`, or `/js/utils/api.js`.
 - Admin pages load `/js/shared/...` runtime scripts, `/js/shared/admin-shell.js`, and their `/js/admin/...` page modules.

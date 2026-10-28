@@ -120,23 +120,12 @@ function auditHome() {
   const html = readPage(pageName);
   const scripts = getScriptSources(html);
 
-  assertScriptOrder(pageName, scripts, [
-    "/js/home/i18n.js",
-    "/js/home/storage.js",
-    "/js/shared/api.js",
-    "/js/home/sorting.js",
-    "/js/home/dom-helper.js",
-    "/js/home/ui-helper.js",
-    "/js/home/bookmarks.js",
-    "/js/home/ui-enhancements.js",
-    "/js/shared/site-menu.js",
-    "/js/home/app.js",
-  ]);
+  assertScriptOrder(pageName, scripts, []);
 
   assertPage(
     pageName,
-    html.includes('data-require-auth="false"'),
-    "homepage must remain public with data-require-auth=false",
+    html.includes('data-nav-page="home"'),
+    "homepage must declare the public nav page marker",
   );
   assertPage(
     pageName,
@@ -193,7 +182,7 @@ function auditPublicJsRootBoundary() {
     assertPage(
       "public/js",
       allowedRootScripts.has(scriptName),
-      `root script ${scriptName} must move under /js/home/, /js/admin/, or /js/shared/`,
+      `root script ${scriptName} must move under /js/nav/, /js/admin/, or /js/shared/`,
     );
   }
 }
@@ -415,21 +404,15 @@ function auditAdminModulesRequireAuth() {
 }
 
 function auditAuthBoundaryImplementations() {
-  const homeApp = readPublicJs("home/app.js");
-  const homeBookmarks = readPublicJs("home/bookmarks.js");
+  const navScript = readPublicJs("nav/nav.js");
   const siteMenu = readPublicJs("shared/site-menu.js");
   const adminCommon = readPublicJs("shared/admin-common.js");
   const adminShell = readPublicJs("shared/admin-shell.js");
 
   assertPage(
-    "public/js/home/app.js",
-    !/\bAuth\b/.test(homeApp),
-    "homepage controller must not reference the Auth runtime; public homepage stays decoupled from auth",
-  );
-  assertPage(
-    "public/js/home/bookmarks.js",
-    !/\bAuth\b/.test(homeBookmarks),
-    "homepage bookmarks module must not reference the Auth runtime; public homepage stays decoupled from auth",
+    "public/js/nav/nav.js",
+    !/\bAuth\b/.test(navScript),
+    "public nav enhancement must not reference the Auth runtime",
   );
   assertPage(
     "public/js/shared/site-menu.js",
@@ -443,7 +426,7 @@ function auditAuthBoundaryImplementations() {
     /this\.syncAuthState\(host, requireAuth\);[\s\S]{0,80}this\.syncMenuAuthState\(host, requireAuth\);/.test(
       siteMenu,
     ),
-    "site menu must apply guest auth UI even when window.Auth is absent (public homepage)",
+    "site menu must apply guest auth UI even when window.Auth is absent (public pages)",
   );
   assertPage(
     "public/js/shared/admin-common.js",
@@ -770,7 +753,7 @@ function auditLoadingMatrixDocs() {
   ];
   const requiredSnippets = [
     "public/js/shared/",
-    "public/js/home/",
+    "public/js/nav/",
     "public/js/admin/",
     "`public/js/` 根目录只允许保留 `login.js`",
     "/js/shared/auth.js",
@@ -778,7 +761,7 @@ function auditLoadingMatrixDocs() {
     "/js/shared/api.js",
     "/js/shared/admin-common.js",
     "/js/admin/bookmark-manager-page.js",
-    "/js/home/i18n.js",
+    "/js/nav/nav.js",
   ];
 
   for (const snippet of staleSnippets) {

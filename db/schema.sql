@@ -12,6 +12,9 @@ CREATE TABLE IF NOT EXISTS categories (
     name TEXT NOT NULL UNIQUE,
     color TEXT DEFAULT '#3B82F6',
     description TEXT,
+    slug TEXT,
+    sort_order INTEGER DEFAULT 0,
+    is_visible INTEGER DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -39,6 +42,13 @@ CREATE TABLE IF NOT EXISTS bookmarks (
     popularity_score REAL DEFAULT 0,
     tags TEXT,
     is_favorite INTEGER DEFAULT 0,
+    sort_order INTEGER DEFAULT 0,
+    is_pinned INTEGER DEFAULT 0,
+    is_featured INTEGER DEFAULT 0,
+    is_visible INTEGER DEFAULT 1,
+    click_count INTEGER DEFAULT 0,
+    last_click_at DATETIME,
+    source TEXT DEFAULT 'manual',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
@@ -146,6 +156,22 @@ CREATE TABLE IF NOT EXISTS category_analytics (
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS nav_clicks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    bookmark_id INTEGER NOT NULL,
+    clicked_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    referrer TEXT,
+    user_agent TEXT,
+    country TEXT,
+    device TEXT,
+    FOREIGN KEY (bookmark_id) REFERENCES bookmarks(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    version TEXT PRIMARY KEY,
+    applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE INDEX IF NOT EXISTS idx_bookmarks_category ON bookmarks(category_id);
 CREATE INDEX IF NOT EXISTS idx_bookmarks_url ON bookmarks(url);
 CREATE INDEX IF NOT EXISTS idx_bookmarks_title ON bookmarks(title);
@@ -156,6 +182,7 @@ CREATE INDEX IF NOT EXISTS idx_bookmarks_popularity_score ON bookmarks(popularit
 CREATE INDEX IF NOT EXISTS idx_bookmarks_keep_status ON bookmarks(keep_status);
 CREATE INDEX IF NOT EXISTS idx_bookmarks_is_favorite ON bookmarks(is_favorite);
 CREATE INDEX IF NOT EXISTS idx_bookmarks_tags ON bookmarks(tags);
+
 
 CREATE INDEX IF NOT EXISTS idx_bookmark_visits_bookmark_id ON bookmark_visits(bookmark_id);
 CREATE INDEX IF NOT EXISTS idx_bookmark_visits_visit_time ON bookmark_visits(visit_time DESC);
