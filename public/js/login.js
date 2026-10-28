@@ -30,8 +30,10 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       await Auth.login(password);
       const params = new URLSearchParams(window.location.search);
-      const next = params.get("next") || "/";
-      window.location.href = next.startsWith("/") ? next : "/";
+      const next = params.get("next") || "/admin-dashboard.html";
+      window.location.href = next.startsWith("/")
+        ? next
+        : "/admin-dashboard.html";
     } catch (error) {
       setMessage(error.message || "登录失败，请检查密码。", "error");
       passwordInput.select();

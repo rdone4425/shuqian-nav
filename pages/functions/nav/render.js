@@ -10,10 +10,10 @@
  * migrations run.
  */
 
-const NAV_CSS_VERSION = "nav-20261028-v2";
+const NAV_CSS_VERSION = "nav-20261028-v4";
 const NAV_JS_VERSION = "nav-20261028-v3";
 // Bump when the rendered markup or nav.css changes so the edge cache is busted.
-export const NAV_RENDER_VERSION = "2026-10-28.3";
+export const NAV_RENDER_VERSION = "2026-10-28.4";
 const FEATURED_LIMIT = 8;
 const CATEGORY_PALETTE = [
   "#2563eb",
@@ -249,7 +249,7 @@ function renderSidebar(groups, total) {
       <div class="nav-sidebar-foot">
         <a href="/api/bookmarks/feed?format=rss">RSS</a>
         <a href="/sitemap.xml">站点地图</a>
-        <a href="/login.html">管理后台</a>
+        <a href="/admin-dashboard.html">管理后台</a>
       </div>
     </aside>`;
 }
@@ -446,6 +446,7 @@ export async function renderNavPage({ env, origin }) {
       </label>
       <div class="nav-header-meta">
         <span class="nav-stat" id="navResultCount" data-total="${total}" aria-live="polite">${total} 个站点</span>
+        <a class="nav-admin" href="/admin-dashboard.html" title="管理后台" aria-label="管理后台">管理</a>
         <button type="button" class="nav-theme" id="navThemeToggle" aria-label="切换深色模式" title="切换深色模式" aria-pressed="false">🌙</button>
       </div>
     </div>
@@ -469,7 +470,7 @@ export async function renderNavPage({ env, origin }) {
       <section class="nav-empty-state">
         <h2>还没有收录站点</h2>
         <p>登录后台添加第一批站点，首页会自动按分类展示。</p>
-        <a class="nav-empty-link" href="/login.html">进入后台</a>
+        <a class="nav-empty-link" href="/admin-dashboard.html">进入后台</a>
       </section>
     </main>`
     }
@@ -484,7 +485,7 @@ export async function renderNavPage({ env, origin }) {
       <div class="nav-footer-links">
         <a href="/api/bookmarks/feed?format=rss">RSS 订阅</a>
         <a href="/sitemap.xml">站点地图</a>
-        <a href="/login.html">管理后台</a>
+        <a href="/admin-dashboard.html">管理后台</a>
       </div>
       <p class="nav-copyright">© ${year} ${escapeHtml(title)} · 收录 ${total} 个站点</p>
     </div>
