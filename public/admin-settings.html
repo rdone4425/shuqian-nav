@@ -21,6 +21,7 @@
     />
     <link rel="stylesheet" href="/css/management.css?v=nav-20260602-shell" />
     <link rel="stylesheet" href="/css/admin.css?v=nav-20260603-admin-layout" />
+    <link rel="stylesheet" href="/css/admin-v2.css?v=nav-20261028-admin-v2" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   </head>
   <body class="nav-site admin-site">
@@ -42,36 +43,6 @@
       </section>
 
       <main class="management-shell">
-        <section class="management-panel" aria-label="首页展示模式">
-          <div class="management-form-heading">
-            <div>
-              <span class="section-kicker">首页</span>
-              <h3>展示模式</h3>
-              <p>选择首页的展示风格：书签管理视图显示全部站点，精选导航只展示常用热站。</p>
-            </div>
-          </div>
-          <div class="home-mode-options" id="homeModeOptions">
-            <label class="home-mode-option">
-              <input type="radio" name="homeMode" value="bookmarks" />
-              <div class="home-mode-label">
-                <strong>书签管理</strong>
-                <small>显示全部站点，支持搜索、分类和标签筛选。</small>
-              </div>
-            </label>
-            <label class="home-mode-option">
-              <input type="radio" name="homeMode" value="nav" />
-              <div class="home-mode-label">
-                <strong>精选导航</strong>
-                <small>只展示常用热门站点，紧凑导航布局。</small>
-              </div>
-            </label>
-          </div>
-          <div class="management-actions">
-            <button id="saveHomeModeBtn" class="btn btn-primary" type="button">保存模式</button>
-            <span id="homeModeStatus" class="management-status"></span>
-          </div>
-        </section>
-
         <section class="management-panel">
           <div class="management-summary">
             <div class="management-form-heading">
@@ -209,7 +180,7 @@
     <script src="/js/shared/admin-menu.js?v=nav-20260605-admin-menu"></script>
     <script src="/js/shared/site-menu.js?v=nav-20260605-admin-menu"></script>
     <script src="/js/shared/admin-common.js?v=nav-20260602-shared-runtime"></script>
-    <script src="/js/shared/admin-shell.js?v=nav-20260603-admin-shell"></script>
-    <script src="/js/admin/admin-settings.js?v=nav-20260919-feed"></script>
+    <script src="/js/shared/admin-shell.js?v=nav-20261028-admin-shell-v2"></script>
+    <script src="/js/admin/admin-settings.js?v=nav-20261028-admin-v2"></script>
   </body>
 </html>

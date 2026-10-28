@@ -693,7 +693,7 @@ function auditCurrentCacheVersions() {
     ["/js/shared/auth.js", "nav-20260602-auth-cache"],
     ["/js/shared/admin-menu.js", "nav-20260605-admin-menu"],
     ["/js/shared/site-menu.js", "nav-20260605-admin-menu"],
-    ["/js/shared/admin-shell.js", "nav-20260603-admin-shell"],
+    ["/js/shared/admin-shell.js", "nav-20261028-admin-shell-v2"],
     ["/js/admin/bookmark-manager-page.js", "nav-20260605-spa"],
     ["/js/admin/category-manager.js", "nav-20260608-category-parent"],
   ]);

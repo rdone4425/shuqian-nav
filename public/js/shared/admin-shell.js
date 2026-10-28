@@ -46,6 +46,7 @@ const AdminShell = {
             <small>统一管理工作台</small>
           </span>
         </a>
+        <button class="admin-sidebar-close" type="button" data-admin-shell-close aria-label="关闭菜单">×</button>
       </div>
       <nav class="admin-sidebar-nav">
         ${groups.map((group) => this.renderGroup(group, pageKey)).join("")}
@@ -129,6 +130,9 @@ const AdminShell = {
       ?.addEventListener("click", () => {
         window.Auth?.logout?.({ redirect: true });
       });
+    document
+      .querySelector("[data-admin-shell-close]")
+      ?.addEventListener("click", () => setOpen(false));
 
     // Dark mode toggle
     const darkToggle = document.querySelector("[data-admin-shell-dark]");

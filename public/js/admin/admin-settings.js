@@ -7,7 +7,6 @@ const AdminSettingsPage = {
 
     this.bindElements();
     this.bindEvents();
-    this.initHomeMode();
     this.initBackupRecords();
   },
 
@@ -29,9 +28,6 @@ const AdminSettingsPage = {
       backupList: document.getElementById("backupList"),
       copyRss: document.getElementById("copyRssBtn"),
       copyJsonFeed: document.getElementById("copyJsonFeedBtn"),
-      homeModeOptions: document.getElementById("homeModeOptions"),
-      saveHomeModeBtn: document.getElementById("saveHomeModeBtn"),
-      homeModeStatus: document.getElementById("homeModeStatus"),
     };
   },
 
@@ -53,9 +49,6 @@ const AdminSettingsPage = {
       this.changePassword();
     });
 
-    this.elements.saveHomeModeBtn?.addEventListener("click", () => {
-      this.saveHomeMode();
-    });
     this.elements.refreshBackups?.addEventListener("click", () =>
       this.loadBackupRecords(),
     );
@@ -375,52 +368,5 @@ const AdminSettingsPage = {
 
   escapeHtml(value = "") {
     return AdminUI.escapeHtml(value);
-  },
-
-  // 首页展示模式
-  async initHomeMode() {
-    try {
-      const res = await fetch("/api/system/home-mode", {
-        headers: { Accept: "application/json" },
-      });
-      const data = await res.json();
-      const mode = data.data?.mode || "bookmarks";
-      const radio = this.elements.homeModeOptions?.querySelector(
-        `input[name="homeMode"][value="${mode}"]`,
-      );
-      if (radio) radio.checked = true;
-    } catch (error) {
-      console.warn("加载首页模式失败:", error);
-    }
-  },
-
-  async saveHomeMode() {
-    const radio = this.elements.homeModeOptions?.querySelector(
-      'input[name="homeMode"]:checked',
-    );
-    if (!radio) return;
-
-    const token =
-      localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
-    const res = await fetch("/api/system/home-mode", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token,
-      },
-      body: JSON.stringify({ mode: radio.value }),
-    });
-    const data = await res.json();
-    const status = this.elements.homeModeStatus;
-    if (data.success) {
-      status.textContent = "已保存";
-      status.className = "management-status success";
-    } else {
-      status.textContent = data.error || "保存失败";
-      status.className = "management-status error";
-    }
-    setTimeout(() => {
-      if (status) status.textContent = "";
-    }, 3000);
   },
 };
